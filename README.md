@@ -14,7 +14,9 @@ The `jsonb` types properties are LionWeb metapointers.
 
 We use `pgAdmin 4` to test queries and look directly into the database. 
 
-##  Source code
+##  Source code in ./src
 
+### Tools
+Constain code to manipulate the postgres database (create, initialize)
 
-
+### 

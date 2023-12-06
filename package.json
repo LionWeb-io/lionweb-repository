@@ -1,7 +1,7 @@
 {
   "name": "lionweb-repository",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
   "main": "src/server.ts",
   "scripts": {
     "dev": "nodemon src/server.ts",
@@ -13,7 +13,6 @@
   },
   "devDependencies": {
     "prettier": "3.1.0",
-    "ts-node": "10.9.1",
     "typescript": "5.2.2"
   },
   "dependencies": {
