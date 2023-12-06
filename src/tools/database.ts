@@ -4,25 +4,25 @@ import { Client } from "pg";
 
 const init = async (envFile: string, sqlFile: string) => {
     // read environment variables
-    dotenv.config({path: envFile});
+    dotenv.config({ path: envFile });
     // create an instance of the PostgreSQL client
     const client = new Client();
     try {
         // connect to the local database server
         await client.connect();
         // read the contents of the initdb.pgsql file
-        const sql = await fs.readFile( sqlFile, { encoding: "UTF-8" } );
+        const sql = await fs.readFile(sqlFile, { encoding: "UTF-8" });
         // split the file into separate statements
-        client.database
-        const statements = sql.split( /;\s*$/m );
-        for ( const statement of statements ) {
-            if ( statement.length > 3 ) {
+        client.database;
+        const statements = sql.split(/;\s*$/m);
+        for (const statement of statements) {
+            if (statement.length > 3) {
                 // execute each of the statements
-                await client.query( statement );
+                await client.query(statement);
             }
         }
-    } catch ( err ) {
-        console.log( err );
+    } catch (err) {
+        console.log(err);
         throw err;
     } finally {
         // close the database client
@@ -45,8 +45,10 @@ if (command === "create") {
     process.exit(1);
 }
 
-init(envFile, sqlfile).then( () => {
-    console.log( "finished ok" );
-} ).catch( () => {
-    console.log( "finished with errors" );
-} );
+init(envFile, sqlfile)
+    .then(() => {
+        console.log("finished ok");
+    })
+    .catch(() => {
+        console.log("finished with errors");
+    });
