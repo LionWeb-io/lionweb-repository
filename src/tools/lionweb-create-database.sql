@@ -1,5 +1,3 @@
-
-
 CREATE DATABASE lionweb_test
     WITH
     OWNER = postgres
