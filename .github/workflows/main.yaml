@@ -35,8 +35,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
         
-      - name typescript
-        run: tsc
+      - name: tsc
+        uses: icrawl/action-tsc@v1
 
       - name: Connect to PostgreSQL
         # Runs a script that creates a PostgreSQL table, populates
