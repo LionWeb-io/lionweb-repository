@@ -1,5 +1,5 @@
 -- Database: lionweb_test
--- DROP DATABASE IF EXISTS lionweb_test;
+DROP DATABASE IF EXISTS lionweb_test;
 
 CREATE DATABASE lionweb_test
     WITH

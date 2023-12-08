@@ -68,8 +68,6 @@ export class TestClient {
         let x = await this.postWithTimeout(`bulk/retrieve`, { body: { ids: ["ID-2"] }, params: `depthLimit=${depth}`});
         var endTime = performance.now()
         console.log(`Call to query took ${endTime - startTime} milliseconds`)
-
-        // filter out the modelUnitInterfaces
         // console.log("++++++++++++++ result node is " + JSON.stringify(x));
         return x;
     }

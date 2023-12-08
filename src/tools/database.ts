@@ -1,15 +1,21 @@
 import dotenv from "dotenv";
 import fs from "fs-extra";
+import pgPromise from "pg-promise";
 // import  Client from "pg";
-import { config, db } from "../database/DbConnection.js" 
+// import { config, db } from "../database/DbConnection.js" 
 
 const init = async (envFile: string, sqlFile: string) => {
     // read environment variables
     dotenv.config({ path: envFile });
+    let db;
     // create an instance of the PostgreSQL client
     // const client = new Client.Client();
     try {
         // connect to the local database server
+        const pgp = pgPromise();
+        console.log("next")
+        db = pgp( {});
+
         console.log("???")
         // await db.connect();
         console.log("!!!")
@@ -22,16 +28,21 @@ const init = async (envFile: string, sqlFile: string) => {
         for (const statement of statements) {
             if (statement.length > 3) {
                 // execute each of the statements
+                console.log("STATEMENT " + statement)
                 await db.query(statement);
             }
         }
+        console.log("Done SQLing")
     } catch (err) {
         console.error("ERROR: " + err);
         throw err;
     } finally {
         // close the database client
-        // await db.end();
+        console.log("Closing database")
     }
+    // await db.end();
+    console.log("Closed")
+    return true;
 };
 
 const command = process.argv[2];
@@ -52,7 +63,9 @@ if (command === "create") {
 init(envFile, sqlfile)
     .then(() => {
         console.log("finished ok");
+        process.exit(0);
     })
     .catch((e) => {
         console.log("finished with errors: " + JSON.stringify(e));
+        process.exit(1);
     });

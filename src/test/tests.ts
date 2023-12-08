@@ -18,6 +18,7 @@ describe("Library test model", () => {
             "languages": [],
             "nodes": retrieve
         });
+        console.log("Retrieved: " + JSON.stringify(retrieve));
         // No errors expected
         deepEqual(diff.errors, [])
     })

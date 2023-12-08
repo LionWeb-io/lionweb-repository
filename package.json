@@ -19,8 +19,9 @@
     "build": "rm -rf build/ && tsc",
     "alive": "echo I am alive",
     "cleanup": "rm -rf ./node_modules",
-    "test": "node build/test/ManualTests.js",
-    "database": "node build/tools/database"
+    "manualtest": "node build/test/ManualTests.js",
+    "database": "node build/tools/database",
+    "test": "mocha ./build/test/tests.js" 
   },
   "devDependencies": {
     "prettier": "3.1.0",
