@@ -6,12 +6,13 @@ const init = async (envFile: string, sqlFile: string) => {
     // read environment variables
     dotenv.config({ path: envFile });
     // create an instance of the PostgreSQL client
-    const client = new Client();
+    const client = new Client.Client();
     try {
         // connect to the local database server
         await client.connect();
         // read the contents of the initdb.pgsql file
         const sql = await fs.readFile(sqlFile, { encoding: "UTF-8" });
+        console.log("FS: " + JSON.stringify(sql));
         // split the file into separate statements
         client.database;
         const statements = sql.split(/;\s*$/m);
@@ -22,7 +23,7 @@ const init = async (envFile: string, sqlFile: string) => {
             }
         }
     } catch (err) {
-        console.log(err);
+        console.error("ERROR: " + err);
         throw err;
     } finally {
         // close the database client
@@ -49,6 +50,6 @@ init(envFile, sqlfile)
     .then(() => {
         console.log("finished ok");
     })
-    .catch(() => {
-        console.log("finished with errors");
+    .catch((e) => {
+        console.log("finished with errors: " + JSON.stringify(e));
     });
