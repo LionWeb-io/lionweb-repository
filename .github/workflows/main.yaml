@@ -40,7 +40,7 @@ jobs:
         run: npm install
         
       - name: tsc
-        run: tsc -p
+        run: npm run build
 
       - name: Connect to PostgreSQL
         # Runs a script that creates a PostgreSQL table, populates
