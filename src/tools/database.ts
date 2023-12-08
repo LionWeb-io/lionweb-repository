@@ -5,6 +5,14 @@ import pgPromise from "pg-promise";
 const init = async (envFile: string, sqlFile: string) => {
     // read environment variables
     dotenv.config({ path: envFile });
+    const port = parseInt( process.env.PGPORT || "5432", 10 );
+    const config = {
+        database: process.env.PGDATABASE || "postgres",
+        host: process.env.PGHOST || "localhost",
+        port,
+        user: process.env.PGUSER || "postgres",
+        password: process.env.PGPASSWORD || "lionweb"
+    };
     let db;
     // create an instance of the PostgreSQL client
     // const client = new Client.Client();
