@@ -1,25 +1,26 @@
 import dotenv from "dotenv";
 import fs from "fs-extra";
-import  Client from "pg";
+// import  Client from "pg";
+import { config, db } from "../database/DbConnection.js" 
 
 const init = async (envFile: string, sqlFile: string) => {
     // read environment variables
     dotenv.config({ path: envFile });
     // create an instance of the PostgreSQL client
-    const client = new Client.Client();
+    // const client = new Client.Client();
     try {
         // connect to the local database server
-        await client.connect();
+        await db.connect();
         // read the contents of the initdb.pgsql file
         const sql = await fs.readFile(sqlFile, { encoding: "UTF-8" });
         console.log("FS: " + JSON.stringify(sql));
         // split the file into separate statements
-        client.database;
+        // client.database;
         const statements = sql.split(/;\s*$/m);
         for (const statement of statements) {
             if (statement.length > 3) {
                 // execute each of the statements
-                await client.query(statement);
+                await db.query(statement);
             }
         }
     } catch (err) {
@@ -27,7 +28,7 @@ const init = async (envFile: string, sqlFile: string) => {
         throw err;
     } finally {
         // close the database client
-        await client.end();
+        // await db.end();
     }
 };
 

@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const port = parseInt( process.env.PGPORT || "5432", 10 );
+
 export const config = {
     database: process.env.PGDATABASE || "postgres",
     host: process.env.PGHOST || "localhost",
@@ -13,6 +14,8 @@ export const config = {
     user: process.env.PGUSER || "postgres",
     password: process.env.PGPASSWORD || "postgres"
 };
+
+console.log("POSTGRES CONFIG: " + JSON.stringify(config, null, 2))
 
 const pgp = pgPromise();
 export const db = pgp( config );
