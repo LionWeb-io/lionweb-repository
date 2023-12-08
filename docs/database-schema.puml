@@ -1,0 +1,34 @@
+@startuml
+skinparam linetype ortho
+
+entity lionweb_nodes {
+    * id <<KEY>>
+    --
+    * classifier
+    * parent
+}
+entity lionweb_properties {
+    * p_id <<key>>
+    --
+    * property: jsonb
+    * value: text
+    * node_id <FK>
+}
+entity lionweb_containments {
+    * c_id <<key>>
+    --
+    * classifier: jsonb
+    * children: text[]
+    * node_id <FK>
+}
+entity lionweb_references {
+    * r_id <<key>>
+    --
+    * reference: jsonb
+    * targets: text[]
+    * node_id <FK>
+}
+lionweb_nodes  ||--o{ lionweb_properties
+lionweb_nodes  ||--o{ lionweb_containments
+lionweb_nodes  ||--o{ lionweb_references
+@enduml
