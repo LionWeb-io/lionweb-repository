@@ -8,7 +8,7 @@ dotenv.config();
 const port = parseInt( process.env.PGPORT || "5432", 10 );
 
 export const config = {
-    database: process.env.PGDATABASE || "postgres",
+    // database: process.env.PGDATABASE || "postgres",
     host: process.env.PGHOST || "localhost",
     port,
     user: process.env.PGUSER || "postgres",
