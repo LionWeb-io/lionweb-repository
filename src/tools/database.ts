@@ -7,7 +7,7 @@ const init = async (envFile: string, sqlFile: string) => {
     dotenv.config({ path: envFile });
     const port = parseInt( process.env.PGPORT || "5432", 10 );
     const config = {
-        database: process.env.PGDATABASE || "postgres",
+        // database: process.env.PGDATABASE || "postgres",
         host: process.env.PGHOST || "localhost",
         port,
         user: process.env.PGUSER || "postgres",
