@@ -19,7 +19,7 @@ const init = async (envFile: string, sqlFile: string) => {
     try {
         // connect to the local database server
         const pgp = pgPromise();
-        console.log("next")
+        console.log("config " + JSON.stringify(config, null, 2))
         db = pgp( config );
 
         console.log("???")
