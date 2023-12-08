@@ -1,21 +1,37 @@
 {
-  "name": "lionweb-repository",
+  "name": "@lionweb/repository",
   "version": "0.1.0",
   "private": false,
   "main": "src/server.ts",
+  "types": "dist/index.d.ts",
+  "typings": "dist/index.d.ts",
+  "type": "module",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LionWeb-io/lionweb-repository.git"
+  },
+  "bugs": {
+    "url": "https://github.com/LionWeb-io/lionweb-repository/issues"
+  },
   "scripts": {
-    "dev": "nodemon src/server.ts",
+    "dev": "nodemon build/server.js",
     "build": "rm -rf build/ && tsc",
     "alive": "echo I am alive",
     "cleanup": "rm -rf ./node_modules",
-    "test": "node build/lionweb/client/TestClient.js",
+    "test": "node build/test/ManualTests.js",
     "database": "node build/tools/database"
   },
   "devDependencies": {
     "prettier": "3.1.0",
-    "typescript": "5.2.2"
+    "typescript": "5.2.2",
+    "chai": "4.3.10",
+    "@types/chai": "4.3.11",
+    "@types/mocha": "10.0.1",
+    "mocha": "10.2.0"
   },
   "dependencies": {
+    "@lionweb/validation": "0.5.0-beta.9",
     "body-parser": "1.20.2",
     "cors": "2.8.5",
     "express": "4.18.2",
