@@ -5,9 +5,9 @@ jobs:
   # Label of the container job
   container-job:
     # Containers must run in Linux based operating systems
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     # Docker Hub image that `container-job` executes in
-    container: node:lts-jessie
+    container: node:20.10
 
     # Service containers to run with `container-job`
     services:
