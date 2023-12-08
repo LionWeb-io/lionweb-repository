@@ -1,8 +1,6 @@
 import dotenv from "dotenv";
 import fs from "fs-extra";
 import pgPromise from "pg-promise";
-// import  Client from "pg";
-// import { config, db } from "../database/DbConnection.js" 
 
 const init = async (envFile: string, sqlFile: string) => {
     // read environment variables
