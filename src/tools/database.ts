@@ -11,7 +11,7 @@ const init = async (envFile: string, sqlFile: string) => {
     try {
         // connect to the local database server
         console.log("???")
-        await db.connect();
+        // await db.connect();
         console.log("!!!")
         // read the contents of the initdb.pgsql file
         const sql = await fs.readFile(sqlFile, { encoding: "UTF-8" });
