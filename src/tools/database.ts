@@ -9,7 +9,7 @@ const init = async (envFile: string, sqlFile: string) => {
     const config = {
         // database: process.env.PGDATABASE || "postgres",
         host: process.env.PGHOST || "localhost",
-        port,
+        port: port,
         user: process.env.PGUSER || "postgres",
         password: process.env.PGPASSWORD || "lionweb"
     };
