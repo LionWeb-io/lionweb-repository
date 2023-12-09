@@ -33,7 +33,7 @@ export class TestClient {
         console.log("STORING " + JSON.stringify(data));
         var startTime = performance.now()
         let x = await this.putWithTimeout(`bulk/store`, data.nodes);
-        var endTime = performance.now()
+        var endTime = performance.now() 
         console.log(`Call to query took ${endTime - startTime} milliseconds`)
 
         // filter out the modelUnitInterfaces
@@ -128,7 +128,8 @@ export class TestClient {
         try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 2000);
-            console.log("fetching ....")
+            console.log("fetching ...." + `${this._SERVER_URL}${method}${params}`);
+            console.log("Body: " + JSON.stringify(data));
             const promise = await fetch(
                 `${this._SERVER_URL}${method}${params}`,
                 {
@@ -160,8 +161,9 @@ export class TestClient {
         let errorMess: string = e.message;
         if (e.message.includes("aborted")) {
             errorMess = `Time out: no response from ${this._SERVER_URL}.`;
+            console.error(errorMess);
         }
-        console.error( JSON.stringify(e));
+        console.error("hanldeError: " +  JSON.stringify(e));
         // this.onError(errorMess, FreErrorSeverity.NONE);
     }
 }
