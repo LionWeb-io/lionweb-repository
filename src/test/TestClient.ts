@@ -3,7 +3,7 @@ import fs from "fs";
 
 export class TestClient {
     private _nodePort = process.env.NODE_PORT || 3005;
-    private _SERVER_IP = "postgres"; // `http://127.0.0.1`;
+    private _SERVER_IP = `http://127.0.0.1`;
     private _SERVER_URL = `${this._SERVER_IP}:${this._nodePort}/`;
 
 
