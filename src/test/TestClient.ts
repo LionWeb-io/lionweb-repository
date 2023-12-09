@@ -25,7 +25,7 @@ export class TestClient {
 
     async testStore() {
         console.log(`test.store`);
-        const data = this.readModel("./build/test/data/Disk_1.json");
+        const data = this.readModel("./src/test/data/Disk_1.json");
         if (data === null) {
             console.log("Cannot read json data");
             return;
