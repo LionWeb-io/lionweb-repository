@@ -49,12 +49,8 @@ jobs:
         # the table with data, and then retrieves the data.
         run: node build/tools/database.js create && node build/tools/database.js init      
       
-      - name: start server
-        run: npm run dev &
-      - name: wait
-        run: sleep 6
-      - name: run test
-        run: npm run test
+      - name: start server &&
+        run: npm run dev &&  sleep 6 && npm run test
         # Environment variables used by the `client.js` script to create a new PostgreSQL table.
         env:
           # The hostname used to communicate with the PostgreSQL service container
