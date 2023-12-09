@@ -25,11 +25,12 @@ export class TestClient {
 
     async testStore() {
         console.log(`test.store`);
-        const data = this.readModel("./src/test/data/Disk_1.json");
+        const data = this.readModel("./build/test/data/Disk_1.json");
         if (data === null) {
             console.log("Cannot read json data");
             return;
         }
+        console.log("STORING " + JSON.stringify(data));
         var startTime = performance.now()
         let x = await this.putWithTimeout(`bulk/store`, data.nodes);
         var endTime = performance.now()
@@ -160,7 +161,7 @@ export class TestClient {
         if (e.message.includes("aborted")) {
             errorMess = `Time out: no response from ${this._SERVER_URL}.`;
         }
-        console.error( errorMess);
+        console.error( JSON.stringify(e));
         // this.onError(errorMess, FreErrorSeverity.NONE);
     }
 }
