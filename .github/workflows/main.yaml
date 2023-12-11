@@ -44,12 +44,12 @@ jobs:
       - name: tsc
         run: npm run build
 
-      - name: Connect to PostgreSQL
+      - name: Create and iniytialize Postgres database
         # Runs a script that creates a PostgreSQL table, populates
         # the table with data, and then retrieves the data.
         run: node build/tools/database.js create && node build/tools/database.js init      
       
-      - name: start server &&
+      - name: start server and run tests (one step, else server will be down when tests start)
         run: |
           npm run dev &
           sleep 6
