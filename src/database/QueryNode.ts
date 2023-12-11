@@ -49,6 +49,10 @@ WITH
 
 select 
     lionweb_nodes.id,
+    jsonb_build_object(
+            'key', lionweb_nodes.classifier_key,
+            'language', lionweb_nodes.classifier_language,
+            'version', lionweb_nodes.classifier_version) classifier,
     lionweb_nodes.parent,
     array_to_json(prop.properties) properties,
     array_to_json(containments) containments,
