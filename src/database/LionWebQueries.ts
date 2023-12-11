@@ -136,8 +136,8 @@ class LionWebQueries {
         const tbsNodeIds = tbsDatarows.map(row=> row.id);
         console.log("STORE.NEW NODE IDS " + tbsNodeIds.join(", "));
         const databaseNodesToStore = await LIONWEB_BULKAPI_WORKER.bulkRetrieve(tbsNodeIds, null, 0);
-        const databaseNodesToStoreWrapper = new LionWebJsonNodesWrapper(databaseNodesToStore);
-        const databaseNodesToStoreNodeIds = databaseNodesToStore.map(e => e.id);
+        const databaseNodesToStoreWrapper = new LionWebJsonNodesWrapper(databaseNodesToStore.nodes);
+        const databaseNodesToStoreNodeIds = databaseNodesToStore.nodes.map(e => e.id);
         console.log("STORE.EXISTING LionWebQueries.existingNodes ids = " + JSON.stringify(databaseNodesToStoreNodeIds));
         
         const childChanges: Map<string, ChildChange> = new Map<string, ChildChange>();
