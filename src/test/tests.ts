@@ -1,6 +1,6 @@
 import { LionWebJsonNode } from "@lionweb/validation";
 import {assert} from "chai"
-import { LwDiff } from "./LwDiff.js";
+import { LionWebJsonDiff } from "./diff/LionWebJsonDiff.js";
 import { TestClient } from "./TestClient.js";
 const {deepEqual} = assert
 
@@ -13,7 +13,8 @@ describe("Library test model", () => {
         const retrieve = await t.testRetrieve() as LionWebJsonNode[];
         console.log("Retrieved: " + JSON.stringify(retrieve));
 
-        const diff = new LwDiff();
+        const diff = new LionWebJsonDiff();
+        // TODO Fake the chunk for now, should be returned from retrieve
         diff.diffLwChunk(jsonModel, { 
             "serializationFormatVersion": "2023.1",
             "languages": [],

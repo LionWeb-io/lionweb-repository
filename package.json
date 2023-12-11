@@ -21,7 +21,8 @@
     "cleanup": "rm -rf ./node_modules",
     "manualtest": "node build/test/ManualTests.js",
     "database": "node build/tools/database",
-    "test": "mocha ./build/test/tests.js" 
+    "testdiff": "mocha ./build/test/diff/testDiff.js",
+    "test": "mocha ./build/test/tests.js"
   },
   "devDependencies": {
     "prettier": "3.1.0",
