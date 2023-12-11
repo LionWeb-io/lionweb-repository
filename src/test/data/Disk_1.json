@@ -1,6 +1,15 @@
 {
    "serializationFormatVersion": "2023.1",
-   "languages": [],
+   "languages": [
+      {
+         "key":"-default-key-FileSystem",
+         "version":"2023.1"
+      },
+      {
+         "key":"-default-key-LionCore_builtins",
+         "version":"2023.1"
+      }
+   ],
    "nodes": [
       {
          "id": "ID-2",
