@@ -10,7 +10,7 @@ describe("Library test model", () => {
     const t = new TestClient();
     let jsonModel: LionWebJsonChunk;
 
-    beforeEach(function (done) {
+    before(function (done) {
         jsonModel = t.readModel("./src/test/data/Disk_1.json") as LionWebJsonChunk;
         t.testStore();
         done();
