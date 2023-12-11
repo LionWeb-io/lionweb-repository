@@ -11,7 +11,9 @@ describe("Library test model", () => {
         const jsonModel = t.readModel("./src/test/data/Disk_1.json");
         await t.testStore();
         const retrieve = await t.testRetrieve() as LionWebJsonNode[];
+        console.log("  ");
         console.log("JsonModel: " + JSON.stringify(jsonModel));
+        console.log("  ");
         console.log("Retrieved: " + JSON.stringify(retrieve));
 
         const diff = new LionWebJsonDiff();
@@ -22,6 +24,7 @@ describe("Library test model", () => {
             "nodes": retrieve
         });
         // No errors expected
+        console.log("Errors " + JSON.stringify(diff.errors, null, 2))
         deepEqual(diff.errors, [])
     })
     
