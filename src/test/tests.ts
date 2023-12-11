@@ -11,6 +11,7 @@ describe("Library test model", () => {
         const jsonModel = t.readModel("./src/test/data/Disk_1.json");
         await t.testStore();
         const retrieve = await t.testRetrieve() as LionWebJsonNode[];
+        console.log("JsonModel: " + JSON.stringify(jsonModel));
         console.log("Retrieved: " + JSON.stringify(retrieve));
 
         const diff = new LionWebJsonDiff();
