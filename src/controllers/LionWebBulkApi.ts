@@ -22,7 +22,7 @@ class LionWebBullApiImpl implements LionWebBulkApi {
     async partitions (req: Request, res: Response): Promise<void>  {
         // const result = [];
         const result = await LIONWEB_BULKAPI_WORKER.bulkPartitions();
-        res.status(201);
+        // res.status(201);
         res.send(result)
     }
 

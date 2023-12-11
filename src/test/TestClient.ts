@@ -19,7 +19,8 @@ export class TestClient {
     }
     async testPartitions() {
         console.log(`test.partitions`);
-        let modelUnits: string[] = await this.getWithTimeout<string[]>(`bulk/partitions`, {body: {}, params: ""});
+        let modelUnits: LionWebJsonChunk = await this.getWithTimeout<LionWebJsonChunk>(`bulk/partitions`, {body: {}, params: ""});
+        console.log("testPartitions: " + JSON.stringify(modelUnits))
         return modelUnits;
     }
 
@@ -97,7 +98,7 @@ export class TestClient {
         return null;
     }
 
-    async  postWithTimeout<T>(method: string, parameters: {  body: Object, params: string }): Promise<T> {
+    async  postWithTimeout<T>(method: string, parameters: {  body: Object, params: string }): Promise<T | null> {
         const params = this.findParams(parameters.params);
         console.log("postWithTimeout Params = " + parameters.params);
         try {
@@ -117,7 +118,7 @@ export class TestClient {
                 });
             clearTimeout(timeoutId);
             return await promise.json() ;
-        } catch (e) {
+        } catch (e: any) {
             this.handleError(e);
         }
         return null;

@@ -1,5 +1,6 @@
-import { LionWebJsonChunk, LionWebJsonMetaPointer, LionWebJsonNode, LwJsonUsedLanguage } from "@lionweb/validation";
+import { LionWebJsonChunk, LionWebJsonNode, LwJsonUsedLanguage } from "@lionweb/validation";
 import { LIONWEB_QUERIES } from "./LionWebQueries.js";
+import { collectUsedLanguages } from "./UsedLanguages.js";
 
 /**
  * Implementations of the LionWebBulkApi methods.
@@ -11,8 +12,11 @@ class LionWebBulkApiWorker {
         // this.lionwebDb2 = LIONWEB_QUERIES ;
     }
     
-    async bulkPartitions(): Promise<LionWebJsonNode[]> {
-        return await LIONWEB_QUERIES.getPartitions();
+    async bulkPartitions(): Promise<LionWebJsonChunk> {
+        const result = await LIONWEB_QUERIES.getPartitions();
+        // console.log("LionWebBulkApiWorker.bulkPartitions.Result: " + JSON.stringify(result));
+        return result;
+
     }
 
     async bulkStore(nodes: LionWebJsonNode[]) {
@@ -36,40 +40,13 @@ class LionWebBulkApiWorker {
             }        
         } 
         const nodes = await LIONWEB_QUERIES.getNodesFromIdList(allNodes.map(node => node.id));
-        // find all languages used
-        // Map from language key to set of versions 
-        const languages: Map<string, Set<string>> = new Map<string, Set<string>>()
-        nodes.forEach(node => {
-            this.addLanguage(languages, node.classifier);
-            node.properties.forEach( p => this.addLanguage(languages, p.property) );
-            node.containments.forEach( c => this.addLanguage(languages, c.containment) );
-            node.references.forEach( r => this.addLanguage(languages, r.reference) );
-        });
-        const mapped = new Mapped();
-        languages.forEach(mapped.map);
+        const usedLanguages: LwJsonUsedLanguage[] = collectUsedLanguages(nodes);
         return {
             serializationFormatVersion: "2023.1",
-            languages: mapped.languages,
+            languages: usedLanguages,
             nodes: nodes
         }
     }
-    
-    addLanguage(languages: Map<string, Set<string>>, metaPointer: LionWebJsonMetaPointer): void {
-        let versions: Set<string> = languages.get(metaPointer.language) 
-        if (versions === undefined) {
-            versions = new Set<string>();
-            languages.set(metaPointer.language, versions)
-        }
-        versions.add(metaPointer.version)
-    }
-}
-
-class Mapped {
-    languages: LwJsonUsedLanguage[] = []
-    map = (value: Set<string>, key: string, map: Map<string, Set<string>>): void => {
-        value.forEach(v => this.languages.push( {key: key, version: v}));
-    }
-    
 }
 
 export const LIONWEB_BULKAPI_WORKER = new LionWebBulkApiWorker();

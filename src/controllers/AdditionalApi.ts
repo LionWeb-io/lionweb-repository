@@ -1,9 +1,10 @@
+import { LionWebJsonNode } from "@lionweb/validation";
 import { Request, Response } from "express";
 import { ADDITIONAL_API_WORKER } from "../database/AdditionalApiWorker.js";
 
 export interface AdditionalApi {
-    getNode(req: Request, res: Response);
-    getNodeTree(req: Request, res: Response);
+    getNode(req: Request, res: Response): Promise<LionWebJsonNode>;
+    getNodeTree(req: Request, res: Response): void;
 }
 
 class AdditionalApiImpl implements AdditionalApi {

@@ -7,6 +7,7 @@ export class DiffIssue extends ValidationIssue {
     constructor(context: JsonContext, msg: string) {
         super(context);
         this.message = msg;
+        this.id = "aaa"
     }
     protected msg(): string {
         return this.message;

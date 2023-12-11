@@ -72,7 +72,7 @@ export class LionWebJsonNodesWrapper {
         return this.getMap().get(id);
     }
 
-    findContainment(node: LionWebJsonNode, containment: LionWebJsonMetaPointer): LionWebJsonContainment {
+    findContainment(node: LionWebJsonNode, containment: LionWebJsonMetaPointer): LionWebJsonContainment | undefined {
         return node.containments.find(cont =>
             (cont.containment.key === containment.key) &&
             (cont.containment.language === containment.language) &&
@@ -81,9 +81,8 @@ export class LionWebJsonNodesWrapper {
     }
 
 }
-export function    findContainmentContainingChild(containments: LionWebJsonContainment[], childId: string): LionWebJsonContainment {
-        return containments.find(cont => (cont.children.includes(childId))
-        );
-    }
+export function findContainmentContainingChild(containments: LionWebJsonContainment[], childId: string): LionWebJsonContainment | undefined {
+        return containments.find(cont => (cont.children.includes(childId)))
+}
 
 

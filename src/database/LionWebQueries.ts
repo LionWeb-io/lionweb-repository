@@ -1,12 +1,13 @@
 // const pgp = require("pg-promise")();
 import pgPromise from "pg-promise";
 const pgp = pgPromise();
-import { LionWebJsonChild as LionWebJsonContainment, LionWebJsonNode } from "@lionweb/validation";
+import { LionWebJsonChild as LionWebJsonContainment, LionWebJsonChunk, LionWebJsonNode } from "@lionweb/validation";
 
 import { findContainmentContainingChild, LionWebJsonNodesWrapper } from "../lionweb/LionWebJsonNodesWrapper.js";
 import { db } from "./DbConnection.js";
 import { LIONWEB_BULKAPI_WORKER } from "./LionWebBulkApiWorker.js";
 import { queryNodeTreeForIdList, QueryNodeForIdList } from "./QueryNode.js";
+import { collectUsedLanguages } from "./UsedLanguages.js";
 
 const NODES_TABLE: string = "lionweb_nodes";
 const CONTAINMENTS_TABLE: string = "lionweb_containments";
@@ -54,11 +55,11 @@ export type ChildChange = {
     addedTo: {
         parent: LionWebJsonNode;
         containment: LionWebJsonContainment;
-    };
+    } | undefined ;
     removedFrom: {
         parent: LionWebJsonNode;
         containment: LionWebJsonContainment;
-    }
+    } | undefined
 };
 
 /**
@@ -82,35 +83,41 @@ class LionWebQueries {
     }
 
     /**
-     * 
+     * TODO: Not tested yet
      */
     getAllDbNodes = async (): Promise<LionWebJsonNode[]> => {
         console.log("LionWebQueries.getNodes");
-        const queryResult = await db.query("SELECT id FROM nodes");
-        return this.getNodesFromIdList(queryResult.map(node => node.id));
+        const queryResult = await db.query("SELECT id FROM lionweb_nodes") as string[];
+        return this.getNodesFromIdList(queryResult);
     };
 
     getSingleNode = async (node_id: string): Promise<LionWebJsonNode> => {
         console.log("LionWebQueries.getNode " + node_id);
         const result = await db.query(QueryNodeForIdList([node_id]));
-        console.log(JSON.stringify(result, null, 2))
+        console.log("LionWebQueries.getNode " + JSON.stringify(result, null, 2))
         return result;
     };
 
     getNodesFromIdList = async (nodeIdList: string[]): Promise<LionWebJsonNode[]> => {
         const nodes = await db.query(QueryNodeForIdList(nodeIdList));
+        console.log("LionWebQueries.getNodesFromIdList " + JSON.stringify(nodes, null, 2))
         return nodes;
     }
     
     /**
      * Get all partitions: this returns all nodes that have parent set to null or undefined
      */
-    getPartitions = async (): Promise<LionWebJsonNode[]> => {
+    getPartitions = async (): Promise<LionWebJsonChunk> => {
         console.log("LionWebQueries.getPartitions");
         // TODO Optimization?: The following WHERE can also directly be includes in the getNodesFromIdList
-        const result = await db.query("SELECT id FROM lionweb_nodes WHERE parent is null");
-        console.log("Result " + JSON.stringify(result));
-        return this.getNodesFromIdList(result.map(node => node.id));
+        const result = (await db.query("SELECT id FROM lionweb_nodes WHERE parent is null")) as {id: string}[];
+        console.log("LionWebQueries.getPartitions.Result: " + JSON.stringify(result));
+        const nodes = await this.getNodesFromIdList(result.map(n => n.id));
+        return {
+            serializationFormatVersion: "2023.1",
+            languages: collectUsedLanguages(nodes),
+            nodes: nodes
+        };
     };
 
     // TODO This function is way too complex, should be simplified.
@@ -131,36 +138,36 @@ class LionWebQueries {
                 parent: n.parent
             };
         });
-        console.log("STORE.NEW DATAROWS: " + JSON.stringify(tbsDatarows))
-        // Find all id's that exist
         const tbsNodeIds = tbsDatarows.map(row=> row.id);
-        console.log("STORE.NEW NODE IDS " + tbsNodeIds.join(", "));
-        const databaseNodesToStore = await LIONWEB_BULKAPI_WORKER.bulkRetrieve(tbsNodeIds, null, 0);
-        const databaseNodesToStoreWrapper = new LionWebJsonNodesWrapper(databaseNodesToStore.nodes);
-        const databaseNodesToStoreNodeIds = databaseNodesToStore.nodes.map(e => e.id);
-        console.log("STORE.EXISTING LionWebQueries.existingNodes ids = " + JSON.stringify(databaseNodesToStoreNodeIds));
+        console.log("STORE.NEW IDS " + tbsNodeIds.join(", "));
+        
+        // Find all id's that exist
+        const databaseNodesToUpdate = await LIONWEB_BULKAPI_WORKER.bulkRetrieve(tbsNodeIds, "", 0);
+        const databaseNodesToUpdateWrapper = new LionWebJsonNodesWrapper(databaseNodesToUpdate.nodes);
+        const databaseNodesToUpdateNodeIds = databaseNodesToUpdate.nodes.map(e => e.id);
+        console.log("STORE.UPDATE IDS = " + JSON.stringify(databaseNodesToUpdateNodeIds));
         
         const childChanges: Map<string, ChildChange> = new Map<string, ChildChange>();
         // Logic to find diff between old eand new nodes (only ;looking at containment)
         // TODO do the same for annotations
         toBeStoredNodes.forEach(tbs => {
-            const existing: LionWebJsonNode = databaseNodesToStoreWrapper.getNode(tbs.id);
+            const existing: LionWebJsonNode | undefined = databaseNodesToUpdateWrapper.getNode(tbs.id);
             tbs.containments.forEach(cont => {
                 if (existing === undefined) {
-                    console.log("New children: " + cont.children);
+                    console.log("STORE children of new node: " + cont.children);
                 } else {
                     const unchangedChildren = cont.children.filter(child => existing.containments.flatMap(cont => cont.children).includes(child))
                     const addedChs = cont.children.filter(child =>
                         !existing.containments.flatMap(cont => cont.children).includes(child));
                     addedChs.forEach(addedChild => {
-                        let change: ChildChange = childChanges.get(addedChild);
+                        let change: ChildChange | undefined = childChanges.get(addedChild);
                         if (change === undefined) {
-                            childChanges.set(addedChild, { 
+                            change = {
                                 childId: addedChild,
                                 addedTo: undefined,
                                 removedFrom: undefined
-                            })
-                            change = childChanges.get(addedChild);
+                            }
+                            childChanges.set(addedChild, change)
                             if (change.addedTo === undefined) {
                                 change.addedTo = {
                                     parent: tbs,
@@ -173,7 +180,7 @@ class LionWebQueries {
                     });
                     
                     // TODO need to find the correct containment in existing to find deleted ones
-                    const existingCont = databaseNodesToStoreWrapper.findContainment(existing, cont.containment);
+                    const existingCont = databaseNodesToUpdateWrapper.findContainment(existing, cont.containment);
                     const removedChs =  existingCont?.children?.filter(child => !cont.children.includes(child));
                     removedChs.forEach(removedChild => {
                         let change: ChildChange = childChanges.get(removedChild);
@@ -225,10 +232,15 @@ class LionWebQueries {
                 } else {
                     // CASE Added and **not** removed, so old parent is not in the tbs Nodes
                     // Update parent.containment (i.e. remove child from containment) && uoadet child.parent
-                    if (databaseNodesToStoreWrapper.getNode(changed.childId) !== undefined) {
-                        // If Chunk is correct, then  the next line isn't needed as the chjild will have the new parent
+                    const node = databaseNodesToUpdateWrapper.getNode(changed.childId)
+                    if (node !== undefined) {
+                        // If Chunk is correct, then  the next commented line isn't needed as the child will have the new parent
                         // childrenToRetrieveAndSetParent.set(changed.childId, changed.addedTo.parent.id);
-                        parentsToRemoveChild.set(databaseNodesToStoreWrapper.getNode(changed.childId).parent, changed.childId);
+                        if (node.parent !== null) {
+                            parentsToRemoveChild.set(node.parent, changed.childId);
+                        } else {
+                            console.error("Parent should not be null !!!");
+                        }
                     } else {
                         childrenToRetrieveAndSetParent.set(changed.childId, changed.addedTo.parent.id);
                         childrenToBeRemovedFromParent.push(changed.childId);
@@ -246,12 +258,12 @@ class LionWebQueries {
         }
 
         // All rows that need to be inserted (i.e. they do not exist yet)
-        const tbsNodesToCreate = toBeStoredNodes.filter(row => !databaseNodesToStoreNodeIds.includes(row.id));
+        const tbsNodesToCreate = toBeStoredNodes.filter(row => !databaseNodesToUpdateNodeIds.includes(row.id));
         console.log("STORE.LionWebQueries: new NodesToInsert = " + JSON.stringify(tbsNodesToCreate.map(n => n.id)));
         await this.dbInsert(tbsNodesToCreate);
 
         // TODO  Until the above line it seems to work => test it and test the rest
-        const tbsNodesToUpdate = toBeStoredNodes.filter(row => databaseNodesToStoreNodeIds.includes(row.id));
+        const tbsNodesToUpdate = toBeStoredNodes.filter(row => databaseNodesToUpdateNodeIds.includes(row.id));
         console.log("STORE.LionWebQueries: existing NodesToUpdate = " + JSON.stringify(tbsNodesToUpdate.map(n => n.id)));
         
         const childrenToRetrieve = Array.from(childrenToRetrieveAndSetParent.keys());
@@ -287,7 +299,7 @@ WHERE lionweb_nodes.id IN ('example1-props_root_props_1', 'a')
      */
     private async dbInsert(tbsNodesToCreate: LionWebJsonNode[]) {
         {
-            console.log("dbInsert");
+            // console.log("dbInsert");
             if (tbsNodesToCreate.length === 0) {
                 return;
             }
