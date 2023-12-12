@@ -62,6 +62,10 @@ export type ChildChange = {
     } | undefined
 };
 
+function toStringChange(ch: ChildChange): string {
+    return `child ${ch.childId} ${ch.removedFrom === undefined ? "" : `removed from ${ch.removedFrom.parent.id}`}  ${ch.addedTo === undefined ? "" : `added to ${ch.addedTo.parent.id}`}`
+}
+
 /**
  * Simgle database functions.
  */
@@ -92,15 +96,15 @@ class LionWebQueries {
     };
 
     getSingleNode = async (node_id: string): Promise<LionWebJsonNode> => {
-        console.log("LionWebQueries.getNode " + node_id);
+        // console.log("LionWebQueries.getNode " + node_id);
         const result = await db.query(QueryNodeForIdList([node_id]));
-        console.log("LionWebQueries.getNode " + JSON.stringify(result, null, 2))
+        // console.log("LionWebQueries.getNode " + JSON.stringify(result, null, 2))
         return result;
     };
 
     getNodesFromIdList = async (nodeIdList: string[]): Promise<LionWebJsonNode[]> => {
         const nodes = await db.query(QueryNodeForIdList(nodeIdList));
-        console.log("LionWebQueries.getNodesFromIdList " + JSON.stringify(nodes, null, 2))
+        // console.log("LionWebQueries.getNodesFromIdList " + JSON.stringify(nodes, null, 2))
         return nodes;
     }
     
@@ -210,13 +214,13 @@ class LionWebQueries {
         const childrenToBecomeOrphans: string[] = [];
         // Map from parent-id to child-id
         const parentsToRemoveChild: Map<string, string> = new Map<string, string>();
-        // child ids that need to be removed from their current p[arent containment
+        // child ids that need to be removed from their current parent containment
         const childrenToBeRemovedFromParent: string[] = [];
         for (const changed of childChanges.values()) {
-            console.log("STORE.changed " + changed.childId + " added " + changed.addedTo?.containment.containment.key +
-                " removed " + changed.removedFrom?.containment.containment.key);
+            console.log("STORE.changed " + toStringChange(changed));
             if (changed.addedTo !== undefined) {
                 if (changed.removedFrom !== undefined) {
+                    console.log("+++++++++++ added & removed " + changed.childId);
                     // CASE Added + removed in toBeStored
                     // Parent containments Ok, as it is both added and removed, but still need to check whether the parent property of the child has changed
                     if (changed.addedTo.parent !== changed.removedFrom.parent) {
@@ -230,32 +234,45 @@ class LionWebQueries {
                         // parent has not changed, is ok. Do nothing
                     }
                 } else {
+                    console.log("+++++++++++ added & !removed " + changed.childId);
                     // CASE Added and **not** removed, so old parent is not in the tbs Nodes
                     // Update parent.containment (i.e. remove child from containment) && uoadet child.parent
-                    const node = databaseNodesToUpdateWrapper.getNode(changed.childId)
-                    if (node !== undefined) {
+                    const existingChildNode = databaseNodesToUpdateWrapper.getNode(changed.childId)
+                    console.log("node is " + existingChildNode)
+                    if (existingChildNode !== undefined) {
                         // If Chunk is correct, then  the next commented line isn't needed as the child will have the new parent
                         // childrenToRetrieveAndSetParent.set(changed.childId, changed.addedTo.parent.id);
-                        if (node.parent !== null) {
-                            parentsToRemoveChild.set(node.parent, changed.childId);
+                        if (existingChildNode.parent !== null) {
+                            console.log(`Parent ${existingChildNode.parent} remove child ${changed.childId}`)
+                            parentsToRemoveChild.set(existingChildNode.parent, changed.childId);
                         } else {
                             console.error("Parent should not be null !!!");
                         }
                     } else {
-                        childrenToRetrieveAndSetParent.set(changed.childId, changed.addedTo.parent.id);
-                        childrenToBeRemovedFromParent.push(changed.childId);
+                        console.log("+++++++++++ No such child in db " + changed.childId);
+                        console.log(`22 Parent ${existingChildNode} remove child ${changed.childId}`)
+                        // childrenToRetrieveAndSetParent.set(changed.childId, changed.addedTo.parent.id);
+                        // childrenToBeRemovedFromParent.push(changed.childId);
                     }
                 }
             } else {
                 if (changed.removedFrom !== undefined) {
+                    console.log("+++++++++++ !added & removed " + changed.childId);
+
                     // CASE Removed and not added
                     childrenToBecomeOrphans.push(changed.childId)
                 } else {
+                    console.log("+++++++++++ !added & !removed " + changed.childId);
                     // CASE Not added, nor removed: cannot happen
                     console.error("Not added and not removed child with id " + changed.childId);
                 }
             }
         }
+
+        console.log("STORE.orphans: " + childrenToBecomeOrphans);
+        console.log("STORE.childrenToRetrieveAndSetParent: " + printMap(childrenToRetrieveAndSetParent))
+        console.log("STORE.parentsToRemoveChild: " + printMap(parentsToRemoveChild))
+        console.log("STORE.childrenToBeRemovedFromParent: " + childrenToBeRemovedFromParent)
 
         // All rows that need to be inserted (i.e. they do not exist yet)
         const tbsNodesToCreate = toBeStoredNodes.filter(row => !databaseNodesToUpdateNodeIds.includes(row.id));
@@ -352,4 +369,11 @@ WHERE lionweb_nodes.id IN ('example1-props_root_props_1', 'a')
     }
 }
 
+export function printMap(map: Map<string, string>): string {
+    let result = "";
+    for(const entry of map.entries()) {
+        result += `[${entry[0]} => ${entry[1]}]`
+    }
+    return result;
+}
 export const LIONWEB_QUERIES = new LionWebQueries();

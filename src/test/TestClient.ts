@@ -24,21 +24,24 @@ export class TestClient {
         return modelUnits;
     }
 
-    async testStore() {
+    async testStore(data?: LionWebJsonChunk) {
         console.log(`test.store`);
-        const data = this.readModel("./src/test/data/Disk_1.json");
+        if (data === undefined) {
+            console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            data = this.readModel("./src/test/data/Disk_1.json");
+        }
         if (data === null) {
             console.log("Cannot read json data");
             return;
         }
         console.log("STORING " + JSON.stringify(data));
         var startTime = performance.now()
-        let x = await this.putWithTimeout(`bulk/store`, data.nodes);
+        let x = await this.putWithTimeout(`bulk/store`, data);
         var endTime = performance.now() 
         console.log(`Call to query took ${endTime - startTime} milliseconds`)
 
         // filter out the modelUnitInterfaces
-        console.log("end test,store");
+        console.log("end test.store");
     }
 
     async testGetNode() {

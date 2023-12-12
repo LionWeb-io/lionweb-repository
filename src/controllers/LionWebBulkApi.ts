@@ -4,7 +4,7 @@
 // - pack response
 
 import { Request, Response } from "express";
-import { LionWebJsonNode } from "@lionweb/validation";
+import { LionWebJsonChunk } from "@lionweb/validation";
 import { LIONWEB_BULKAPI_WORKER } from "../database/LionWebBulkApiWorker.js";
 
 export interface LionWebBulkApi {
@@ -32,8 +32,8 @@ class LionWebBullApiImpl implements LionWebBulkApi {
      * @param res `ok`  if everything is correct
      */
     async store(req: Request, res: Response): Promise<any> {
-        const nodes: LionWebJsonNode[] = req.body;
-        const x = await LIONWEB_BULKAPI_WORKER.bulkStore(nodes);
+        const chunk: LionWebJsonChunk = req.body;
+        const x = await LIONWEB_BULKAPI_WORKER.bulkStore(chunk);
         res.send("ok")
         return x;
     }

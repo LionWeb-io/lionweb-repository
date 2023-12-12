@@ -19,8 +19,8 @@ class LionWebBulkApiWorker {
 
     }
 
-    async bulkStore(nodes: LionWebJsonNode[]) {
-        return await LIONWEB_QUERIES.store(nodes);
+    async bulkStore(chunk: LionWebJsonChunk) {
+        return await LIONWEB_QUERIES.store(chunk.nodes);
     }
 
     /**
