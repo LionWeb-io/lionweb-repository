@@ -25,7 +25,7 @@ describe("Library test model", () => {
         deepEqual(diff.errors, [])
     })
 
-    it.skip("retrieve partitions", async () => {
+    it("retrieve partitions", async () => {
         const model = structuredClone(jsonModel);
         model.nodes = model.nodes.filter(node => node.parent === null);
         const partitions = await t.testPartitions();
