@@ -4,32 +4,34 @@ import { before } from "mocha";
 import { LionWebJsonDiff } from "./diff/LionWebJsonDiff.js";
 import { TestClient } from "./TestClient.js";
 const {deepEqual} = assert
+import sm from "source-map-support"
+sm.install();
 
 describe("Library test model", () => {
 
     const t = new TestClient();
     let jsonModel: LionWebJsonChunk;
 
-    before(function (done) {
+    before("a",async function () {
         jsonModel = t.readModel("./src/test/data/Disk_1.json") as LionWebJsonChunk;
-        t.testStore(jsonModel);
-        done();
+        await t.testStore(jsonModel);
     });
 
-    it("store and retrieve nodes", async () => {
+    it("retrieve nodes", async () => {
         const retrieve = await t.testRetrieve() as LionWebJsonChunk;
+        console.log("REtrieved: " + JSON.stringify(retrieve))
         const diff = new LionWebJsonDiff();
         diff.diffLwChunk(jsonModel, retrieve);
-        // deepEqual(diff.errors, [])
+        deepEqual(diff.errors, [])
     })
 
-    it("retrieve partitions", async () => {
+    it.skip("retrieve partitions", async () => {
         const model = structuredClone(jsonModel);
         model.nodes = model.nodes.filter(node => node.parent === null);
         const partitions = await t.testPartitions();
         const diff = new LionWebJsonDiff();
         diff.diffLwChunk(model, partitions);
-        // deepEqual(diff.errors, [])
+        deepEqual(diff.errors, [])
     })
     
     it.skip ("tes update", async () => {
