@@ -11,7 +11,12 @@ import {
     ValidationResult
 } from "@lionweb/validation";
 import { LionWebJsonMetaPointer } from "@lionweb/validation/src/json/LionWebJson.js";
+import { Change, GenericChange } from "./Change.js";
+import { NodeAdded, NodeRemoved } from "./ChunkChange.js";
+import { ChildAdded, ChildRemoved, ContainmentChange, ParentChanged } from "./ContainmentChange.js";
 import { DiffIssue } from "./DiffIssue.js";
+import { DiffResult } from "./DiffResult.js";
+import { PropertyChange, PropertyValueChanged } from "./PropertyChange.js";
 
 export type ChangedType = {
     path: string;
@@ -35,64 +40,60 @@ export type ResultType = {
 
 export class LionWebJsonDiff {
     errors: string[] = [];
-    lwChecker = new LionWebSyntaxValidator(new ValidationResult());
+    // lwChecker = new LionWebSyntaxValidator(new ValidationResult());
 
     constructor() {
-        this.lwChecker.recursive = false;
+        // this.lwChecker.recursive = false;
     }
 
-    error(msg: string) {
-        this.errors.push(msg + "\n");
+    change(change: Change): void {
+        this.errors.push(change.changeMsg() + "\n");
+        this.diffResult.change(change);
     }
-
+    
     errorC(ctx: JsonContext, msg: string) {
-        const issue = new DiffIssue(ctx, msg);
-        this.errors.push("!!!" + issue.errorMsg());
-        this.diffResult.issue(issue);
+        const change = new GenericChange(ctx, msg);
+        this.errors.push("!!!" + change.changeMsg() + "\n");
+        this.diffResult.change(change);
     }
 
-    check(b: boolean, message: string): void {
-        if (!b) {
-            this.error("Check error: " + message);
-        }
-    }
 
     /**
      * Compare two LwNode objects and return their difference
-     * @param node1
-     * @param node2
+     * @param beforeNode
+     * @param afterNode
      */
-    diffLwNode(ctx: JsonContext, node1: LionWebJsonNode, node2: LionWebJsonNode): void {
+    diffLwNode(ctx: JsonContext, beforeNode: LionWebJsonNode, afterNode: LionWebJsonNode): void {
         // console.log("Comparing nodes")
-        if (!isEqualMetaPointer(node1.classifier, node2.classifier)) {
-            this.errorC(ctx, `Object ${node1.id} has classifier ${JSON.stringify(node1.classifier)} vs. ${JSON.stringify(node2.classifier)}`);
+        if (!isEqualMetaPointer(beforeNode.classifier, afterNode.classifier)) {
+            this.errorC(ctx, `Object ${beforeNode.id} has classifier ${JSON.stringify(beforeNode.classifier)} vs. ${JSON.stringify(afterNode.classifier)}`);
         }
-        if (node1.parent !== node2.parent) {
-            this.errorC(ctx, `Object ${node1.id} has parent ${node1.parent} vs. ${node2.parent}`);
+        if (beforeNode.parent !== afterNode.parent) {
+            this.change(new ParentChanged(ctx, beforeNode, beforeNode.parent, afterNode.parent))
         }
-        node1.properties.forEach((property: LionWebJsonProperty, index: number) => {
-            const key = property.property.key;
+        beforeNode.properties.forEach((beforeProperty: LionWebJsonProperty, index: number) => {
+            const key = beforeProperty.property.key;
             // console.log(`    property ${key} of node ${obj1.id}`)
-            const otherProp = NodeUtils.findLwProperty(node2, key);
-            if (otherProp === null) {
+            const afterProperty = NodeUtils.findLwProperty(afterNode, key);
+            if (afterProperty === null) {
                 this.errorC(ctx.concat(index), `Property with concept key ${key} does not exist in second object`);
             } else {
-                this.diffLwProperty(ctx.concat("properties", index), property, otherProp);
+                this.diffLwProperty(ctx.concat("properties", index), beforeNode, beforeProperty, afterProperty);
             }
         })
-        node1.containments.forEach((containment: LionWebJsonContainment, index: number) => {
-            const key = containment.containment.key;
+        beforeNode.containments.forEach((beforeContainment: LionWebJsonContainment, index: number) => {
+            const beforeKey = beforeContainment.containment.key;
             // console.log(`    property ${key} of node ${obj1.id}`)
-            const otherContainment = NodeUtils.findLwChild(node2, key);
-            if (otherContainment === null) {
-                this.errorC(ctx.concat(index), `Containment with key ${key} does not exist in second object`);
+            const afterContainment = NodeUtils.findLwChild(afterNode, beforeKey);
+            if (afterContainment === null) {
+                this.errorC(ctx.concat(index), `Containment with key ${beforeKey} does not exist in second object`);
             } else {
-                this.diffContainment(ctx.concat("containments", index), containment, otherContainment);
+                this.diffContainment(ctx.concat("containments", index), beforeNode, beforeContainment, afterContainment);
             }
         })
-        node1.references.forEach((reference: LionWebJsonReference, index: number) => {
+        beforeNode.references.forEach((reference: LionWebJsonReference, index: number) => {
             const key = reference.reference.key;
-            const otherref = NodeUtils.findLwReference(node2, key);
+            const otherref = NodeUtils.findLwReference(afterNode, key);
             if (otherref === null) {
                 this.errorC(ctx,`Reference with key ${key} does not exist in second object`);
             } else {
@@ -101,74 +102,73 @@ export class LionWebJsonDiff {
         })
     }
 
-    diffResult  = new ValidationResult();
+    diffResult  = new DiffResult();
     
-    diffLwChunk(chunk1: LionWebJsonChunk, chunk2: LionWebJsonChunk): void {
+    diffLwChunk(beforeChunk: LionWebJsonChunk, afterChunk: LionWebJsonChunk): void {
         const ctx = new JsonContext(null, ["$"]);
         console.log("Comparing chunks");
-        if (chunk1.serializationFormatVersion !== chunk2.serializationFormatVersion) {
-            this.errorC(ctx, `Serialization versions do not match: ${chunk1.serializationFormatVersion} vs ${chunk2.serializationFormatVersion}`);
+        if (beforeChunk.serializationFormatVersion !== afterChunk.serializationFormatVersion) {
+            this.errorC(ctx, `Serialization versions do not match: ${beforeChunk.serializationFormatVersion} vs ${afterChunk.serializationFormatVersion}`);
         }
-        chunk1.languages.forEach((language: LwJsonUsedLanguage, index: number) => {
-            const otherLanguage = ChunkUtils.findLwUsedLanguage(chunk2, language.key);
-            if (otherLanguage === null) {
+        beforeChunk.languages.forEach((beforeLanguage: LwJsonUsedLanguage, index: number) => {
+            const afterLanguage = ChunkUtils.findLwUsedLanguage(afterChunk, beforeLanguage.key);
+            if (afterLanguage === null) {
                 // return { isEqual: false, diffMessage: `Node with concept key ${id} does not exist in second object`};
-                this.errorC(ctx, `Language with  key ${language.key} does not exist in second object`);
+                this.errorC(ctx, `Language with  key ${beforeLanguage.key} does not exist in second object`);
             } else {
-                this.diffLwUsedLanguage(ctx.concat("languages", index), language, otherLanguage);
+                this.diffLwUsedLanguage(ctx.concat("languages", index), beforeLanguage, afterLanguage);
             }
         })
-        for (const language of chunk2.languages) {
+        for (const language of afterChunk.languages) {
             console.log("Comparing languages");
-            const otherLanguage = ChunkUtils.findLwUsedLanguage(chunk1, language.key);
+            const otherLanguage = ChunkUtils.findLwUsedLanguage(beforeChunk, language.key);
             if (otherLanguage === null) {
                 // return { isEqual: false, diffMessage: `Node with concept key ${id} does not exist in second object`};
                 this.errorC(ctx, `Language with  key ${language.key} does not exist in first object`);
             }
         }
-        chunk1.nodes.forEach((node: LionWebJsonNode, index: number) => {
-            const id = node.id;
-            const otherNode = ChunkUtils.findNode(chunk2, id);
+        beforeChunk.nodes.forEach((beforeNode: LionWebJsonNode, index: number) => {
+            const beforeId = beforeNode.id;
+            const afterNode = ChunkUtils.findNode(afterChunk, beforeId);
             const newCtx = ctx.concat("nodes", index);
-            if (otherNode === null || otherNode === undefined) {
+            if (afterNode === null || afterNode === undefined) {
                 // return { isEqual: false, diffMessage: `Node with concept key ${id} does not exist in second object`};
-                this.errorC(newCtx,`Node with concept key ${id} does not exist in second object`);
+                // this.errorC(newCtx,`Node "${id}" removed`);
+                this.change(new NodeRemoved(ctx, beforeNode));
             } else {
-                this.diffLwNode(newCtx, node, otherNode);
+                this.diffLwNode(newCtx, beforeNode, afterNode);
             }
         });
-        chunk2.nodes.forEach((node: LionWebJsonNode, index: number) => {
-            const id = node.id;
-            const otherNode = ChunkUtils.findNode(chunk1, id);
-            if (otherNode === null) {
+        afterChunk.nodes.forEach((afterNode: LionWebJsonNode, index: number) => {
+            const afterId = afterNode.id;
+            const beforeNode = ChunkUtils.findNode(beforeChunk, afterId);
+            if (beforeNode === null) {
                 const newCtx = ctx.concat("nodes", index);
-                // return { isEqual: false, diffMessage: `Node with concept key ${id} does not exist in second object`};
-                this.errorC(newCtx, `Node with concept key ${id} does not exist in first object`);
+                this.change(new NodeAdded(ctx, afterNode));
             }
         });
     }
-
-    diffContainment(ctx: JsonContext, obj1: LionWebJsonContainment, obj2: LionWebJsonContainment): void {
-        if (!isEqualMetaPointer(obj1.containment, obj2.containment)) {
+    
+    diffContainment(ctx: JsonContext, node: LionWebJsonNode, beforeContainment: LionWebJsonContainment, afterContainment: LionWebJsonContainment): void {
+        if (!isEqualMetaPointer(beforeContainment.containment, afterContainment.containment)) {
             // return { isEqual: false, diffMessage: `Property Object has concept ${JSON.stringify(obj1.property)} vs ${JSON.stringify(obj2.property)}`}
-            this.errorC(ctx, `Containment Object has concept ${JSON.stringify(obj1.containment)} vs ${JSON.stringify(obj2.containment)}`);
+            this.errorC(ctx, `Containment Object has concept ${JSON.stringify(beforeContainment.containment)} vs ${JSON.stringify(afterContainment.containment)}`);
         }
         // Check whether children exist in both objects (two for loops)
-        for (const childId1 of obj1.children) {
-            if (!obj2.children.includes(childId1)) {
-                this.errorC(ctx, `Child ${childId1} is missing in other object`);
+        for (const childId1 of beforeContainment.children) {
+            if (!afterContainment.children.includes(childId1)) {
+                this.change(new ChildRemoved(ctx, node, beforeContainment.containment.key, childId1))
             }
         }
-        for (const childId2 of obj2.children) {
-            if (!obj1.children.includes(childId2)) {
-                this.errorC(ctx, `Child ${childId2} is missing in first object`);
+        for (const childId2 of afterContainment.children) {
+            if (!beforeContainment.children.includes(childId2)) {
+                this.change(new ChildAdded(ctx, node, beforeContainment.containment.key, childId2))
             }
         }
     }
 
     diffLwReference(ctx: JsonContext, ref1: LionWebJsonReference, ref2: LionWebJsonReference): void {
         if (!isEqualMetaPointer(ref1.reference, ref2.reference)) {
-            // return { isEqual: false, diffMessage: `Property Object has concept ${JSON.stringify(obj1.property)} vs ${JSON.stringify(obj2.property)}`}
             this.errorC(ctx, `Reference has concept ${JSON.stringify(ref1.reference)} vs ${JSON.stringify(ref2.reference)}`);
         }
         for (const target of ref1.targets) {
@@ -194,12 +194,13 @@ export class LionWebJsonDiff {
         }
     }
 
-    private diffLwProperty(ctx: JsonContext, obj1: LionWebJsonProperty, obj2: LionWebJsonProperty) {
-        if (!isEqualMetaPointer(obj1.property, obj2.property)) {
-            this.error(`Property Object has concept ${JSON.stringify(obj1.property)} vs ${JSON.stringify(obj2.property)}`);
+    private diffLwProperty(ctx: JsonContext, node: LionWebJsonNode, beforeProperty: LionWebJsonProperty, afterProperty: LionWebJsonProperty) {
+        if (!isEqualMetaPointer(beforeProperty.property, afterProperty.property)) {
+            this.errorC(ctx, `Property Object has concept ${JSON.stringify(beforeProperty.property)} vs ${JSON.stringify(afterProperty.property)}`);
         }
-        if (obj1.value !== obj2.value) {
-            this.errorC(ctx, `Property ${obj1.property.key} has value ${obj1.value} vs ${obj2.value}`);
+        if (beforeProperty.value !== afterProperty.value) {
+            this.change(new PropertyValueChanged(ctx, node.id, beforeProperty.property.key, beforeProperty.value, afterProperty.value))
+            // this.errorC(ctx, `Property ${obj1.property.key} has value ${obj1.value} vs ${obj2.value}`);
         }
     }
 }
