@@ -1,10 +1,12 @@
 import { LionWebJsonNode } from "@lionweb/validation";
-import { Request, Response } from "express";
+import e, { Request, Response } from "express";
+import fs from "fs";
 import { ADDITIONAL_API_WORKER } from "../database/AdditionalApiWorker.js";
 
 export interface AdditionalApi {
     getNode(req: Request, res: Response): Promise<LionWebJsonNode>;
     getNodeTree(req: Request, res: Response): void;
+    init(req: Request, res: Response): void;
 }
 
 class AdditionalApiImpl implements AdditionalApi {
@@ -14,10 +16,10 @@ class AdditionalApiImpl implements AdditionalApi {
      * @param res the full node, or null if it no node with the node id exists.
      */
     async getNode(req: Request, res: Response) {
-        const nodeId = req.query["id"] as string;
-        const x = await ADDITIONAL_API_WORKER.getNode(nodeId);
+        const nodeId = req.query["id"] as string
+        const x = await ADDITIONAL_API_WORKER.getNode(nodeId)
         res.send(x)
-        return x;
+        return x
     }
 
     /**
@@ -26,15 +28,36 @@ class AdditionalApiImpl implements AdditionalApi {
      * @param res
      */
     async getNodeTree(req: Request, res: Response) {
-        const idList = req.body.ids;
-        let depthLimit = Number.parseInt(req.query["depthLimit"] as string);
+        const idList = req.body.ids
+        let depthLimit = Number.parseInt(req.query["depthLimit"] as string)
         if (isNaN(depthLimit)) {
-            depthLimit = 99;
+            depthLimit = 99
         }
         console.log("API.getNodeTree is " + idList)
-        const result = await ADDITIONAL_API_WORKER.getNodeTree(idList, depthLimit);
-        res.send(result);
+        const result = await ADDITIONAL_API_WORKER.getNodeTree(idList, depthLimit)
+        res.send(result)
     }
+
+    async init(req: e.Request, res: e.Response) {
+        const sql = readFile("./src/tools/lionweb-init-tables.sql");
+        if (sql === undefined) {
+            console.error("************************************ File not found")
+            res.send("File not found")
+        } else {
+            await ADDITIONAL_API_WORKER.init(sql)
+            res.send("initialized")
+        }
+    }
+
+}
+function readFile(filename: string): any {
+    if (fs.existsSync(filename)) {
+        const stats = fs.statSync(filename);
+        if (stats.isFile()) {
+            return fs.readFileSync(filename).toString();
+        }
+    }
+    return undefined;
 }
 
 export const ADDITIONAL_API: AdditionalApi = new AdditionalApiImpl();

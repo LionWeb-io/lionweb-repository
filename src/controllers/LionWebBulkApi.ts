@@ -31,11 +31,11 @@ class LionWebBullApiImpl implements LionWebBulkApi {
      * @param req `body` contains the array of all nodes to store
      * @param res `ok`  if everything is correct
      */
-    async store(req: Request, res: Response): Promise<any> {
+    async store(req: Request, res: Response): Promise<void> {
         const chunk: LionWebJsonChunk = req.body;
         const x = await LIONWEB_BULKAPI_WORKER.bulkStore(chunk);
-        res.send("ok")
-        return x;
+        console.log("SENDING " + x)
+        res.send(x )
     }
 
     /**
