@@ -29,12 +29,8 @@ export class TestClient {
         return modelUnits
     }
 
-    async testStore(data?: LionWebJsonChunk) {
+    async testStore(data: LionWebJsonChunk) {
         console.log(`test.store`)
-        if (data === undefined) {
-            console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-            data = this.readModel("./src/test/data/Disk_1.json")
-        }
         if (data === null) {
             console.log("Cannot read json data")
             return
@@ -118,8 +114,8 @@ export class TestClient {
                 body: JSON.stringify(parameters.body),
             })
             clearTimeout(timeoutId)
-            const R = await promise.json()
-            return R
+            const result = await promise.json()
+            return result
         } catch (e: any) {
             this.handleError(e)
         }

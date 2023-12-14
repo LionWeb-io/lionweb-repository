@@ -83,10 +83,7 @@ export class LionWebJsonNodesWrapper {
 
     findProperty(node: LionWebJsonNode, property: LionWebJsonMetaPointer): LionWebJsonProperty | undefined {
         return node.properties.find(
-            (prop) =>
-                prop.property.key === property.key &&
-                prop.property.language === property.language &&
-                prop.property.version === property.version,
+            (prop) => prop.property.key === property.key && prop.property.language === property.language && prop.property.version === property.version,
         )
     }
 
@@ -94,7 +91,7 @@ export class LionWebJsonNodesWrapper {
         let result = ""
         const partitions = this.nodes.filter((n) => n.parent === null)
         partitions.forEach((partition) => {
-            const pString = this.recursiveToString(partition, 1);
+            const pString = this.recursiveToString(partition, 1)
             result += pString
         })
         return result
@@ -103,17 +100,17 @@ export class LionWebJsonNodesWrapper {
     private recursiveToString(node: LionWebJsonNode, depth): string {
         let result: string = ""
         const nameProperty = this.findProperty(node, {
-            "language": "-default-key-LionCore_builtins",
-            "version": "2023.1",
-            "key": "-default-key-INamed-name"
+            language: "-default-key-LionCore_builtins",
+            version: "2023.1",
+            key: "-default-key-INamed-name",
         })
-        const name = nameProperty === undefined ? "" : " " + nameProperty.value 
-        result += Array(depth).join('    ') + "(" + node.id + ")" + name + "\n";
-        node.containments.forEach(cont=> {
+        const name = nameProperty === undefined ? "" : " " + nameProperty.value
+        result += Array(depth).join("    ") + "(" + node.id + ")" + name + "\n"
+        node.containments.forEach((cont) => {
             if (cont.children.length !== 0) {
-                result += Array(depth+1).join('    ') + "*" + cont.containment.key + "*" + "\n";
-                cont.children.forEach(ch => {
-                    result += this.recursiveToString(this.getNode(ch), depth + 1);
+                result += Array(depth + 1).join("    ") + "*" + cont.containment.key + "*" + "\n"
+                cont.children.forEach((ch) => {
+                    result += this.recursiveToString(this.getNode(ch), depth + 1)
                 })
             }
         })

@@ -42,14 +42,15 @@ describe("Library test model", () => {
 
     it("test update full model", async () => {
         const jsonModel2 = t.readModel("./src/test/data/Disk_B-1.json") as LionWebJsonChunk
-        printChunk(jsonModel2)
+        // printChunk(jsonModel2)
         const diff = new LionWebJsonDiff()
         diff.diffLwChunk(jsonModel, jsonModel2)
         console.log("Diff: " + diff.errors)
-        // deepEqual(diff.diffResult.changes.length, 3);
 
-        const result = await t.testStore(jsonModel2)
-        console.log("R: " + JSON.stringify(result))
+        const result = await t.testStore(jsonModel2) as string[]
+        console.log("Result: \n" + result.join("\n"))
+        
+        await testResult()
     })
     it("test update (5)", async () => {
         const jsonModel2 = t.readModel("./src/test/data/Disk_B-2.json") as LionWebJsonChunk
@@ -57,33 +58,47 @@ describe("Library test model", () => {
         const diff = new LionWebJsonDiff()
         diff.diffLwChunk(jsonModel, jsonModel2)
         console.log("Diff: " + diff.errors)
-        // deepEqual(diff.diffResult.changes.length, 3);
+        const result = await t.testStore(jsonModel2) as string[]
+        console.log("Result: \n" + result.join("\n"))
 
-        const result = await t.testStore(jsonModel2)
-        console.log("R: " + JSON.stringify(result))
+        await testResult()
     })
     it("test update (5) and (4)", async () => {
         const jsonModel2 = t.readModel("./src/test/data/Disk_B-3.json") as LionWebJsonChunk
-        printChunk(jsonModel2)
+        // printChunk(jsonModel2)
         const diff = new LionWebJsonDiff()
         diff.diffLwChunk(jsonModel, jsonModel2)
         console.log("Diff: " + diff.errors)
-        // deepEqual(diff.diffResult.changes.length, 3);
+        const result = await t.testStore(jsonModel2) as string[]
+        console.log("Result: \n" + (result === null ? "" : result.join("\n")))
 
-        const result = await t.testStore(jsonModel2)
-        console.log("R: " + JSON.stringify(result))
+        await testResult()
     })
+
     it("test update (5) and (9)", async () => {
         const jsonModel2 = t.readModel("./src/test/data/Disk_B-4.json") as LionWebJsonChunk
-        printChunk(jsonModel2)
         const diff = new LionWebJsonDiff()
         diff.diffLwChunk(jsonModel, jsonModel2)
-        console.log("Diff: " + diff.errors)
-        // deepEqual(diff.diffResult.changes.length, 3);
 
         const result = await t.testStore(jsonModel2) as string[]
-        console.log("R: \n" + result.join("\n"))
+        console.log("Result: \n" + (result === null ? "" : result.join("\n")))
+        
+        await testResult()
     })
+
+    async function testResult() {
+        const jsonModelFull = t.readModel("./src/test/data/Disk_B-1.json") as LionWebJsonChunk
+        const afterRetrieve = (await t.testRetrieve()) as LionWebJsonChunk
+        // console.log("Retrieved: " + JSON.stringify(retrieve))
+        const diff2 = new LionWebJsonDiff()
+
+        console.log("JSON MODEL ")
+        printChunk(jsonModelFull)
+        console.log("Retrieved ")
+        printChunk(afterRetrieve)
+        diff2.diffLwChunk(jsonModelFull, afterRetrieve)
+        deepEqual(diff2.errors, [])
+    }
 })
 
 function printChunk(chunk: LionWebJsonChunk): void {

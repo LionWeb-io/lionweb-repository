@@ -1,8 +1,10 @@
 export function sqlArrayFromStringArray(strings: string[]): string {
     return `(${strings.map(id => `'${id}'`).join(', ')})`
-
 }
-    
+export function postgresArrayFromStringArray(strings: string[]): string {
+    return `{${strings.map(id => `"${id}"`).join(', ')}}`
+}
+
 export const QueryNodeForIdList = (nodeid: string[]): Object => {
     const sqlNodeCollection =sqlArrayFromStringArray(nodeid);
     const query = `

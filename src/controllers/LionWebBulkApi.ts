@@ -3,14 +3,14 @@
 // - call conroller to do actual work
 // - pack response
 
-import { Request, Response } from "express";
-import { LionWebJsonChunk } from "@lionweb/validation";
-import { LIONWEB_BULKAPI_WORKER } from "../database/LionWebBulkApiWorker.js";
+import { Request, Response } from "express"
+import { LionWebJsonChunk } from "@lionweb/validation"
+import { LIONWEB_BULKAPI_WORKER } from "../database/LionWebBulkApiWorker.js"
 
 export interface LionWebBulkApi {
-    partitions: (req: Request, res: Response) => void;
-    store: (req: Request, res: Response) => any;
-    retrieve: (req: Request, res: Response) => any;
+    partitions: (req: Request, res: Response) => void
+    store: (req: Request, res: Response) => any
+    retrieve: (req: Request, res: Response) => any
 }
 
 class LionWebBullApiImpl implements LionWebBulkApi {
@@ -19,9 +19,9 @@ class LionWebBullApiImpl implements LionWebBulkApi {
      * @param req no `parameters` or `body`
      * @param res The list of all partition nodes, without children or annotations
      */
-    async partitions (req: Request, res: Response): Promise<void>  {
+    async partitions(req: Request, res: Response): Promise<void> {
         // const result = [];
-        const result = await LIONWEB_BULKAPI_WORKER.bulkPartitions();
+        const result = await LIONWEB_BULKAPI_WORKER.bulkPartitions()
         // res.status(201);
         res.send(result)
     }
@@ -32,10 +32,10 @@ class LionWebBullApiImpl implements LionWebBulkApi {
      * @param res `ok`  if everything is correct
      */
     async store(req: Request, res: Response): Promise<void> {
-        const chunk: LionWebJsonChunk = req.body;
-        const x = await LIONWEB_BULKAPI_WORKER.bulkStore(chunk);
+        const chunk: LionWebJsonChunk = req.body
+        const x = await LIONWEB_BULKAPI_WORKER.bulkStore(chunk)
         console.log("SENDING " + x)
-        res.send(x )
+        res.send(x)
     }
 
     /**
@@ -46,14 +46,14 @@ class LionWebBullApiImpl implements LionWebBulkApi {
      */
     async retrieve(req: Request, res: Response): Promise<any> {
         console.log("Api.getNodes: ")
-        const mode = req.query["mode"] as string;
-        const depthLimit = Number.parseInt(req.query["depthLimit"] as string);
-        const idList = req.body.ids;
+        const mode = req.query["mode"] as string
+        const depthLimit = Number.parseInt(req.query["depthLimit"] as string)
+        const idList = req.body.ids
         console.log("Api.getNodes: " + JSON.stringify(req.body) + " depth " + depthLimit)
-        const x = await LIONWEB_BULKAPI_WORKER.bulkRetrieve(idList, mode, depthLimit);
+        const x = await LIONWEB_BULKAPI_WORKER.bulkRetrieve(idList, mode, depthLimit)
         res.send(x)
         // return x;
     }
 }
 
-export const LIONWEB_BULK_API: LionWebBulkApi = new LionWebBullApiImpl();
+export const LIONWEB_BULK_API: LionWebBulkApi = new LionWebBullApiImpl()

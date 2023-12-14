@@ -1,18 +1,17 @@
-import { Change } from "./Change.js";
+import { Change } from "./Change.js"
 
 export class DiffResult {
-    changes: Change[] = [];
+    changes: Change[] = []
 
     change(issue: Change) {
-        this.changes.push(issue);
+        this.changes.push(issue)
     }
 
     reset() {
-        this.changes = [];
+        this.changes = []
     }
 
     hasChanges(): boolean {
-        return this.changes.length !== 0;
+        return this.changes.length !== 0
     }
-
 }
