@@ -86,13 +86,6 @@ class LionWebQueries {
         return this.getNodesFromIdList(queryResult)
     }
 
-    getSingleNode = async (node_id: string): Promise<LionWebJsonNode> => {
-        // console.log("LionWebQueries.getNode " + node_id);
-        const result = await db.query(QueryNodeForIdList([node_id]))
-        // console.log("LionWebQueries.getNode " + JSON.stringify(result, null, 2))
-        return result
-    }
-
     getNodesFromIdList = async (nodeIdList: string[]): Promise<LionWebJsonNode[]> => {
         const nodes = await db.query(QueryNodeForIdList(nodeIdList))
         // console.log("LionWebQueries.getNodesFromIdList " + JSON.stringify(nodes, null, 2))
@@ -121,192 +114,7 @@ class LionWebQueries {
      *
      * @param toBeStoredNodes
      */
-    store = async (toBeStoredNodes: LionWebJsonNode[]) => {
-        const tbsNodesWrapper = new LionWebJsonNodesWrapper(toBeStoredNodes)
-        // Map nodes to correct structure for the table
-        const tbsDatarows = toBeStoredNodes.map((n) => {
-            return {
-                id: n.id,
-                classifier_language: n.classifier.language,
-                classifier_version: n.classifier.version,
-                classifier_key: n.classifier.key,
-                parent: n.parent,
-            }
-        })
-        const tbsNodeIds = tbsDatarows.map((row) => row.id)
-        console.log("STORE.NEW IDS " + tbsNodeIds.join(", "))
-        const containedIds = toBeStoredNodes.flatMap((node) =>
-            node.containments.flatMap((c) => {
-                console.log(`CHILDREN node ${node.id} containment ${c.containment.key}: ${c.children}`)
-                return c.children
-            }),
-        )
-        console.log("ALL CHILDREN " + containedIds)
-        const allIds = [...tbsNodeIds, ...containedIds.filter((cid) => !tbsNodeIds.includes(cid))]
-        // Find all id's that exist
-        const databaseNodesToUpdate = await LIONWEB_BULKAPI_WORKER.bulkRetrieve(allIds, "", 0)
-        const databaseNodesToUpdateWrapper = new LionWebJsonNodesWrapper(databaseNodesToUpdate.nodes)
-        const databaseNodesToUpdateNodeIds = databaseNodesToUpdate.nodes.map((e) => e.id)
-        console.log("STORE.UPDATE IDS = " + JSON.stringify(databaseNodesToUpdateNodeIds))
-
-        const childChanges: Map<string, ChildChange> = new Map<string, ChildChange>()
-        // Logic to find diff between old eand new nodes (only ;looking at containment)
-        // TODO do the same for annotations
-        toBeStoredNodes.forEach((tbs) => {
-            const existing: LionWebJsonNode | undefined = databaseNodesToUpdateWrapper.getNode(tbs.id)
-            tbs.containments.forEach((cont) => {
-                if (existing === undefined) {
-                    console.log("STORE children of new node: " + cont.children)
-                } else {
-                    const unchangedChildren = cont.children.filter((child) => existing.containments.flatMap((cont) => cont.children).includes(child))
-                    const addedChs = cont.children.filter((child) => !existing.containments.flatMap((cont) => cont.children).includes(child))
-                    addedChs.forEach((addedChild) => {
-                        let change: ChildChange | undefined = childChanges.get(addedChild)
-                        if (change === undefined) {
-                            change = {
-                                childId: addedChild,
-                                addedTo: undefined,
-                                removedFrom: undefined,
-                            }
-                            childChanges.set(addedChild, change)
-                            if (change.addedTo === undefined) {
-                                change.addedTo = {
-                                    parent: tbs,
-                                    containment: cont,
-                                }
-                            } else {
-                                console.error("Node is added more than once !!!")
-                            }
-                        }
-                    })
-
-                    // TODO need to find the correct containment in existing to find deleted ones
-                    const existingCont = databaseNodesToUpdateWrapper.findContainment(existing, cont.containment)
-                    const removedChs = existingCont?.children?.filter((child) => !cont.children.includes(child))
-                    removedChs.forEach((removedChild) => {
-                        let change: ChildChange = childChanges.get(removedChild)
-                        if (change === undefined) {
-                            childChanges.set(removedChild, {
-                                childId: removedChild,
-                                addedTo: undefined,
-                                removedFrom: undefined,
-                            })
-                            change = childChanges.get(removedChild)
-                            if (change.removedFrom === undefined) {
-                                change.removedFrom = {
-                                    parent: tbs,
-                                    containment: cont,
-                                }
-                            } else {
-                                console.error("Node is removed more than once !!!")
-                            }
-                        }
-                    })
-                }
-            })
-        })
-        console.log("================================")
-        // Map from child-id to parent-id
-        const childrenToRetrieveAndSetParent: Map<string, string> = new Map<string, string>()
-        const childrenToBecomeOrphans: string[] = []
-        // Map from parent-id to child-id
-        const parentsToRemoveChild: Map<string, string> = new Map<string, string>()
-        // child ids that need to be removed from their current parent containment
-        const childrenToBeRemovedFromParent: string[] = []
-        for (const changed of childChanges.values()) {
-            console.log("STORE.changed " + toStringChange(changed))
-            if (changed.addedTo !== undefined) {
-                if (changed.removedFrom !== undefined) {
-                    console.log("+++++++++++ added & removed " + changed.childId)
-                    // CASE Added + removed in toBeStored
-                    // Parent containments Ok, as it is both added and removed, but still need to check whether the parent property of the child has changed
-                    if (changed.addedTo.parent !== changed.removedFrom.parent) {
-                        if (tbsNodesWrapper.getNode(changed.childId) !== undefined) {
-                            // New child node (with presumably new parent is in the to be stored collection
-                            // Do nothing
-                        } else {
-                            childrenToRetrieveAndSetParent.set(changed.childId, changed.addedTo.parent.id)
-                        }
-                    } else {
-                        // parent has not changed, is ok. Do nothing
-                    }
-                } else {
-                    console.log("+++++++++++ added & !removed " + changed.childId)
-                    // CASE Added and **not** removed, so old parent is not in the tbs Nodes
-                    // Update parent.containment (i.e. remove child from containment) && uoadet child.parent
-                    const existingChildNode = databaseNodesToUpdateWrapper.getNode(changed.childId)
-                    console.log("node is " + existingChildNode)
-                    if (existingChildNode !== undefined) {
-                        // If Chunk is correct, then  the next commented line isn't needed as the child will have the new parent
-                        // childrenToRetrieveAndSetParent.set(changed.childId, changed.addedTo.parent.id);
-                        if (existingChildNode.parent !== null) {
-                            console.log(`Parent ${existingChildNode.parent} remove child ${changed.childId}`)
-                            parentsToRemoveChild.set(existingChildNode.parent, changed.childId)
-                        } else {
-                            console.error("Parent should not be null !!!")
-                        }
-                    } else {
-                        console.log("+++++++++++ No such child in db " + changed.childId)
-                        console.log(`22 Parent ${existingChildNode} remove child ${changed.childId}`)
-                        // childrenToRetrieveAndSetParent.set(changed.childId, changed.addedTo.parent.id);
-                        // childrenToBeRemovedFromParent.push(changed.childId);
-                    }
-                }
-            } else {
-                if (changed.removedFrom !== undefined) {
-                    console.log("+++++++++++ !added & removed " + changed.childId)
-
-                    // CASE Removed and not added
-                    childrenToBecomeOrphans.push(changed.childId)
-                } else {
-                    console.log("+++++++++++ !added & !removed " + changed.childId)
-                    // CASE Not added, nor removed: cannot happen
-                    console.error("Not added and not removed child with id " + changed.childId)
-                }
-            }
-        }
-
-        console.log("STORE.orphans: " + childrenToBecomeOrphans)
-        console.log("STORE.childrenToRetrieveAndSetParent: " + printMap(childrenToRetrieveAndSetParent))
-        console.log("STORE.parentsToRemoveChild: " + printMap(parentsToRemoveChild))
-        console.log("STORE.childrenToBeRemovedFromParent: " + childrenToBeRemovedFromParent)
-
-        // All rows that need to be inserted (i.e. they do not exist yet)
-        const tbsNodesToCreate = toBeStoredNodes.filter((row) => !databaseNodesToUpdateNodeIds.includes(row.id))
-        console.log("STORE.LionWebQueries: new NodesToInsert = " + JSON.stringify(tbsNodesToCreate.map((n) => n.id)))
-        await this.dbInsert(tbsNodesToCreate)
-
-        // TODO  Until the above line it seems to work => test it and test the rest
-        const tbsNodesToUpdate = toBeStoredNodes.filter((row) => databaseNodesToUpdateNodeIds.includes(row.id))
-        console.log("STORE.LionWebQueries: existing NodesToUpdate = " + JSON.stringify(tbsNodesToUpdate.map((n) => n.id)))
-
-        const childrenToRetrieve = Array.from(childrenToRetrieveAndSetParent.keys())
-        // const insert = `SELECT * FROM ${NODES_TABLE} WHERE id = ANY(${pgp.helpers.values(childrenToRetrieve)})`;
-        console.log("STORE.LionWebQueries: childrenToTRetrieve: " + childrenToRetrieve)
-        const databaseChildrenToSetParent = await db.query(
-            `
-SELECT containments.* FROM lionweb_nodes 
-left join lionweb_containments containments on containments.node_id = lionweb_nodes.parent
-WHERE lionweb_nodes.id IN ('example1-props_root_props_1', 'a') 
-`,
-        )
-        console.log("STORE.NEW QUERY is " + JSON.stringify(databaseChildrenToSetParent))
-        console.log("STORE.CONTAINMENT  is " + JSON.stringify(findContainmentContainingChild(databaseChildrenToSetParent, "example1-props_root_props_1")))
-
-        databaseChildrenToSetParent
-        // All rows to be updated (row with given id already exists)
-        // const existingNodesToUpdate = datarows.filter(row => existing.includes(row));
-        // console.log("LionWebQueries.existingNodesToUpdate = " + JSON.stringify(existingNodesToUpdate));
-        // if (existingNodesToUpdate.length !== 0) {
-        //     let update = await pgp.helpers.update(existingNodesToUpdate, nodesColumnSet) + " WHERE v.id = t.id" ;
-        //     console.log("LionWebQueries.UPDATE " + update)
-        //     // Hack no longer needed: update = update.replace('v."node"', 'v."node"::jsonb')
-        //     const dbResult = await db.query(update);
-        // }
-        // return null;
-    }
-
-    storeD = async (toBeStoredChunk: LionWebJsonChunk) => {
+    store = async (toBeStoredChunk: LionWebJsonChunk) => {
         const toBeStoredNodes = toBeStoredChunk.nodes
         const toBeStoredNodesWrapper = new LionWebJsonNodesWrapper(toBeStoredNodes)
         const tbsNodeIds = toBeStoredNodes.map((node) => node.id)
@@ -327,7 +135,6 @@ WHERE lionweb_nodes.id IN ('example1-props_root_props_1', 'a')
 
         const toBeStoredNewNodes = diff.diffResult.changes.filter((change): change is NodeAdded => change.id === "NodeAdded")
         const addedChildren: ChildAdded[] = diff.diffResult.changes.filter((ch): ch is ChildAdded => ch instanceof ChildAdded)
-        // addedChildren.push(...this.addedChildrenInNewNodes(newNodes.map(ch => ch.node )))
         const removedChildren = diff.diffResult.changes.filter((change): change is ChildRemoved => change.id === "ChildRemoved")
         const parentChanged = diff.diffResult.changes.filter((change): change is ParentChanged => change.id === "ParentChanged")
 
@@ -383,7 +190,7 @@ WHERE lionweb_nodes.id IN ('example1-props_root_props_1', 'a')
             // `removedAndNotParentChangedChildren: ${removedAndNotParentChangedChildren.map(removed => `Removed ${removed.childId} from ${removed.parentNode.id}`)}`
         ]
         console.log(result)
-        // imp;licit child remove, find all parents
+        // implicit child remove, find all parents
         const implicitlyRemovedChildNodes = await LIONWEB_BULKAPI_WORKER.bulkRetrieve(
             addedAndNotRemovedChildren.map((ch) => ch.childId),
             "",
@@ -394,6 +201,7 @@ WHERE lionweb_nodes.id IN ('example1-props_root_props_1', 'a')
             "",
             0,
         )
+        // Now all implicit changes are turned into queries.
         let implicitQueries = "";
         implicitlyRemovedChildNodes.nodes.forEach( child => {
             const previousParentNode = theirParents.nodes.find(p => p.id = child.parent) 
@@ -491,23 +299,6 @@ WHERE lionweb_nodes.id IN ('example1-props_root_props_1', 'a')
      * This is a new node, so each child is an AddedChild change.
      * @param node
      */
-    addedChildrenInNewNodes(nodes: LionWebJsonNode[]): ChildAdded[] {
-        const result = []
-        nodes.forEach((node: LionWebJsonNode, index: number) => {
-            node.containments.forEach((containment: LionWebJsonContainment, index: number) => {
-                const key = containment.containment.key
-                for (const childId of containment.children) {
-                    result.push(new ChildAdded(new JsonContext(null, ["containments", index]), node, containment.containment.key, childId))
-                }
-            })
-        })
-        return result
-    }
-
-    /**
-     * This is a new node, so each child is an AddedChild change.
-     * @param node
-     */
     removedChildrenFromRemovedNodes(
         nodes: LionWebJsonNode[],
         tbsNodesWrapper: LionWebJsonNodesWrapper,
@@ -533,6 +324,7 @@ WHERE lionweb_nodes.id IN ('example1-props_root_props_1', 'a')
 
     /**
      * Insert _tbsNodesToCreate in the lionweb_nodes table
+     * These nodes are all new nodes.
      * @param tbsNodesToCreate
      */
     private async dbInsert(tbsNodesToCreate: LionWebJsonNode[]) {

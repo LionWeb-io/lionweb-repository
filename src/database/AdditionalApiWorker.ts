@@ -10,10 +10,6 @@ class AdditionalApiWorker {
         return await LIONWEB_QUERIES.getNodeTree(nodeIds, depthLimit)
     }
 
-    async getNode(nodeId: string) {
-        return await LIONWEB_QUERIES.getSingleNode(nodeId)
-    }
-
     async init(sql: string) {
         return await db.query(sql)
     }

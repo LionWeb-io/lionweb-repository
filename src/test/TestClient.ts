@@ -43,21 +43,10 @@ export class TestClient {
         return result
     }
 
-    async testGetNode() {
-        console.log(`test.getNode`)
-        var startTime = performance.now()
-        let x = await this.getWithTimeout(`getNode`, { body: {}, params: "id=example1-props_root" })
-        var endTime = performance.now()
-        console.log(`Call to query took ${endTime - startTime} milliseconds`)
-
-        // filter out the modelUnitInterfaces
-        // console.log("result noide is " + JSON.stringify(x));
-    }
-
-    async testGetNodeTree() {
+    async testGetNodeTree(nodeIds: string[]) {
         console.log(`test.testGetNodeTree`)
         var startTime = performance.now()
-        let x = await this.postWithTimeout(`getNodeTree`, { body: { ids: ["ID-2"] }, params: "" })
+        let x = await this.postWithTimeout(`getNodeTree`, { body: { ids: nodeIds }, params: "" })
         var endTime = performance.now()
         console.log(`Call to query took ${endTime - startTime} milliseconds`)
 
@@ -65,11 +54,11 @@ export class TestClient {
         // console.log("result node is " + JSON.stringify(x));
     }
 
-    async testRetrieve(depth?: number) {
-        console.log(`test.testRetrieve`)
+    async testRetrieve(nodeIds: string[], depth?: number) {
+        console.log(`test.testRetrieve ${nodeIds} wioth depth ${depth}`)
         depth = depth || 999
         var startTime = performance.now()
-        let x = await this.postWithTimeout(`bulk/retrieve`, { body: { ids: ["ID-2"] }, params: `depthLimit=${depth}` })
+        let x = await this.postWithTimeout(`bulk/retrieve`, { body: { ids: nodeIds }, params: `depthLimit=${depth}` })
         var endTime = performance.now()
         console.log(`Call to query took ${endTime - startTime} milliseconds`)
         // console.log("++++++++++++++ result node is " + JSON.stringify(x));

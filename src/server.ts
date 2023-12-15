@@ -27,7 +27,6 @@ app.get("/bulk/partitions", LIONWEB_BULK_API.partitions)
 app.post("/bulk/store", LIONWEB_BULK_API.store)
 app.post("/bulk/retrieve", LIONWEB_BULK_API.retrieve)
 
-app.get("/getNode", ADDITIONAL_API.getNode)
 app.post("/getNodeTree", ADDITIONAL_API.getNodeTree)
 app.post("/init", ADDITIONAL_API.init)
 
