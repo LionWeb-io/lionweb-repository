@@ -97,7 +97,7 @@ export class LionWebJsonNodesWrapper {
         return result
     }
 
-    private recursiveToString(node: LionWebJsonNode, depth): string {
+    private recursiveToString(node: LionWebJsonNode, depth: number): string {
         let result: string = ""
         const nameProperty = this.findProperty(node, {
             language: "-default-key-LionCore_builtins",

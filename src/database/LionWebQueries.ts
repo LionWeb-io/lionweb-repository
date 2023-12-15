@@ -36,30 +36,8 @@ export type NodeTreeResultType = {
     depth: number
 }
 
-export type ChildChange = {
-    childId: string
-    addedTo:
-        | {
-              parent: LionWebJsonNode
-              containment: LionWebJsonContainment
-          }
-        | undefined
-    removedFrom:
-        | {
-              parent: LionWebJsonNode
-              containment: LionWebJsonContainment
-          }
-        | undefined
-}
-
-function toStringChange(ch: ChildChange): string {
-    return `child ${ch.childId} ${ch.removedFrom === undefined ? "" : `removed from ${ch.removedFrom.parent.id}`}  ${
-        ch.addedTo === undefined ? "" : `added to ${ch.addedTo.parent.id}`
-    }`
-}
-
 /**
- * Simgle database functions.
+ * Database functions.
  */
 class LionWebQueries {
     constructor() {}
