@@ -1,49 +1,45 @@
 {
-   "serializationFormatVersion": "2023.1",
-   "languages": [
-      {
-         "key":"-default-key-FileSystem",
-         "version":"2023.1"
-      },
-      {
-         "key":"-default-key-LionCore_builtins",
-         "version":"2023.1"
-      }
-   ],
-   "nodes": [
-      {
-         "id": "ID-5",
-         "classifier": {
-            "language": "-default-key-FileSystem",
-            "version": "2023.1",
-            "key": "Folder-key"
-         },
-         "properties": [
-            {
-               "property": {
-                  "language": "-default-key-LionCore_builtins",
-                  "version": "2023.1",
-                  "key": "-default-key-INamed-name"
-               },
-               "value": "folder-2"
-            }
-         ],
-         "containments": [
-            {
-               "containment": {
-                  "language": "-default-key-FileSystem",
-                  "version": "2023.1",
-                  "key": "Folder-listing-key"
-               },
-               "children": [
-                  "ID-9",
-                  "ID-11",
-                  "ID-12"
-               ]
-            }
-         ],
-         "references": [],
-         "parent": "ID-3"
-      }
-   ]
+    "serializationFormatVersion": "2023.1",
+    "languages": [
+        {
+            "key": "-default-key-FileSystem",
+            "version": "2023.1"
+        },
+        {
+            "key": "-default-key-LionCore_builtins",
+            "version": "2023.1"
+        }
+    ],
+    "nodes": [
+        {
+            "id": "ID-5",
+            "classifier": {
+                "language": "-default-key-FileSystem",
+                "version": "2023.1",
+                "key": "Folder-key"
+            },
+            "properties": [
+                {
+                    "property": {
+                        "language": "-default-key-LionCore_builtins",
+                        "version": "2023.1",
+                        "key": "-default-key-INamed-name"
+                    },
+                    "value": "folder-2"
+                }
+            ],
+            "containments": [
+                {
+                    "containment": {
+                        "language": "-default-key-FileSystem",
+                        "version": "2023.1",
+                        "key": "Folder-listing-key"
+                    },
+                    "children": ["ID-9", "ID-11", "ID-12"]
+                }
+            ],
+            "references": [],
+            "parent": "ID-3"
+        }
+    ]
 }

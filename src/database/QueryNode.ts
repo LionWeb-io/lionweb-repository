@@ -1,12 +1,12 @@
 export function sqlArrayFromStringArray(strings: string[]): string {
-    return `(${strings.map(id => `'${id}'`).join(', ')})`
+    return `(${strings.map(id => `'${id}'`).join(", ")})`
 }
 export function postgresArrayFromStringArray(strings: string[]): string {
-    return `{${strings.map(id => `"${id}"`).join(', ')}}`
+    return `{${strings.map(id => `"${id}"`).join(", ")}}`
 }
 
 export const QueryNodeForIdList = (nodeid: string[]): Object => {
-    const sqlNodeCollection =sqlArrayFromStringArray(nodeid);
+    const sqlNodeCollection = sqlArrayFromStringArray(nodeid)
     const query = `
 WITH 
     node_properties AS ( 
@@ -66,13 +66,13 @@ left join node_references rref on rref.id = lionweb_nodes.id
 where lionweb_nodes.id IN ${sqlNodeCollection}
 group by lionweb_nodes.id, prop.id, con.id, prop.properties, containments, rreferences
 
-    `;
+    `
     // console.log("QueryNodeForIdList: " + query);
-    return query;
-};
+    return query
+}
 
 export const queryNodeTreeForIdList = (nodeidlist: string[], depthLimit: number): string => {
-    const sqlArray = sqlArrayFromStringArray(nodeidlist);
+    const sqlArray = sqlArrayFromStringArray(nodeidlist)
     const query = `
 WITH RECURSIVE tmp AS (
     SELECT id, parent, 0 as depth -- , con.children
@@ -88,5 +88,5 @@ WITH RECURSIVE tmp AS (
 SELECT * FROM tmp;
     `
     // console.log("queryNodeTreeForIdList: " + query);
-    return query;
+    return query
 }

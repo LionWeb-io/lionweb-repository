@@ -1,11 +1,12 @@
-import { LionWebJsonNode } from "@lionweb/validation";
-import e, { Request, Response } from "express";
-import fs from "fs";
-import { ADDITIONAL_API_WORKER } from "../database/AdditionalApiWorker.js";
+import { LionWebJsonNode } from "@lionweb/validation"
+import e, { Request, Response } from "express"
+import fs from "fs"
+import { ADDITIONAL_API_WORKER } from "../database/AdditionalApiWorker.js"
 
 export interface AdditionalApi {
-    getNodeTree(req: Request, res: Response): void;
-    init(req: Request, res: Response): void;
+    getNodeTree(req: Request, res: Response): void
+
+    init(req: Request, res: Response): void
 }
 
 class AdditionalApiImpl implements AdditionalApi {
@@ -26,7 +27,7 @@ class AdditionalApiImpl implements AdditionalApi {
     }
 
     async init(req: e.Request, res: e.Response) {
-        const sql = readFile("./src/tools/lionweb-init-tables.sql");
+        const sql = readFile("./src/tools/lionweb-init-tables.sql")
         if (sql === undefined) {
             console.error("************************************ File not found")
             res.send("File not found")
@@ -35,16 +36,16 @@ class AdditionalApiImpl implements AdditionalApi {
             res.send("initialized")
         }
     }
-
 }
+
 function readFile(filename: string): any {
     if (fs.existsSync(filename)) {
-        const stats = fs.statSync(filename);
+        const stats = fs.statSync(filename)
         if (stats.isFile()) {
-            return fs.readFileSync(filename).toString();
+            return fs.readFileSync(filename).toString()
         }
     }
-    return undefined;
+    return undefined
 }
 
-export const ADDITIONAL_API: AdditionalApi = new AdditionalApiImpl();
+export const ADDITIONAL_API: AdditionalApi = new AdditionalApiImpl()

@@ -3,7 +3,6 @@ import { TestClient } from "./TestClient.js"
 
 const test = new TestClient()
 
-
 console.log("Testing: " + process.argv[2])
 switch (process.argv[2]) {
     case "store":

@@ -55,7 +55,7 @@ export class LionWebJsonNodesWrapper {
      */
     prepareNodeIds() {
         this.nodesIdMap = new Map<NodeId, LionWebJsonNode>()
-        this.nodes.forEach((node) => {
+        this.nodes.forEach(node => {
             this.nodesIdMap.set(node.id, node)
         })
     }
@@ -74,7 +74,7 @@ export class LionWebJsonNodesWrapper {
 
     findContainment(node: LionWebJsonNode, containment: LionWebJsonMetaPointer): LionWebJsonContainment | undefined {
         return node.containments.find(
-            (cont) =>
+            cont =>
                 cont.containment.key === containment.key &&
                 cont.containment.language === containment.language &&
                 cont.containment.version === containment.version,
@@ -83,14 +83,14 @@ export class LionWebJsonNodesWrapper {
 
     findProperty(node: LionWebJsonNode, property: LionWebJsonMetaPointer): LionWebJsonProperty | undefined {
         return node.properties.find(
-            (prop) => prop.property.key === property.key && prop.property.language === property.language && prop.property.version === property.version,
+            prop => prop.property.key === property.key && prop.property.language === property.language && prop.property.version === property.version,
         )
     }
 
     asString(): string {
         let result = ""
-        const partitions = this.nodes.filter((n) => n.parent === null)
-        partitions.forEach((partition) => {
+        const partitions = this.nodes.filter(n => n.parent === null)
+        partitions.forEach(partition => {
             const pString = this.recursiveToString(partition, 1)
             result += pString
         })
@@ -106,10 +106,10 @@ export class LionWebJsonNodesWrapper {
         })
         const name = nameProperty === undefined ? "" : " " + nameProperty.value
         result += Array(depth).join("    ") + "(" + node.id + ")" + name + "\n"
-        node.containments.forEach((cont) => {
+        node.containments.forEach(cont => {
             if (cont.children.length !== 0) {
                 result += Array(depth + 1).join("    ") + "*" + cont.containment.key + "*" + "\n"
-                cont.children.forEach((ch) => {
+                cont.children.forEach(ch => {
                     result += this.recursiveToString(this.getNode(ch), depth + 1)
                 })
             }
@@ -119,5 +119,5 @@ export class LionWebJsonNodesWrapper {
 }
 
 export function findContainmentContainingChild(containments: LionWebJsonContainment[], childId: string): LionWebJsonContainment | undefined {
-    return containments.find((cont) => cont.children.includes(childId))
+    return containments.find(cont => cont.children.includes(childId))
 }

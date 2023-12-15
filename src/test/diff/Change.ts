@@ -9,6 +9,13 @@ export type ChangeType =
     | "ParentChanged"
     | "PropertyValueChanged"
     | "SerializationFormatChange"
+    | "PropertyRemoved"
+    | "PropertyAdded"
+    | "NodeClassifierChanged"
+    | "ContainmentAdded"
+    | "ContainmentRemoved"
+    | "LanguageRemoved"
+    | "LanguageAdded"
 
 export abstract class Change {
     abstract readonly id: ChangeType

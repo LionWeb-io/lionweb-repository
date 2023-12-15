@@ -6,8 +6,9 @@ import { JsonContext, LionWebJsonChild as LionWebJsonContainment, LionWebJsonChu
 
 import { findContainmentContainingChild, LionWebJsonNodesWrapper } from "../lionweb/LionWebJsonNodesWrapper.js"
 import { NodeAdded } from "../test/diff/ChunkChange.js"
-import { ChildAdded, ChildRemoved, ParentChanged } from "../test/diff/ContainmentChange.js"
+import { ChildAdded, ChildRemoved } from "../test/diff/ContainmentChange.js"
 import { LionWebJsonDiff } from "../test/diff/LionWebJsonDiff.js"
+import { ParentChanged } from "../test/diff/NodeChange.js";
 import { db } from "./DbConnection.js"
 import { LIONWEB_BULKAPI_WORKER } from "./LionWebBulkApiWorker.js"
 import { queryNodeTreeForIdList, QueryNodeForIdList, postgresArrayFromStringArray } from "./QueryNode.js"
@@ -78,7 +79,7 @@ class LionWebQueries {
         // TODO Optimization?: The following WHERE can also directly be includes in the getNodesFromIdList
         const result = (await db.query("SELECT id FROM lionweb_nodes WHERE parent is null")) as { id: string }[]
         console.log("LionWebQueries.getPartitions.Result: " + JSON.stringify(result))
-        const nodes = await this.getNodesFromIdList(result.map((n) => n.id))
+        const nodes = await this.getNodesFromIdList(result.map(n => n.id))
         return {
             serializationFormatVersion: "2023.1",
             languages: collectUsedLanguages(nodes),
@@ -95,21 +96,21 @@ class LionWebQueries {
     store = async (toBeStoredChunk: LionWebJsonChunk) => {
         const toBeStoredNodes = toBeStoredChunk.nodes
         const toBeStoredNodesWrapper = new LionWebJsonNodesWrapper(toBeStoredNodes)
-        const tbsNodeIds = toBeStoredNodes.map((node) => node.id)
+        const tbsNodeIds = toBeStoredNodes.map(node => node.id)
         console.log("STORE.CHUNK IDS " + tbsNodeIds.join(", "))
         const tbsContainedChildIds = this.getContainedIds(toBeStoredNodes)
         console.log("STORE.ALL CHILDREN " + tbsContainedChildIds)
         // TODO do the same for annotations
-        const tbsNodeAndChildIds = [...tbsNodeIds, ...tbsContainedChildIds.filter((cid) => !tbsNodeIds.includes(cid))]
+        const tbsNodeAndChildIds = [...tbsNodeIds, ...tbsContainedChildIds.filter(cid => !tbsNodeIds.includes(cid))]
         // Retrieve nodes for all id's that exist
         const databaseChunk = await LIONWEB_BULKAPI_WORKER.bulkRetrieve(tbsNodeAndChildIds, "", 0)
         const databaseNodesWrapper = new LionWebJsonNodesWrapper(databaseChunk.nodes)
-        console.log("STORE.EXISTING DATABASE IDS = " + databaseChunk.nodes.map((e) => e.id))
+        console.log("STORE.EXISTING DATABASE IDS = " + databaseChunk.nodes.map(e => e.id))
 
         const diff = new LionWebJsonDiff()
         diff.diffLwChunk(databaseChunk, toBeStoredChunk)
         console.log("STORE.CHANGES ")
-        console.log(diff.errors)
+        console.log(diff.diffsAsString)
 
         const toBeStoredNewNodes = diff.diffResult.changes.filter((change): change is NodeAdded => change.id === "NodeAdded")
         const addedChildren: ChildAdded[] = diff.diffResult.changes.filter((ch): ch is ChildAdded => ch instanceof ChildAdded)
@@ -117,72 +118,72 @@ class LionWebQueries {
         const parentChanged = diff.diffResult.changes.filter((change): change is ParentChanged => change.id === "ParentChanged")
 
         // Only children that already exist in the database
-        const databaseChildrenOfNewNodes = this.getContainedIds(toBeStoredNewNodes.map((ch) => ch.node))
-            .filter((id) => databaseNodesWrapper.getNode(id) !== undefined)
-            .map((id) => databaseNodesWrapper.getNode(id))
+        const databaseChildrenOfNewNodes = this.getContainedIds(toBeStoredNewNodes.map(ch => ch.node))
+            .filter(id => databaseNodesWrapper.getNode(id) !== undefined)
+            .map(id => databaseNodesWrapper.getNode(id))
 
-        console.log("newNodes          : " + toBeStoredNewNodes.map((ch) => ch.node.id))
-        console.log("childrenOfNewNodesInDatabase: " + databaseChildrenOfNewNodes.map((node) => node.id))
-        console.log("addedChildren     : " + addedChildren.map((ch) => ch.childId + " to parent " + ch.parentNode.id).join(", "))
-        console.log("removedChildren   : " + removedChildren.map((ch) => ch.childId + " from parent " + ch.parentNode.id).join(", "))
-        console.log("parentChanged     : " + parentChanged.map((ch) => `Node ${ch.node.id} parent ${ch.beforeParentId} => ${ch.afterParentId}`).join(", "))
+        console.log("newNodes          : " + toBeStoredNewNodes.map(ch => ch.node.id))
+        console.log("childrenOfNewNodesInDatabase: " + databaseChildrenOfNewNodes.map(node => node.id))
+        console.log("addedChildren     : " + addedChildren.map(ch => ch.childId + " to parent " + ch.parentNode.id).join(", "))
+        console.log("removedChildren   : " + removedChildren.map(ch => ch.childId + " from parent " + ch.parentNode.id).join(", "))
+        console.log("parentChanged     : " + parentChanged.map(ch => `Node ${ch.node.id} parent ${ch.beforeParentId} => ${ch.afterParentId}`).join(", "))
 
         // Orphans
-        const removedAndNotAddedChildren = removedChildren.filter((removed) => {
+        const removedAndNotAddedChildren = removedChildren.filter(removed => {
             return (
-                addedChildren.find((added) => added.childId === removed.childId) === undefined &&
-                databaseChildrenOfNewNodes.find((child) => child.id === removed.childId) === undefined
+                addedChildren.find(added => added.childId === removed.childId) === undefined &&
+                databaseChildrenOfNewNodes.find(child => child.id === removed.childId) === undefined
             )
         })
         // Now add all children of the orphans to the removed children
         // TODO recursively
         const implicitRemovedFromOrphan = this.removedChildrenFromRemovedNodes(
-            removedAndNotAddedChildren.map((ch) => ch.parentNode),
+            removedAndNotAddedChildren.map(ch => ch.parentNode),
             toBeStoredNodesWrapper,
             databaseNodesWrapper,
         )
         removedAndNotAddedChildren.push(
-            ...implicitRemovedFromOrphan.filter((removed) => {
-                return addedChildren.find((added) => added.childId === removed.childId) === undefined
+            ...implicitRemovedFromOrphan.filter(removed => {
+                return addedChildren.find(added => added.childId === removed.childId) === undefined
             }),
         )
 
         // remove child: from old parent
-        const addedAndNotRemovedChildren = addedChildren.filter((added) => {
-            return removedChildren.find((removed) => removed.childId === added.childId) === undefined
+        const addedAndNotRemovedChildren = addedChildren.filter(added => {
+            return removedChildren.find(removed => removed.childId === added.childId) === undefined
         })
         // Child node itself needs updating its parent
-        const addedAndNotParentChangedChildren = addedChildren.filter((added) => {
-            return parentChanged.find((parentChange) => parentChange.node.id === added.childId) === undefined
+        const addedAndNotParentChangedChildren = addedChildren.filter(added => {
+            return parentChanged.find(parentChange => parentChange.node.id === added.childId) === undefined
         })
         // Orphan if not added, otherwise parent of child needs upodating
-        const removedAndNotParentChangedChildren = removedChildren.filter((removed) => {
-            return parentChanged.find((parent) => parent.node.id === removed.childId) === undefined
+        const removedAndNotParentChangedChildren = removedChildren.filter(removed => {
+            return parentChanged.find(parent => parent.node.id === removed.childId) === undefined
         })
 
         console.log("DATABASE CHANGES")
         const result: string[] = [
-            `Implicit removed child: ${addedAndNotRemovedChildren.map((added) => `Added ${added.childId} to ${added.parentNode.id}`)}`,
-            `Implicit parent change: ${addedAndNotParentChangedChildren.map((added) => `Added ${added.childId} to ${added.parentNode.id}`)}`,
-            `Orphaned              : ${removedAndNotAddedChildren.map((removed) => `Removed ${removed.childId} from ${removed.parentNode.id}`)}`,
+            `Implicit removed child: ${addedAndNotRemovedChildren.map(added => `Added ${added.childId} to ${added.parentNode.id}`)}`,
+            `Implicit parent change: ${addedAndNotParentChangedChildren.map(added => `Added ${added.childId} to ${added.parentNode.id}`)}`,
+            `Orphaned              : ${removedAndNotAddedChildren.map(removed => `Removed ${removed.childId} from ${removed.parentNode.id}`)}`,
             // `removedAndNotParentChangedChildren: ${removedAndNotParentChangedChildren.map(removed => `Removed ${removed.childId} from ${removed.parentNode.id}`)}`
         ]
         console.log(result)
         // implicit child remove, find all parents
         const implicitlyRemovedChildNodes = await LIONWEB_BULKAPI_WORKER.bulkRetrieve(
-            addedAndNotRemovedChildren.map((ch) => ch.childId),
+            addedAndNotRemovedChildren.map(ch => ch.childId),
             "",
             0,
         )
         const theirParents = await LIONWEB_BULKAPI_WORKER.bulkRetrieve(
-            implicitlyRemovedChildNodes.nodes.map((node) => node.parent),
+            implicitlyRemovedChildNodes.nodes.map(node => node.parent),
             "",
             0,
         )
         // Now all implicit changes are turned into queries.
-        let implicitQueries = "";
-        implicitlyRemovedChildNodes.nodes.forEach( child => {
-            const previousParentNode = theirParents.nodes.find(p => p.id = child.parent) 
+        let implicitQueries = ""
+        implicitlyRemovedChildNodes.nodes.forEach(child => {
+            const previousParentNode = theirParents.nodes.find(p => (p.id = child.parent))
             const changedContainment = findContainmentContainingChild(previousParentNode.containments, child.id)
             const index = changedContainment.children.indexOf(child.id)
             const newChildren = [...changedContainment.children]
@@ -201,8 +202,8 @@ class LionWebQueries {
         })
         addedChildren.forEach(added => {
             const afterNode = toBeStoredNodesWrapper.getNode(added.parentNode.id)
-            const changedContainment = afterNode.containments.find(cont => cont.containment.key=== added.containmentKey);
-            implicitQueries +=
+            const changedContainment = afterNode.containments.find(cont => cont.containment.key === added.containmentKey)
+            implicitQueries += 
                 `-- Update nodes that have children added
                 UPDATE lionweb_containments c 
                     SET children = '${postgresArrayFromStringArray(changedContainment.children)}'
@@ -216,8 +217,8 @@ class LionWebQueries {
         })
         removedChildren.forEach(removed => {
             const afterNode = toBeStoredNodesWrapper.getNode(removed.parentNode.id)
-            const changedContainment = afterNode.containments.find(cont => cont.containment.key=== removed.containmentKey);
-            implicitQueries +=
+            const changedContainment = afterNode.containments.find(cont => cont.containment.key === removed.containmentKey)
+            implicitQueries += 
                 `-- Update node that has children removed.
                 UPDATE lionweb_containments c 
                     SET children = '${postgresArrayFromStringArray(changedContainment.children)}'
@@ -229,8 +230,8 @@ class LionWebQueries {
                     
                 `
         })
-        parentChanged.forEach( added => {
-            implicitQueries +=
+        parentChanged.forEach(added => {
+            implicitQueries += 
                 `-- Update parent of children that have been model
                 UPDATE lionweb_nodes n 
                     SET parent = '${added.afterParentId}'
@@ -239,9 +240,9 @@ class LionWebQueries {
                     
                 `
         })
-        addedAndNotParentChangedChildren.forEach( added => {
+        addedAndNotParentChangedChildren.forEach(added => {
             // const beforeNode = databaseNodesWrapper.getNode(added.childId)
-            implicitQueries +=
+            implicitQueries += 
                 `-- Implicit Update of parent of children that have been model
                 UPDATE lionweb_nodes n 
                     SET parent = '${added.parentNode.id}'
@@ -256,7 +257,7 @@ class LionWebQueries {
             await db.query(implicitQueries)
         }
 
-        await this.dbInsert(toBeStoredNewNodes.map((ch) => (ch as NodeAdded).node))
+        await this.dbInsertNodeArray(toBeStoredNewNodes.map(ch => (ch as NodeAdded).node))
         return result
     }
 
@@ -266,8 +267,8 @@ class LionWebQueries {
      * @private
      */
     private getContainedIds(nodes: LionWebJsonNode[]) {
-        return nodes.flatMap((node) =>
-            node.containments.flatMap((c) => {
+        return nodes.flatMap(node =>
+            node.containments.flatMap(c => {
                 return c.children
             }),
         )
@@ -296,7 +297,7 @@ class LionWebQueries {
                 }
             })
         })
-        console.log("removedChildrenFromRemovedNodes: " + result.map((r) => `${r.childId} removed from ${r.parentNode.id}`))
+        console.log("removedChildrenFromRemovedNodes: " + result.map(r => `${r.childId} removed from ${r.parentNode.id}`))
         return result
     }
 
@@ -305,13 +306,12 @@ class LionWebQueries {
      * These nodes are all new nodes.
      * @param tbsNodesToCreate
      */
-    private async dbInsert(tbsNodesToCreate: LionWebJsonNode[]) {
+    private async dbInsertNodeArray(tbsNodesToCreate: LionWebJsonNode[]) {
         {
-            // console.log("dbInsert");
             if (tbsNodesToCreate.length === 0) {
                 return
             }
-            const node_rows = tbsNodesToCreate.map((node) => {
+            const node_rows = tbsNodesToCreate.map(node => {
                 return {
                     id: node.id,
                     classifier_language: node.classifier.language,
@@ -320,34 +320,29 @@ class LionWebQueries {
                     parent: node.parent,
                 }
             })
-            const insert = pgp.helpers.insert(node_rows, nodesColumnSet) // + " ON CONFLICT (id) DO NOTHING RETURNING *";
-            // console.log("dbInsert.query is: " + insert)
+            const insert = pgp.helpers.insert(node_rows, nodesColumnSet);
             const dbResult = await db.query(insert)
 
             // INSERT Containments
-            const insertRowData = tbsNodesToCreate.flatMap((node) =>
-                node.containments.map((c) => ({ node_id: node.id, containment: c.containment, children: c.children })),
+            const insertRowData = tbsNodesToCreate.flatMap(node =>
+                node.containments.map(c => ({ node_id: node.id, containment: c.containment, children: c.children })),
             )
-            // console.log("Insert containments: " + JSON.stringify(insertRowData))
-
             const insertContainments = pgp.helpers.insert(insertRowData, containmentsColumnSet)
             await db.query(insertContainments)
 
             // INSERT Properties
-            const insertProperties = tbsNodesToCreate.flatMap((node) =>
-                node.properties.map((prop) => ({ node_id: node.id, property: prop.property, value: prop.value })),
+            const insertProperties = tbsNodesToCreate.flatMap(node =>
+                node.properties.map(prop => ({ node_id: node.id, property: prop.property, value: prop.value })),
             )
-            // console.log("Insert properties: " + JSON.stringify(insertProperties))
             if (insertProperties.length !== 0) {
                 const insertQuery = pgp.helpers.insert(insertProperties, PROPERTIES_COLUMNSET)
                 await db.query(insertQuery)
             }
 
             // INSERT REFERENCES
-            const insertReferences = tbsNodesToCreate.flatMap((node) =>
-                node.references.map((reference) => ({ node_id: node.id, lw_reference: reference.reference, targets: reference.targets })),
+            const insertReferences = tbsNodesToCreate.flatMap(node =>
+                node.references.map(reference => ({ node_id: node.id, lw_reference: reference.reference, targets: reference.targets })),
             )
-            // console.log("Insert references: " + JSON.stringify(insertReferences))
             if (insertReferences.length !== 0) {
                 const insertReferencesQuery = pgp.helpers.insert(insertReferences, REFERENCES_COLUMNSET)
                 await db.query(insertReferencesQuery)

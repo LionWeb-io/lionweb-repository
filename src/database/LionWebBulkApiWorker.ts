@@ -46,7 +46,7 @@ class LionWebBulkApiWorker {
                 nodes: [],
             }
         }
-        const nodes = await LIONWEB_QUERIES.getNodesFromIdList(allNodes.map((node) => node.id))
+        const nodes = await LIONWEB_QUERIES.getNodesFromIdList(allNodes.map(node => node.id))
         const usedLanguages: LwJsonUsedLanguage[] = collectUsedLanguages(nodes)
         return {
             serializationFormatVersion: "2023.1",

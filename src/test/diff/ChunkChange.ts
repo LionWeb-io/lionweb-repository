@@ -1,5 +1,5 @@
-import { JsonContext, LionWebJsonNode } from "@lionweb/validation"
-import { Change } from "./Change.js"
+import { JsonContext, LionWebJsonNode, LwJsonUsedLanguage } from "@lionweb/validation"
+import { Change, ChangeType } from "./Change.js"
 
 export abstract class ChunkChange extends Change {
     constructor(public context: JsonContext) {
@@ -46,3 +46,23 @@ export class NodeAdded extends ChunkChange {
 
     protected msg = () => `Node ${this.node.id} is added`
 }
+
+export abstract class LanguageChange extends ChunkChange {
+    constructor(
+        public context: JsonContext,
+        public language: LwJsonUsedLanguage,
+    ) {
+        super(context)
+    }
+}
+
+export class LanguageRemoved extends LanguageChange {
+    readonly id = "LanguageRemoved"
+    protected msg = () => `Language with  key ${this.language.key} and version ${this.language.version} is removed`
+}
+
+export class LanguageAdded extends LanguageChange {
+    readonly id = "LanguageAdded"
+    protected msg = () => `Language with  key ${this.language.key} and version ${this.language.version} is added`
+}
+

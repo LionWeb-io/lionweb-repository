@@ -37,7 +37,7 @@ export class TestClient {
         }
         // console.log("STORING " + JSON.stringify(data));
         var startTime = performance.now()
-        let result = await this.postWithTimeout(`bulk/store`, { body: data, params: ""})
+        let result = await this.postWithTimeout(`bulk/store`, { body: data, params: "" })
         var endTime = performance.now()
         console.log(`Call to query took ${endTime - startTime} milliseconds, result ${result}`)
         return result
@@ -113,27 +113,27 @@ export class TestClient {
 
     private async putWithTimeout(method: string, data: Object, params?: string) {
         params = this.findParams(params)
-            const controller = new AbortController()
-            const timeoutId = setTimeout(() => controller.abort(), 2000)
-            console.log("putWithTimeout: " + `${this._SERVER_URL}${method}${params}`)
-            // console.log("Body: " + JSON.stringify(data));
-            let response;
-            try {
-                response = await fetch(`${this._SERVER_URL}${method}${params}`, {
-                    signal: controller.signal,
-                    method: "put",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(data),
-                })
-            } catch (e) {
-                console.error("putWithTimeout.ERROR " + JSON.stringify(e))
-                this.handleError(e)
-            }
-            console.log("fetching done ....")
-            clearTimeout(timeoutId)
-            return response
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 2000)
+        console.log("putWithTimeout: " + `${this._SERVER_URL}${method}${params}`)
+        // console.log("Body: " + JSON.stringify(data));
+        let response
+        try {
+            response = await fetch(`${this._SERVER_URL}${method}${params}`, {
+                signal: controller.signal,
+                method: "put",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+            })
+        } catch (e) {
+            console.error("putWithTimeout.ERROR " + JSON.stringify(e))
+            this.handleError(e)
+        }
+        console.log("fetching done ....")
+        clearTimeout(timeoutId)
+        return response
         console.log("return fetch")
     }
 
