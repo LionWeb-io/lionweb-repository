@@ -4,10 +4,7 @@ import pgPromise from "pg-promise"
 const pgp = pgPromise()
 import { JsonContext, LionWebJsonContainment, LionWebJsonChunk, LionWebJsonNode, LionWebJsonChunkWrapper, NodeUtils } from "@lionweb/validation"
 
-import { NodeAdded } from "../test/diff/ChunkChange.js"
-import { ChildAdded, ChildRemoved } from "../test/diff/ContainmentChange.js"
-import { LionWebJsonDiff } from "../test/diff/LionWebJsonDiff.js"
-import { ParentChanged } from "../test/diff/NodeChange.js";
+import { NodeAdded, ChildAdded, ChildRemoved, LionWebJsonDiff, ParentChanged } from "@lionweb/validation";
 import { db } from "./DbConnection.js"
 import { LIONWEB_BULKAPI_WORKER } from "./LionWebBulkApiWorker.js"
 import { queryNodeTreeForIdList, QueryNodeForIdList, postgresArrayFromStringArray } from "./QueryNode.js"

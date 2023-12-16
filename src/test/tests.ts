@@ -1,6 +1,5 @@
-import { LionWebJsonChunk, LionWebJsonChunkWrapper } from "@lionweb/validation"
+import { LionWebJsonChunk, LionWebJsonChunkWrapper, LionWebJsonDiff } from "@lionweb/validation"
 import { assert } from "chai"
-import { LionWebJsonDiff } from "./diff/LionWebJsonDiff.js"
 import { TestClient } from "./TestClient.js"
 
 const { deepEqual } = assert
