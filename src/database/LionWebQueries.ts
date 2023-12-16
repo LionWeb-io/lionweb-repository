@@ -2,9 +2,8 @@
 import pgPromise from "pg-promise"
 
 const pgp = pgPromise()
-import { JsonContext, LionWebJsonChild as LionWebJsonContainment, LionWebJsonChunk, LionWebJsonNode } from "@lionweb/validation"
+import { JsonContext, LionWebJsonContainment, LionWebJsonChunk, LionWebJsonNode, LionWebJsonChunkWrapper, NodeUtils } from "@lionweb/validation"
 
-import { findContainmentContainingChild, LionWebJsonNodesWrapper } from "../lionweb/LionWebJsonNodesWrapper.js"
 import { NodeAdded } from "../test/diff/ChunkChange.js"
 import { ChildAdded, ChildRemoved } from "../test/diff/ContainmentChange.js"
 import { LionWebJsonDiff } from "../test/diff/LionWebJsonDiff.js"
@@ -95,7 +94,7 @@ class LionWebQueries {
      */
     store = async (toBeStoredChunk: LionWebJsonChunk) => {
         const toBeStoredNodes = toBeStoredChunk.nodes
-        const toBeStoredNodesWrapper = new LionWebJsonNodesWrapper(toBeStoredNodes)
+        const toBeStoredChunkWrapper = new LionWebJsonChunkWrapper(toBeStoredChunk)
         const tbsNodeIds = toBeStoredNodes.map(node => node.id)
         console.log("STORE.CHUNK IDS " + tbsNodeIds.join(", "))
         const tbsContainedChildIds = this.getContainedIds(toBeStoredNodes)
@@ -104,13 +103,13 @@ class LionWebQueries {
         const tbsNodeAndChildIds = [...tbsNodeIds, ...tbsContainedChildIds.filter(cid => !tbsNodeIds.includes(cid))]
         // Retrieve nodes for all id's that exist
         const databaseChunk = await LIONWEB_BULKAPI_WORKER.bulkRetrieve(tbsNodeAndChildIds, "", 0)
-        const databaseNodesWrapper = new LionWebJsonNodesWrapper(databaseChunk.nodes)
+        const databaseChunkWrapper = new LionWebJsonChunkWrapper(databaseChunk)
         console.log("STORE.EXISTING DATABASE IDS = " + databaseChunk.nodes.map(e => e.id))
 
         const diff = new LionWebJsonDiff()
         diff.diffLwChunk(databaseChunk, toBeStoredChunk)
         console.log("STORE.CHANGES ")
-        console.log(diff.diffsAsString)
+        console.log(diff.diffResult.changes.map(ch => ch.changeMsg()))
 
         const toBeStoredNewNodes = diff.diffResult.changes.filter((change): change is NodeAdded => change.id === "NodeAdded")
         const addedChildren: ChildAdded[] = diff.diffResult.changes.filter((ch): ch is ChildAdded => ch instanceof ChildAdded)
@@ -119,8 +118,8 @@ class LionWebQueries {
 
         // Only children that already exist in the database
         const databaseChildrenOfNewNodes = this.getContainedIds(toBeStoredNewNodes.map(ch => ch.node))
-            .filter(id => databaseNodesWrapper.getNode(id) !== undefined)
-            .map(id => databaseNodesWrapper.getNode(id))
+            .filter(id => databaseChunkWrapper.getNode(id) !== undefined)
+            .map(id => databaseChunkWrapper.getNode(id))
 
         console.log("newNodes          : " + toBeStoredNewNodes.map(ch => ch.node.id))
         console.log("childrenOfNewNodesInDatabase: " + databaseChildrenOfNewNodes.map(node => node.id))
@@ -137,16 +136,16 @@ class LionWebQueries {
         })
         // Now add all children of the orphans to the removed children
         // TODO recursively
-        const implicitRemovedFromOrphan = this.removedChildrenFromRemovedNodes(
-            removedAndNotAddedChildren.map(ch => ch.parentNode),
-            toBeStoredNodesWrapper,
-            databaseNodesWrapper,
-        )
-        removedAndNotAddedChildren.push(
-            ...implicitRemovedFromOrphan.filter(removed => {
-                return addedChildren.find(added => added.childId === removed.childId) === undefined
-            }),
-        )
+        // const implicitRemovedFromOrphan = this.removedChildrenFromRemovedNodes(
+        //     removedAndNotAddedChildren.map(ch => ch.parentNode),
+        //     toBeStoredChunkWrapper,
+        //     databaseNodesWrapper,
+        // )
+        // removedAndNotAddedChildren.push(
+        //     ...implicitRemovedFromOrphan.filter(removed => {
+        //         return addedChildren.find(added => added.childId === removed.childId) === undefined
+        //     }),
+        // )
 
         // remove child: from old parent
         const addedAndNotRemovedChildren = addedChildren.filter(added => {
@@ -184,7 +183,7 @@ class LionWebQueries {
         let implicitQueries = ""
         implicitlyRemovedChildNodes.nodes.forEach(child => {
             const previousParentNode = theirParents.nodes.find(p => (p.id = child.parent))
-            const changedContainment = findContainmentContainingChild(previousParentNode.containments, child.id)
+            const changedContainment = NodeUtils.findContainmentContainingChild(previousParentNode.containments, child.id)
             const index = changedContainment.children.indexOf(child.id)
             const newChildren = [...changedContainment.children]
             newChildren.splice(index, 1)
@@ -201,7 +200,10 @@ class LionWebQueries {
                 `
         })
         addedChildren.forEach(added => {
-            const afterNode = toBeStoredNodesWrapper.getNode(added.parentNode.id)
+            const afterNode = toBeStoredChunkWrapper.getNode(added.parentNode.id)
+            if ( afterNode=== undefined) {
+                console.error("Undefined node for id " + added.parentNode.id)
+            }
             const changedContainment = afterNode.containments.find(cont => cont.containment.key === added.containmentKey)
             implicitQueries += 
                 `-- Update nodes that have children added
@@ -216,7 +218,7 @@ class LionWebQueries {
                 `
         })
         removedChildren.forEach(removed => {
-            const afterNode = toBeStoredNodesWrapper.getNode(removed.parentNode.id)
+            const afterNode = toBeStoredChunkWrapper.getNode(removed.parentNode.id)
             const changedContainment = afterNode.containments.find(cont => cont.containment.key === removed.containmentKey)
             implicitQueries += 
                 `-- Update node that has children removed.
@@ -280,8 +282,8 @@ class LionWebQueries {
      */
     removedChildrenFromRemovedNodes(
         nodes: LionWebJsonNode[],
-        tbsNodesWrapper: LionWebJsonNodesWrapper,
-        databaseNodesWrapper: LionWebJsonNodesWrapper,
+        tbsNodesWrapper: LionWebJsonChunkWrapper,
+        databaseNodesWrapper: LionWebJsonChunkWrapper,
     ): ChildRemoved[] {
         const result: ChildRemoved[] = []
         nodes.forEach((node: LionWebJsonNode, index: number) => {

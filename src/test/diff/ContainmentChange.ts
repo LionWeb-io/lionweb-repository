@@ -1,4 +1,4 @@
-import { JsonContext, LionWebJsonChild as LionWebJsonContainment, LionWebJsonNode } from "@lionweb/validation"
+import { JsonContext, LionWebJsonContainment, LionWebJsonNode } from "@lionweb/validation"
 import { Change } from "./Change.js"
 
 export abstract class ContainmentValueChange extends Change {

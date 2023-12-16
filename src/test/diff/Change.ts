@@ -16,6 +16,10 @@ export type ChangeType =
     | "ContainmentRemoved"
     | "LanguageRemoved"
     | "LanguageAdded"
+    | "TargetAdded"
+    | "TargetRemoved"
+    | "ReferenceRemoved"
+    | "ReferenceAdded"
 
 export abstract class Change {
     abstract readonly id: ChangeType

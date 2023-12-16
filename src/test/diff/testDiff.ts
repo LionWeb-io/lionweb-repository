@@ -24,11 +24,11 @@ describe("Library test model", () => {
         const diff1 = new LionWebJsonDiff()
         diff1.diffLwChunk(jsonModel, jsonModel)
         // No errors expected
-        deepEqual(diff1.diffsAsString, [])
+        deepEqual(diff1.diffResult.changes, [])
 
         const diff = new LionWebJsonDiff()
         diff.diffLwChunk(jsonModel, jsonModel2)
         // No errors expected
-        deepEqual(diff.diffsAsString.length, 4)
+        deepEqual(diff.diffResult.changes.length, 4)
     })
 })

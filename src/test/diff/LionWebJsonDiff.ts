@@ -2,36 +2,33 @@ import {
     ChunkUtils,
     isEqualMetaPointer,
     JsonContext,
-    LionWebJsonChild as LionWebJsonContainment,
+    LionWebJsonContainment,
     LionWebJsonChunk,
     LionWebJsonNode,
     LionWebJsonProperty,
     LionWebJsonReference,
     LwJsonUsedLanguage,
-    NodeUtils
+    NodeUtils,
 } from "@lionweb/validation"
 import { Change, GenericChange } from "./Change.js"
 import { LanguageAdded, LanguageRemoved, NodeAdded, NodeRemoved, SerializationFormatChange } from "./ChunkChange.js"
 import { ChildAdded, ChildRemoved, ContainmentAdded, ContainmentRemoved } from "./ContainmentChange.js"
 import { DiffResult } from "./DiffResult.js"
-import { NodeClassifierChanged, ParentChanged } from "./NodeChange.js";
+import { NodeClassifierChanged, ParentChanged } from "./NodeChange.js"
 import { PropertyAdded, PropertyRemoved, PropertyValueChanged } from "./PropertyChange.js"
+import { ReferenceAdded, ReferenceRemoved } from "./ReferenceChange.js"
 
 export class LionWebJsonDiff {
-    diffsAsString: string[] = []
     diffResult = new DiffResult()
 
-    constructor() {
-    }
+    constructor() {}
 
     change(change: Change): void {
-        this.diffsAsString.push(change.changeMsg() + "\n")
         this.diffResult.change(change)
     }
 
     diff(ctx: JsonContext, msg: string) {
         const change = new GenericChange(ctx, msg)
-        this.diffsAsString.push("!!!" + change.changeMsg() + "\n")
         this.diffResult.change(change)
     }
 
@@ -42,7 +39,9 @@ export class LionWebJsonDiff {
      */
     diffLwNode(ctx: JsonContext, beforeNode: LionWebJsonNode, afterNode: LionWebJsonNode): void {
         if (!isEqualMetaPointer(beforeNode.classifier, afterNode.classifier)) {
-            this.change(new NodeClassifierChanged(ctx.concat("classifier"), beforeNode, beforeNode.classifier.key, afterNode.classifier.key))
+            this.change(
+                new NodeClassifierChanged(ctx.concat("classifier"), beforeNode, beforeNode.classifier.key, afterNode.classifier.key),
+            )
         }
         if (beforeNode.parent !== afterNode.parent) {
             this.change(new ParentChanged(ctx, beforeNode, beforeNode.parent, afterNode.parent))
@@ -52,16 +51,32 @@ export class LionWebJsonDiff {
             const key = beforeProperty.property.key
             const afterProperty = NodeUtils.findLwProperty(afterNode, key)
             if (afterProperty === null) {
-                this.change(new PropertyRemoved(ctx.concat("properties", index), beforeNode.id, beforeProperty.property.key, beforeProperty.value, undefined))
+                this.change(
+                    new PropertyRemoved(
+                        ctx.concat("properties", index),
+                        beforeNode.id,
+                        beforeProperty.property.key,
+                        beforeProperty.value,
+                        undefined,
+                    ),
+                )
             } else {
                 this.diffLwProperty(ctx.concat("properties", index), beforeNode, beforeProperty, afterProperty)
             }
-        })       
+        })
         afterNode.properties.forEach((afterProperty: LionWebJsonProperty, index: number) => {
             const key = afterProperty.property.key
             const beforeProperty = NodeUtils.findLwProperty(beforeNode, key)
             if (beforeProperty === null) {
-                this.change(new PropertyAdded(ctx.concat("properties", index), beforeNode.id, afterProperty.property.key, undefined, afterProperty.value))
+                this.change(
+                    new PropertyAdded(
+                        ctx.concat("properties", index),
+                        beforeNode.id,
+                        afterProperty.property.key,
+                        undefined,
+                        afterProperty.value,
+                    ),
+                )
             }
             // no else, if the property exists in both nodes, the diff has been claculated in the loop before this one
         })
@@ -80,15 +95,22 @@ export class LionWebJsonDiff {
             if (beforeContainment === null) {
                 this.change(new ContainmentAdded(ctx.concat("containments", index), afterNode, afterContainment))
             }
-            // No else, has already be done
+            // No else, has already been done
         })
-        beforeNode.references.forEach((reference: LionWebJsonReference, index: number) => {
-            const key = reference.reference.key
-            const otherref = NodeUtils.findLwReference(afterNode, key)
-            if (otherref === null) {
-                this.diff(ctx, `Reference with key ${key} does not exist in second object`)
+        beforeNode.references.forEach((beforeReference: LionWebJsonReference, index: number) => {
+            const key = beforeReference.reference.key
+            const afterReference = NodeUtils.findLwReference(afterNode, key)
+            if (afterReference === null) {
+                this.change(new ReferenceRemoved(ctx.concat("references", index), afterNode, beforeReference))
             } else {
-                this.diffLwReference(ctx.concat("references", index), reference, otherref)
+                this.diffLwReference(ctx.concat("references", index), beforeReference, afterReference)
+            }
+        })
+        afterNode.references.forEach((afterReference: LionWebJsonReference, index: number) => {
+            const afterKey = afterReference.reference.key
+            const beforeReference = NodeUtils.findLwReference(afterNode, afterKey)
+            if (beforeReference === null) {
+                this.change(new ReferenceAdded(ctx.concat("references", index), afterNode, afterReference))
             }
         })
     }
@@ -97,7 +119,13 @@ export class LionWebJsonDiff {
         const ctx = new JsonContext(null, ["$"])
         console.log("Comparing chunks")
         if (beforeChunk.serializationFormatVersion !== afterChunk.serializationFormatVersion) {
-            this.change( new SerializationFormatChange(ctx.concat("serializationFormatVersion"), beforeChunk.serializationFormatVersion, afterChunk.serializationFormatVersion))
+            this.change(
+                new SerializationFormatChange(
+                    ctx.concat("serializationFormatVersion"),
+                    beforeChunk.serializationFormatVersion,
+                    afterChunk.serializationFormatVersion,
+                ),
+            )
         }
         beforeChunk.languages.forEach((beforeLanguage: LwJsonUsedLanguage, index: number) => {
             const afterLanguage = ChunkUtils.findLwUsedLanguage(afterChunk, beforeLanguage.key)
@@ -132,12 +160,19 @@ export class LionWebJsonDiff {
         })
     }
 
-    diffContainment(ctx: JsonContext, node: LionWebJsonNode, beforeContainment: LionWebJsonContainment, afterContainment: LionWebJsonContainment): void {
+    diffContainment(
+        ctx: JsonContext,
+        node: LionWebJsonNode,
+        beforeContainment: LionWebJsonContainment,
+        afterContainment: LionWebJsonContainment,
+    ): void {
         if (!isEqualMetaPointer(beforeContainment.containment, afterContainment.containment)) {
             console.error("diffContainment: MetaPointers of containments should be identical")
             this.diff(
                 ctx,
-                `Containment Object has concept ${JSON.stringify(beforeContainment.containment)} vs ${JSON.stringify(afterContainment.containment)}`,
+                `Containment Object has concept ${JSON.stringify(beforeContainment.containment)} vs ${JSON.stringify(
+                    afterContainment.containment,
+                )}`,
             )
         }
         // Check whether children exist in both objects (two for loops)
@@ -182,10 +217,18 @@ export class LionWebJsonDiff {
         }
     }
 
-    private diffLwProperty(ctx: JsonContext, node: LionWebJsonNode, beforeProperty: LionWebJsonProperty, afterProperty: LionWebJsonProperty) {
+    private diffLwProperty(
+        ctx: JsonContext,
+        node: LionWebJsonNode,
+        beforeProperty: LionWebJsonProperty,
+        afterProperty: LionWebJsonProperty,
+    ) {
         if (!isEqualMetaPointer(beforeProperty.property, afterProperty.property)) {
             console.error("diffContainment: MetaPointers of containments should be identical")
-            this.diff(ctx, `Property Object has concept ${JSON.stringify(beforeProperty.property)} vs ${JSON.stringify(afterProperty.property)}`)
+            this.diff(
+                ctx,
+                `Property Object has concept ${JSON.stringify(beforeProperty.property)} vs ${JSON.stringify(afterProperty.property)}`,
+            )
         }
         if (beforeProperty.value !== afterProperty.value) {
             this.change(new PropertyValueChanged(ctx, node.id, beforeProperty.property.key, beforeProperty.value, afterProperty.value))
