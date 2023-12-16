@@ -32,4 +32,4 @@ Contain code to manipulate the postgres database (create, initialize)
 ### 
 
 ## CI
-In Github actions a postgres server is started on a gost named `postres`.  In you local development environment this hostname is also being used. You need to ensure that this hostname points to the postgres server. 
+In GitHub actions a postgres server is started on a gost named `postres`.  In you local development environment this hostname is also being used. You need to ensure that this hostname points to the postgres server. 
