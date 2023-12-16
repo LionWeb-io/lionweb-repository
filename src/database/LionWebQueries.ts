@@ -66,6 +66,11 @@ class LionWebQueries {
     }
 
     getNodesFromIdList = async (nodeIdList: string[]): Promise<LionWebJsonNode[]> => {
+        // this is necessary as otherwise the query would crash as it is not intended to be run
+        // on an empty set
+        if (nodeIdList.length == 0) {
+            return [];
+        }
         const nodes = await db.query(QueryNodeForIdList(nodeIdList))
         // console.log("LionWebQueries.getNodesFromIdList " + JSON.stringify(nodes, null, 2))
         return nodes
