@@ -2,7 +2,15 @@
 import pgPromise from "pg-promise"
 
 const pgp = pgPromise()
-import { JsonContext, LionWebJsonContainment, LionWebJsonChunk, LionWebJsonNode, LionWebJsonChunkWrapper, NodeUtils } from "@lionweb/validation"
+import {
+    JsonContext,
+    LionWebJsonContainment,
+    LionWebJsonChunk,
+    LionWebJsonNode,
+    LionWebJsonChunkWrapper,
+    NodeUtils,
+    PropertyValueChanged
+} from "@lionweb/validation"
 
 import { NodeAdded, ChildAdded, ChildRemoved, LionWebJsonDiff, ParentChanged } from "@lionweb/validation";
 import { db } from "./DbConnection.js"
@@ -90,11 +98,10 @@ class LionWebQueries {
      * @param toBeStoredNodes
      */
     store = async (toBeStoredChunk: LionWebJsonChunk) => {
-        const toBeStoredNodes = toBeStoredChunk.nodes
         const toBeStoredChunkWrapper = new LionWebJsonChunkWrapper(toBeStoredChunk)
-        const tbsNodeIds = toBeStoredNodes.map(node => node.id)
+        const tbsNodeIds = toBeStoredChunk.nodes.map(node => node.id)
         console.log("STORE.CHUNK IDS " + tbsNodeIds.join(", "))
-        const tbsContainedChildIds = this.getContainedIds(toBeStoredNodes)
+        const tbsContainedChildIds = this.getContainedIds(toBeStoredChunk.nodes)
         console.log("STORE.ALL CHILDREN " + tbsContainedChildIds)
         // TODO do the same for annotations
         const tbsNodeAndChildIds = [...tbsNodeIds, ...tbsContainedChildIds.filter(cid => !tbsNodeIds.includes(cid))]
@@ -112,6 +119,7 @@ class LionWebQueries {
         const addedChildren: ChildAdded[] = diff.diffResult.changes.filter((ch): ch is ChildAdded => ch instanceof ChildAdded)
         const removedChildren = diff.diffResult.changes.filter((change): change is ChildRemoved => change.id === "ChildRemoved")
         const parentChanged = diff.diffResult.changes.filter((change): change is ParentChanged => change.id === "ParentChanged")
+        const propertyChanged = diff.diffResult.changes.filter((change): change is PropertyValueChanged => change.id === "PropertyValueChanged")
 
         // Only children that already exist in the database
         const databaseChildrenOfNewNodes = this.getContainedIds(toBeStoredNewNodes.map(ch => ch.node))
@@ -153,25 +161,26 @@ class LionWebQueries {
             return parentChanged.find(parentChange => parentChange.node.id === added.childId) === undefined
         })
         // Orphan if not added, otherwise parent of child needs upodating
-        const removedAndNotParentChangedChildren = removedChildren.filter(removed => {
-            return parentChanged.find(parent => parent.node.id === removed.childId) === undefined
-        })
+        // const removedAndNotParentChangedChildren = removedChildren.filter(removed => {
+        //     return parentChanged.find(parent => parent.node.id === removed.childId) === undefined
+        // })
 
-        console.log("DATABASE CHANGES")
-        const result: string[] = [
-            `Implicit removed child: ${addedAndNotRemovedChildren.map(added => `Added ${added.childId} to ${added.parentNode.id}`)}`,
-            `Implicit parent change: ${addedAndNotParentChangedChildren.map(added => `Added ${added.childId} to ${added.parentNode.id}`)}`,
-            `Orphaned              : ${removedAndNotAddedChildren.map(removed => `Removed ${removed.childId} from ${removed.parentNode.id}`)}`,
-            // `removedAndNotParentChangedChildren: ${removedAndNotParentChangedChildren.map(removed => `Removed ${removed.childId} from ${removed.parentNode.id}`)}`
-        ]
-        console.log(result)
+        // console.log("DATABASE CHANGES")
+        const result: string[] = [];
+        //     `Implicit removed child: ${addedAndNotRemovedChildren.map(added => `Added ${added.childId} to ${added.parentNode.id}`)}`,
+        //     `Implicit parent change: ${addedAndNotParentChangedChildren.map(added => `Added ${added.childId} to ${added.parentNode.id}`)}`,
+        //     `Orphaned              : ${removedAndNotAddedChildren.map(removed => `Removed ${removed.childId} from ${removed.parentNode.id}`)}`,
+        //     // `removedAndNotParentChangedChildren: ${removedAndNotParentChangedChildren.map(removed => `Removed ${removed.childId} from ${removed.parentNode.id}`)}`
+        // ]
+        // console.log(result)
+        
         // implicit child remove, find all parents
         const implicitlyRemovedChildNodes = await LIONWEB_BULKAPI_WORKER.bulkRetrieve(
             addedAndNotRemovedChildren.map(ch => ch.childId),
             "",
             0,
         )
-        const theirParents = await LIONWEB_BULKAPI_WORKER.bulkRetrieve(
+        const parentsOfImplicitlyRemovedChildNodes = await LIONWEB_BULKAPI_WORKER.bulkRetrieve(
             implicitlyRemovedChildNodes.nodes.map(node => node.parent),
             "",
             0,
@@ -179,7 +188,7 @@ class LionWebQueries {
         // Now all implicit changes are turned into queries.
         let implicitQueries = ""
         implicitlyRemovedChildNodes.nodes.forEach(child => {
-            const previousParentNode = theirParents.nodes.find(p => (p.id = child.parent))
+            const previousParentNode = parentsOfImplicitlyRemovedChildNodes.nodes.find(p => (p.id = child.parent))
             const changedContainment = NodeUtils.findContainmentContainingChild(previousParentNode.containments, child.id)
             const index = changedContainment.children.indexOf(child.id)
             const newChildren = [...changedContainment.children]
@@ -240,13 +249,22 @@ class LionWebQueries {
                 `
         })
         addedAndNotParentChangedChildren.forEach(added => {
-            // const beforeNode = databaseNodesWrapper.getNode(added.childId)
             implicitQueries += 
                 `-- Implicit Update of parent of children that have been model
                 UPDATE lionweb_nodes n 
                     SET parent = '${added.parentNode.id}'
                 WHERE
                     n.id = '${added.childId}';
+                    
+                `
+        })
+        propertyChanged.forEach(propertyChange => {
+            implicitQueries +=
+                `-- Implicit Update of parent of children that have been model
+                UPDATE lionweb_properties p 
+                    SET value = '${propertyChange.newValue}'
+                WHERE
+                    p.node_id = '${propertyChange.nodeId}';
                     
                 `
         })
