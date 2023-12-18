@@ -5,7 +5,7 @@ The model with which we start is as follows:
 {
 "key": "LionCore-builtins-INamed-name",
 "version": "2023.1",
-"language": "LionCore_builtins"
+"language": "LionCore-builtins"
 }
 ----
 .Disk_A initial model

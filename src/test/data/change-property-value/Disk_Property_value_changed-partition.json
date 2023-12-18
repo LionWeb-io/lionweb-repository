@@ -6,7 +6,7 @@
             "version": "2023.1"
         },
         {
-            "key": "LionCore_builtins",
+            "key": "LionCore-builtins",
             "version": "2023.1"
         }
     ],
@@ -21,7 +21,7 @@
             "properties": [
                 {
                     "property": {
-                        "language": "LionCore_builtins",
+                        "language": "LionCore-builtins",
                         "version": "2023.1",
                         "key": "LionCore-builtins-INamed-name"
                     },
@@ -51,11 +51,11 @@
             "properties": [
                 {
                     "property": {
-                        "language": "LionCore_builtins",
+                        "language": "LionCore-builtins",
                         "version": "2023.1",
                         "key": "LionCore-builtins-INamed-name"
                     },
-                    "value": "root"
+                    "value": "root-new-value"
                 }
             ],
             "containments": [
@@ -81,7 +81,7 @@
             "properties": [
                 {
                     "property": {
-                        "language": "LionCore_builtins",
+                        "language": "LionCore-builtins",
                         "version": "2023.1",
                         "key": "LionCore-builtins-INamed-name"
                     },
@@ -95,7 +95,7 @@
                         "version": "2023.1",
                         "key": "Folder-listing-key"
                     },
-                    "children": ["ID-8", "ID-10"]
+                    "children": ["ID-8", "ID-9", "ID-10"]
                 }
             ],
             "references": [],
@@ -111,7 +111,7 @@
             "properties": [
                 {
                     "property": {
-                        "language": "LionCore_builtins",
+                        "language": "LionCore-builtins",
                         "version": "2023.1",
                         "key": "LionCore-builtins-INamed-name"
                     },
@@ -141,7 +141,7 @@
             "properties": [
                 {
                     "property": {
-                        "language": "LionCore_builtins",
+                        "language": "LionCore-builtins",
                         "version": "2023.1",
                         "key": "LionCore-builtins-INamed-name"
                     },
@@ -159,7 +159,7 @@
                 }
             ],
             "references": [],
-            "parent": "ID-5"
+            "parent": "ID-4"
         },
         {
             "id": "ID-10",
@@ -171,7 +171,7 @@
             "properties": [
                 {
                     "property": {
-                        "language": "LionCore_builtins",
+                        "language": "LionCore-builtins",
                         "version": "2023.1",
                         "key": "LionCore-builtins-INamed-name"
                     },
@@ -201,7 +201,7 @@
             "properties": [
                 {
                     "property": {
-                        "language": "LionCore_builtins",
+                        "language": "LionCore-builtins",
                         "version": "2023.1",
                         "key": "LionCore-builtins-INamed-name"
                     },
@@ -215,7 +215,7 @@
                         "version": "2023.1",
                         "key": "Folder-listing-key"
                     },
-                    "children": ["ID-9", "ID-11", "ID-12"]
+                    "children": ["ID-11", "ID-12"]
                 }
             ],
             "references": [],
@@ -231,7 +231,7 @@
             "properties": [
                 {
                     "property": {
-                        "language": "LionCore_builtins",
+                        "language": "LionCore-builtins",
                         "version": "2023.1",
                         "key": "LionCore-builtins-INamed-name"
                     },
@@ -261,7 +261,7 @@
             "properties": [
                 {
                     "property": {
-                        "language": "LionCore_builtins",
+                        "language": "LionCore-builtins",
                         "version": "2023.1",
                         "key": "LionCore-builtins-INamed-name"
                     },
@@ -291,7 +291,7 @@
             "properties": [
                 {
                     "property": {
-                        "language": "LionCore_builtins",
+                        "language": "LionCore-builtins",
                         "version": "2023.1",
                         "key": "LionCore-builtins-INamed-name"
                     },
@@ -321,7 +321,7 @@
             "properties": [
                 {
                     "property": {
-                        "language": "LionCore_builtins",
+                        "language": "LionCore-builtins",
                         "version": "2023.1",
                         "key": "LionCore-builtins-INamed-name"
                     },
@@ -351,7 +351,7 @@
             "properties": [
                 {
                     "property": {
-                        "language": "LionCore_builtins",
+                        "language": "LionCore-builtins",
                         "version": "2023.1",
                         "key": "LionCore-builtins-INamed-name"
                     },
@@ -381,7 +381,7 @@
             "properties": [
                 {
                     "property": {
-                        "language": "LionCore_builtins",
+                        "language": "LionCore-builtins",
                         "version": "2023.1",
                         "key": "LionCore-builtins-INamed-name"
                     },
@@ -411,7 +411,7 @@
             "properties": [
                 {
                     "property": {
-                        "language": "LionCore_builtins",
+                        "language": "LionCore-builtins",
                         "version": "2023.1",
                         "key": "LionCore-builtins-INamed-name"
                     },
