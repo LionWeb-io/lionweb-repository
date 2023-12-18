@@ -9,10 +9,12 @@ import {
     LionWebJsonNode,
     LionWebJsonChunkWrapper,
     NodeUtils,
-    PropertyValueChanged
+    PropertyValueChanged,
+    TargetAdded,
+    ReferenceChange
 } from "@lionweb/validation"
 
-import { NodeAdded, ChildAdded, ChildRemoved, LionWebJsonDiff, ParentChanged } from "@lionweb/validation";
+import { NodeAdded, ChildAdded, ChildRemoved, LionWebJsonDiff, ParentChanged } from "@lionweb/validation"
 import { db } from "./DbConnection.js"
 import { LIONWEB_BULKAPI_WORKER } from "./LionWebBulkApiWorker.js"
 import { queryNodeTreeForIdList, QueryNodeForIdList, postgresArrayFromStringArray } from "./QueryNode.js"
@@ -24,7 +26,9 @@ const REFERENCES_TABLE: string = "lionweb_references"
 const PROPERTIES_TABLE: string = "lionweb_properties"
 
 // table definition for use with pg-promise helpers
-const nodesColumnSet = new pgp.helpers.ColumnSet(["id", "classifier_language", "classifier_version", "classifier_key", "parent"], { table: NODES_TABLE })
+const nodesColumnSet = new pgp.helpers.ColumnSet(["id", "classifier_language", "classifier_version", "classifier_key", "parent"], {
+    table: NODES_TABLE
+})
 
 // table definition for use with pg-promise helpers
 const containmentsColumnSet = new pgp.helpers.ColumnSet(["containment", "children", "node_id"], { table: CONTAINMENTS_TABLE })
@@ -87,7 +91,7 @@ class LionWebQueries {
         return {
             serializationFormatVersion: "2023.1",
             languages: collectUsedLanguages(nodes),
-            nodes: nodes,
+            nodes: nodes
         }
     }
 
@@ -100,15 +104,12 @@ class LionWebQueries {
     store = async (toBeStoredChunk: LionWebJsonChunk) => {
         const toBeStoredChunkWrapper = new LionWebJsonChunkWrapper(toBeStoredChunk)
         const tbsNodeIds = toBeStoredChunk.nodes.map(node => node.id)
-        console.log("STORE.CHUNK IDS " + tbsNodeIds.join(", "))
         const tbsContainedChildIds = this.getContainedIds(toBeStoredChunk.nodes)
-        console.log("STORE.ALL CHILDREN " + tbsContainedChildIds)
         // TODO do the same for annotations
         const tbsNodeAndChildIds = [...tbsNodeIds, ...tbsContainedChildIds.filter(cid => !tbsNodeIds.includes(cid))]
         // Retrieve nodes for all id's that exist
         const databaseChunk = await LIONWEB_BULKAPI_WORKER.bulkRetrieve(tbsNodeAndChildIds, "", 0)
         const databaseChunkWrapper = new LionWebJsonChunkWrapper(databaseChunk)
-        console.log("STORE.EXISTING DATABASE IDS = " + databaseChunk.nodes.map(e => e.id))
 
         const diff = new LionWebJsonDiff()
         diff.diffLwChunk(databaseChunk, toBeStoredChunk)
@@ -119,18 +120,15 @@ class LionWebQueries {
         const addedChildren: ChildAdded[] = diff.diffResult.changes.filter((ch): ch is ChildAdded => ch instanceof ChildAdded)
         const removedChildren = diff.diffResult.changes.filter((change): change is ChildRemoved => change.id === "ChildRemoved")
         const parentChanged = diff.diffResult.changes.filter((change): change is ParentChanged => change.id === "ParentChanged")
-        const propertyChanged = diff.diffResult.changes.filter((change): change is PropertyValueChanged => change.id === "PropertyValueChanged")
+        const propertyChanged = diff.diffResult.changes.filter(
+            (change): change is PropertyValueChanged => change.id === "PropertyValueChanged"
+        )
+        const targetChanged = diff.diffResult.changes.filter((change): change is ReferenceChange => change instanceof ReferenceChange)
 
         // Only children that already exist in the database
         const databaseChildrenOfNewNodes = this.getContainedIds(toBeStoredNewNodes.map(ch => ch.node))
             .filter(id => databaseChunkWrapper.getNode(id) !== undefined)
             .map(id => databaseChunkWrapper.getNode(id))
-
-        console.log("newNodes          : " + toBeStoredNewNodes.map(ch => ch.node.id))
-        console.log("childrenOfNewNodesInDatabase: " + databaseChildrenOfNewNodes.map(node => node.id))
-        console.log("addedChildren     : " + addedChildren.map(ch => ch.childId + " to parent " + ch.parentNode.id).join(", "))
-        console.log("removedChildren   : " + removedChildren.map(ch => ch.childId + " from parent " + ch.parentNode.id).join(", "))
-        console.log("parentChanged     : " + parentChanged.map(ch => `Node ${ch.node.id} parent ${ch.beforeParentId} => ${ch.afterParentId}`).join(", "))
 
         // Orphans
         const removedAndNotAddedChildren = removedChildren.filter(removed => {
@@ -165,36 +163,60 @@ class LionWebQueries {
         //     return parentChanged.find(parent => parent.node.id === removed.childId) === undefined
         // })
 
-        // console.log("DATABASE CHANGES")
-        const result: string[] = [];
-        //     `Implicit removed child: ${addedAndNotRemovedChildren.map(added => `Added ${added.childId} to ${added.parentNode.id}`)}`,
-        //     `Implicit parent change: ${addedAndNotParentChangedChildren.map(added => `Added ${added.childId} to ${added.parentNode.id}`)}`,
-        //     `Orphaned              : ${removedAndNotAddedChildren.map(removed => `Removed ${removed.childId} from ${removed.parentNode.id}`)}`,
-        //     // `removedAndNotParentChangedChildren: ${removedAndNotParentChangedChildren.map(removed => `Removed ${removed.childId} from ${removed.parentNode.id}`)}`
-        // ]
-        // console.log(result)
-        
         // implicit child remove, find all parents
         const implicitlyRemovedChildNodes = await LIONWEB_BULKAPI_WORKER.bulkRetrieve(
             addedAndNotRemovedChildren.map(ch => ch.childId),
             "",
-            0,
+            0
         )
         const parentsOfImplicitlyRemovedChildNodes = await LIONWEB_BULKAPI_WORKER.bulkRetrieve(
             implicitlyRemovedChildNodes.nodes.map(node => node.parent),
             "",
-            0,
+            0
         )
-        // Now all implicit changes are turned into queries.
-        let implicitQueries = ""
+        // Now all changes are turned into queries.
+        let queries = ""
+        queries += this.makeQueriesForPropertyChanges(propertyChanged)
+        queries += this.makeAddedChildrenQueries(addedChildren, toBeStoredChunkWrapper)
+        queries += this.makeQueriesForRemovedChildren(removedChildren, toBeStoredChunkWrapper)
+        queries += this.makeQueriesForParentChanged(parentChanged)
+        queries += this.makeQueriesForImplicitlyRemovedChildNodes(implicitlyRemovedChildNodes, parentsOfImplicitlyRemovedChildNodes)
+        queries += this.makeQueriesForImplicitParentChanged(addedAndNotParentChangedChildren)
+        // And run them on the database
+        if (queries !== "") {
+            console.log("QUERIES ")
+            await db.query(queries)
+        }
+        await this.dbInsertNodeArray(toBeStoredNewNodes.map(ch => (ch as NodeAdded).node))
+        return [queries]
+    }
+
+    private makeQueriesForPropertyChanges(propertyChanged: PropertyValueChanged[]) {
+        let queries = ""
+        propertyChanged.forEach(propertyChange => {
+            queries += `-- Implicit Update of parent of children that have been model
+                UPDATE lionweb_properties p 
+                    SET value = '${propertyChange.newValue}'
+                WHERE
+                    p.node_id = '${propertyChange.nodeId}';
+                    
+                `
+        })
+        return queries
+    }
+
+    private makeQueriesForImplicitlyRemovedChildNodes(
+        implicitlyRemovedChildNodes: LionWebJsonChunk,
+        parentsOfImplicitlyRemovedChildNodes: LionWebJsonChunk
+    ) {
+        let queries = ""
         implicitlyRemovedChildNodes.nodes.forEach(child => {
             const previousParentNode = parentsOfImplicitlyRemovedChildNodes.nodes.find(p => (p.id = child.parent))
             const changedContainment = NodeUtils.findContainmentContainingChild(previousParentNode.containments, child.id)
             const index = changedContainment.children.indexOf(child.id)
             const newChildren = [...changedContainment.children]
             newChildren.splice(index, 1)
-            implicitQueries += 
-                `-- Implicitly removed children
+            queries += `-- Implicitly removed children
                 UPDATE lionweb_containments c 
                     SET children = '${postgresArrayFromStringArray(newChildren)}'
                 WHERE
@@ -205,77 +227,73 @@ class LionWebQueries {
                     
                 `
         })
-        addedChildren.forEach(added => {
-            const afterNode = toBeStoredChunkWrapper.getNode(added.parentNode.id)
-            if ( afterNode=== undefined) {
-                console.error("Undefined node for id " + added.parentNode.id)
-            }
-            const changedContainment = afterNode.containments.find(cont => cont.containment.key === added.containmentKey)
-            implicitQueries += 
-                `-- Update nodes that have children added
-                UPDATE lionweb_containments c 
-                    SET children = '${postgresArrayFromStringArray(changedContainment.children)}'
-                WHERE
-                    c.node_id = '${afterNode.id}' AND
-                    c.containment->>'key' = '${changedContainment.containment.key}' AND 
-                    c.containment->>'version' = '${changedContainment.containment.version}'  AND
-                    c.containment->>'language' = '${changedContainment.containment.language}' ;
-                    
-                `
+        return queries
+    }
+
+    private makeQueriesForParentChanged(parentChanged: ParentChanged[]) {
+        let queries = ""
+        parentChanged.forEach(parentChanged => {
+            queries += this.updateParentQuery(parentChanged.node.id, parentChanged.afterParentId)
         })
+        return queries
+    }
+
+    private makeQueriesForImplicitParentChanged(addedAndNotParentChangedChildren: ChildAdded[]) {
+        let queries = ""
+        addedAndNotParentChangedChildren.forEach(added => {
+            queries += this.updateParentQuery(added.childId, added.parentNode.id)
+        })
+        return queries
+    }
+
+    private updateParentQuery(nodeId: string, parent: string): string {
+        return `-- Update of parent of children that have been moved
+                UPDATE lionweb_nodes n 
+                    SET parent = '${parent}'
+                WHERE
+                    n.id = '${nodeId}';
+                `
+    }
+
+    private makeQueriesForRemovedChildren(removedChildren: ChildRemoved[], toBeStoredChunkWrapper: LionWebJsonChunkWrapper) {
+        let queries = ""
         removedChildren.forEach(removed => {
             const afterNode = toBeStoredChunkWrapper.getNode(removed.parentNode.id)
-            const changedContainment = afterNode.containments.find(cont => cont.containment.key === removed.containmentKey)
-            implicitQueries += 
-                `-- Update node that has children removed.
+            const afterContainment = afterNode.containments.find(cont => cont.containment.key === removed.containmentKey)
+            queries += `-- Update node that has children removed.
                 UPDATE lionweb_containments c 
-                    SET children = '${postgresArrayFromStringArray(changedContainment.children)}'
+                    SET children = '${postgresArrayFromStringArray(afterContainment.children)}'
                 WHERE
                     c.node_id = '${afterNode.id}' AND
-                    c.containment->>'key' = '${changedContainment.containment.key}' AND 
-                    c.containment->>'version' = '${changedContainment.containment.version}'  AND
-                    c.containment->>'language' = '${changedContainment.containment.language}' ;
+                    c.containment->>'key' = '${afterContainment.containment.key}' AND 
+                    c.containment->>'version' = '${afterContainment.containment.version}'  AND
+                    c.containment->>'language' = '${afterContainment.containment.language}' ;
                     
                 `
         })
-        parentChanged.forEach(added => {
-            implicitQueries += 
-                `-- Update parent of children that have been model
-                UPDATE lionweb_nodes n 
-                    SET parent = '${added.afterParentId}'
-                WHERE
-                    n.id = '${added.node.id}';
-                    
-                `
-        })
-        addedAndNotParentChangedChildren.forEach(added => {
-            implicitQueries += 
-                `-- Implicit Update of parent of children that have been model
-                UPDATE lionweb_nodes n 
-                    SET parent = '${added.parentNode.id}'
-                WHERE
-                    n.id = '${added.childId}';
-                    
-                `
-        })
-        propertyChanged.forEach(propertyChange => {
-            implicitQueries +=
-                `-- Implicit Update of parent of children that have been model
-                UPDATE lionweb_properties p 
-                    SET value = '${propertyChange.newValue}'
-                WHERE
-                    p.node_id = '${propertyChange.nodeId}';
-                    
-                `
-        })
-        console.log("AddedNoPCh: " + addedAndNotParentChangedChildren.length)
-        result.push("IMPLICIT QUERY [[[\n" + implicitQueries + "\n]]]")
-        if (implicitQueries !== "") {
-            await db.query(implicitQueries)
-        }
+        return queries
+    }
 
-        await this.dbInsertNodeArray(toBeStoredNewNodes.map(ch => (ch as NodeAdded).node))
-        return result
+    private makeAddedChildrenQueries(addedChildren: ChildAdded[], toBeStoredChunkWrapper: LionWebJsonChunkWrapper) {
+        let queries = ""
+        addedChildren.forEach(added => {
+            const afterNode = toBeStoredChunkWrapper.getNode(added.parentNode.id)
+            if (afterNode === undefined) {
+                console.error("Undefined node for id " + added.parentNode.id)
+            }
+            const afterContainment = afterNode.containments.find(cont => cont.containment.key === added.containmentKey)
+            queries += `-- Update nodes that have children added
+                UPDATE lionweb_containments c 
+                    SET children = '${postgresArrayFromStringArray(afterContainment.children)}'
+                WHERE
+                    c.node_id = '${afterNode.id}' AND
+                    c.containment->>'key' = '${afterContainment.containment.key}' AND 
+                    c.containment->>'version' = '${afterContainment.containment.version}'  AND
+                    c.containment->>'language' = '${afterContainment.containment.language}' ;
+                    
+                `
+        })
+        return queries
     }
 
     /**
@@ -287,7 +305,7 @@ class LionWebQueries {
         return nodes.flatMap(node =>
             node.containments.flatMap(c => {
                 return c.children
-            }),
+            })
         )
     }
 
@@ -298,7 +316,7 @@ class LionWebQueries {
     removedChildrenFromRemovedNodes(
         nodes: LionWebJsonNode[],
         tbsNodesWrapper: LionWebJsonChunkWrapper,
-        databaseNodesWrapper: LionWebJsonChunkWrapper,
+        databaseNodesWrapper: LionWebJsonChunkWrapper
     ): ChildRemoved[] {
         const result: ChildRemoved[] = []
         nodes.forEach((node: LionWebJsonNode, index: number) => {
@@ -306,7 +324,9 @@ class LionWebQueries {
                 const key = containment.containment.key
                 for (const childId of containment.children) {
                     // const newchildNode = tbsNodesWrapper.getNode(childId)
-                    result.push(new ChildRemoved(new JsonContext(null, ["containments", index]), node, containment.containment.key, childId))
+                    result.push(
+                        new ChildRemoved(new JsonContext(null, ["containments", index]), node, containment.containment.key, childId)
+                    )
                     const childNode = databaseNodesWrapper.getNode(childId)
                     if (childNode !== undefined) {
                         result.push(...this.removedChildrenFromRemovedNodes([childNode], tbsNodesWrapper, databaseNodesWrapper))
@@ -334,22 +354,22 @@ class LionWebQueries {
                     classifier_language: node.classifier.language,
                     classifier_version: node.classifier.version,
                     classifier_key: node.classifier.key,
-                    parent: node.parent,
+                    parent: node.parent
                 }
             })
-            const insert = pgp.helpers.insert(node_rows, nodesColumnSet);
+            const insert = pgp.helpers.insert(node_rows, nodesColumnSet)
             const dbResult = await db.query(insert)
 
             // INSERT Containments
             const insertRowData = tbsNodesToCreate.flatMap(node =>
-                node.containments.map(c => ({ node_id: node.id, containment: c.containment, children: c.children })),
+                node.containments.map(c => ({ node_id: node.id, containment: c.containment, children: c.children }))
             )
             const insertContainments = pgp.helpers.insert(insertRowData, containmentsColumnSet)
             await db.query(insertContainments)
 
             // INSERT Properties
             const insertProperties = tbsNodesToCreate.flatMap(node =>
-                node.properties.map(prop => ({ node_id: node.id, property: prop.property, value: prop.value })),
+                node.properties.map(prop => ({ node_id: node.id, property: prop.property, value: prop.value }))
             )
             if (insertProperties.length !== 0) {
                 const insertQuery = pgp.helpers.insert(insertProperties, PROPERTIES_COLUMNSET)
@@ -358,7 +378,7 @@ class LionWebQueries {
 
             // INSERT REFERENCES
             const insertReferences = tbsNodesToCreate.flatMap(node =>
-                node.references.map(reference => ({ node_id: node.id, lw_reference: reference.reference, targets: reference.targets })),
+                node.references.map(reference => ({ node_id: node.id, lw_reference: reference.reference, targets: reference.targets }))
             )
             if (insertReferences.length !== 0) {
                 const insertReferencesQuery = pgp.helpers.insert(insertReferences, REFERENCES_COLUMNSET)
