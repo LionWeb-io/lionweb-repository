@@ -97,7 +97,7 @@ describe("Repository tests", () => {
         })
     })
 
-    describe("Remove node (4) from parent", () => {
+    describe("Remove node (4) from parent (3)", () => {
         it("test update full partition", async () => {
             const jsonModel2 = t.readModel(
                 "./src/test/data/remove-child/Disk-remove-child-partition.json",
@@ -105,6 +105,18 @@ describe("Repository tests", () => {
             const diff = new LionWebJsonDiff()
             diff.diffLwChunk(jsonModel, jsonModel2)
             const result = (await t.testStore(jsonModel2)) as string[]
+            console.log("Result: \n" + result.join("\n"))
+
+            await testResult("./src/test/data/remove-child/Disk-remove-child-partition.json")
+        })
+        it("test update (3)", async () => {
+            const jsonModel2 = t.readModel(
+                "./src/test/data/remove-child/Disk-remove-child-single-node.json",
+            ) as LionWebJsonChunk
+            const diff = new LionWebJsonDiff()
+            diff.diffLwChunk(jsonModel, jsonModel2)
+            const result = (await t.testStore(jsonModel2)) as string[]
+            console.log("Store: " + jsonModel2.nodes.map(n => n.id))
             console.log("Result: \n" + result.join("\n"))
 
             await testResult("./src/test/data/remove-child/Disk-remove-child-partition.json")
