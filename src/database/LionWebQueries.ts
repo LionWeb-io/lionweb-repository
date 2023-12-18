@@ -58,9 +58,12 @@ class LionWebQueries {
      */
     getNodeTree = async (nodeIdList: string[], depthLimit: number): Promise<NodeTreeResultType[]> => {
         console.log("LionWebQueries.getNodeTree for " + nodeIdList)
+        if (nodeIdList.length === 0) {
+            return []
+        }
         // TODO Currently only gives the node id's, should give full node.
         const result = await db.query(queryNodeTreeForIdList(nodeIdList, depthLimit))
-        console.log("getNodeTree RESULT is " + JSON.stringify(result))
+        // console.log("getNodeTree RESULT is " + JSON.stringify(result))
         return result
     }
 
@@ -68,12 +71,13 @@ class LionWebQueries {
      * TODO: Not tested yet
      */
     getAllDbNodes = async (): Promise<LionWebJsonNode[]> => {
-        console.log("LionWebQueries.getNodes")
+        console.log("LionWebQueries.getAllDbNodes")
         const queryResult = (await db.query("SELECT id FROM lionweb_nodes")) as string[]
         return this.getNodesFromIdList(queryResult)
     }
 
     getNodesFromIdList = async (nodeIdList: string[]): Promise<LionWebJsonNode[]> => {
+        console.log("LionWebQueries.getNodesFromIdList: " + nodeIdList)
         const nodes = await db.query(QueryNodeForIdList(nodeIdList))
         // console.log("LionWebQueries.getNodesFromIdList " + JSON.stringify(nodes, null, 2))
         return nodes
@@ -135,6 +139,15 @@ class LionWebQueries {
                 databaseChildrenOfNewNodes.find(child => child.id === removed.childId) === undefined
             )
         })
+        // Now get all cnhbildren of the orphans
+        const orphansContainedChildren = await this.getNodeTree(removedAndNotAddedChildren.map(rm => rm.childId), 999)
+        const orphansContainedChildrenOrphans = orphansContainedChildren.filter(contained => {
+            return (
+                addedChildren.find(added => added.childId === contained.id) === undefined &&
+                databaseChildrenOfNewNodes.find(child => child.id === contained.id) === undefined
+            )
+        })
+
         // Now add all children of the orphans to the removed children
         // TODO recursively
         // const implicitRemovedFromOrphan = this.removedChildrenFromRemovedNodes(
@@ -180,7 +193,9 @@ class LionWebQueries {
         queries += this.makeQueriesForParentChanged(parentChanged)
         queries += this.makeQueriesForImplicitlyRemovedChildNodes(implicitlyRemovedChildNodes, parentsOfImplicitlyRemovedChildNodes)
         queries += this.makeQueriesForImplicitParentChanged(addedAndNotParentChangedChildren)
-        queries += this.makeQueriesForOrphans(removedAndNotAddedChildren)
+        queries += this.makeQueriesForOrphans(removedAndNotAddedChildren.map(ra => ra.childId))
+        queries += this.makeQueriesForOrphans(orphansContainedChildrenOrphans.map(oc => oc.id))
+        
         // And run them on the database
         if (queries !== "") {
             console.log("QUERIES ")
@@ -190,17 +205,27 @@ class LionWebQueries {
         return [queries]
     }
 
-    private makeQueriesForOrphans(removed: ChildRemoved[]) {
+    private makeQueriesForOrphans(orphanIds: string[]) {
         let queries = ""
-        removed.forEach(remove => {
+        orphanIds.forEach(remove => {
             queries += `-- Implicit Orphan of parent of children that have been model
                 DELETE FROM lionweb_nodes n
                 WHERE
-                    n.id = '${remove.childId}';
+                    n.id = '${remove}';
+                DELETE FROM lionweb_properties p
+                WHERE
+                    p.node_id = '${remove}';
+                DELETE FROM lionweb_containments c
+                WHERE
+                    c.node_id = '${remove}';
+                DELETE FROM lionweb_references r
+                WHERE
+                    r.node_id = '${remove}';
                 `
         })
         return queries
     }
+    
     private makeQueriesForPropertyChanges(propertyChanged: PropertyValueChanged[]) {
         let queries = ""
         propertyChanged.forEach(propertyChange => {
