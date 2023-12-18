@@ -97,6 +97,20 @@ describe("Repository tests", () => {
         })
     })
 
+    describe("Remove node (4) from parent", () => {
+        it("test update full partition", async () => {
+            const jsonModel2 = t.readModel(
+                "./src/test/data/remove-child/Disk-remove-child-partition.json",
+            ) as LionWebJsonChunk
+            const diff = new LionWebJsonDiff()
+            diff.diffLwChunk(jsonModel, jsonModel2)
+            const result = (await t.testStore(jsonModel2)) as string[]
+            console.log("Result: \n" + result.join("\n"))
+
+            await testResult("./src/test/data/remove-child/Disk-remove-child-partition.json")
+        })
+    })
+
     async function testResult(originalJsonFile) {
         const jsonModelFull = t.readModel(originalJsonFile) as LionWebJsonChunk
         const afterRetrieve = (await t.testRetrieve(["ID-2"])) as LionWebJsonChunk

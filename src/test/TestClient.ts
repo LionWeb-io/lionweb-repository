@@ -39,7 +39,7 @@ export class TestClient {
         var startTime = performance.now()
         let result = await this.postWithTimeout(`bulk/store`, { body: data, params: "" })
         var endTime = performance.now()
-        console.log(`Call to query took ${endTime - startTime} milliseconds, result ${result}`)
+        console.log(`Call to query took ${endTime - startTime} milliseconds`)
         return result
     }
 

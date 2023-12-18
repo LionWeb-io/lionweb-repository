@@ -114,16 +114,14 @@ class LionWebQueries {
         const diff = new LionWebJsonDiff()
         diff.diffLwChunk(databaseChunk, toBeStoredChunk)
         console.log("STORE.CHANGES ")
-        console.log(diff.diffResult.changes.map(ch => ch.changeMsg()))
+        console.log(diff.diffResult.changes.map(ch => "    " + ch.changeMsg()))
 
-        const toBeStoredNewNodes = diff.diffResult.changes.filter((change): change is NodeAdded => change.id === "NodeAdded")
+        const toBeStoredNewNodes = diff.diffResult.changes.filter((ch): ch is NodeAdded => ch.id === "NodeAdded")
         const addedChildren: ChildAdded[] = diff.diffResult.changes.filter((ch): ch is ChildAdded => ch instanceof ChildAdded)
-        const removedChildren = diff.diffResult.changes.filter((change): change is ChildRemoved => change.id === "ChildRemoved")
-        const parentChanged = diff.diffResult.changes.filter((change): change is ParentChanged => change.id === "ParentChanged")
-        const propertyChanged = diff.diffResult.changes.filter(
-            (change): change is PropertyValueChanged => change.id === "PropertyValueChanged"
-        )
-        const targetChanged = diff.diffResult.changes.filter((change): change is ReferenceChange => change instanceof ReferenceChange)
+        const removedChildren = diff.diffResult.changes.filter((ch): ch is ChildRemoved => ch.id === "ChildRemoved")
+        const parentChanged = diff.diffResult.changes.filter((ch): ch is ParentChanged => ch.id === "ParentChanged")
+        const propertyChanged = diff.diffResult.changes.filter((ch): ch is PropertyValueChanged => ch.id === "PropertyValueChanged")
+        const targetChanged = diff.diffResult.changes.filter((ch): ch is ReferenceChange => ch instanceof ReferenceChange)
 
         // Only children that already exist in the database
         const databaseChildrenOfNewNodes = this.getContainedIds(toBeStoredNewNodes.map(ch => ch.node))
@@ -182,6 +180,7 @@ class LionWebQueries {
         queries += this.makeQueriesForParentChanged(parentChanged)
         queries += this.makeQueriesForImplicitlyRemovedChildNodes(implicitlyRemovedChildNodes, parentsOfImplicitlyRemovedChildNodes)
         queries += this.makeQueriesForImplicitParentChanged(addedAndNotParentChangedChildren)
+        queries += this.makeQueriesForOrphans(removedAndNotAddedChildren)
         // And run them on the database
         if (queries !== "") {
             console.log("QUERIES ")
@@ -191,6 +190,17 @@ class LionWebQueries {
         return [queries]
     }
 
+    private makeQueriesForOrphans(removed: ChildRemoved[]) {
+        let queries = ""
+        removed.forEach(remove => {
+            queries += `-- Implicit Orphan of parent of children that have been model
+                DELETE FROM lionweb_nodes n
+                WHERE
+                    n.id = '${remove.childId}';
+                `
+        })
+        return queries
+    }
     private makeQueriesForPropertyChanges(propertyChanged: PropertyValueChanged[]) {
         let queries = ""
         propertyChanged.forEach(propertyChange => {
@@ -199,7 +209,6 @@ class LionWebQueries {
                     SET value = '${propertyChange.newValue}'
                 WHERE
                     p.node_id = '${propertyChange.nodeId}';
-                    
                 `
         })
         return queries
@@ -224,7 +233,6 @@ class LionWebQueries {
                     c.containment->>'key' = '${changedContainment.containment.key}' AND 
                     c.containment->>'version' = '${changedContainment.containment.version}'  AND
                     c.containment->>'language' = '${changedContainment.containment.language}' ;
-                    
                 `
         })
         return queries
@@ -290,7 +298,6 @@ class LionWebQueries {
                     c.containment->>'key' = '${afterContainment.containment.key}' AND 
                     c.containment->>'version' = '${afterContainment.containment.version}'  AND
                     c.containment->>'language' = '${afterContainment.containment.language}' ;
-                    
                 `
         })
         return queries
