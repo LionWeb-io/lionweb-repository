@@ -24,7 +24,7 @@ function addLanguage(languages: Map<string, Set<string>>, metaPointer: LionWebJs
 
 class Mapped {
     languages: LwJsonUsedLanguage[] = []
-    map = (value: Set<string>, key: string, map: Map<string, Set<string>>): void => {
+    map = (value: Set<string>, key: string): void => {
         value.forEach(v => this.languages.push({ key: key, version: v }))
     }
 }

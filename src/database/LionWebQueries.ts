@@ -8,7 +8,6 @@ import {
     LionWebJsonChunkWrapper,
     NodeUtils,
     PropertyValueChanged,
-    ReferenceChange,
     isEqualMetaPointer
 } from "@lionweb/validation"
 
@@ -133,7 +132,7 @@ class LionWebQueries {
         const removedChildren = diff.diffResult.changes.filter((ch): ch is ChildRemoved => ch.id === "ChildRemoved")
         const parentChanged = diff.diffResult.changes.filter((ch): ch is ParentChanged => ch.id === "ParentChanged")
         const propertyChanged = diff.diffResult.changes.filter((ch): ch is PropertyValueChanged => ch.id === "PropertyValueChanged")
-        const targetChanged = diff.diffResult.changes.filter((ch): ch is ReferenceChange => ch instanceof ReferenceChange)
+        // const targetChanged = diff.diffResult.changes.filter((ch): ch is ReferenceChange => ch instanceof ReferenceChange)
 
         // Only children that already exist in the database
         const databaseChildrenOfNewNodes = this.getContainedIds(toBeStoredNewNodes.map(ch => ch.node))
@@ -391,7 +390,7 @@ class LionWebQueries {
                 }
             })
             const insert = pgp.helpers.insert(node_rows, nodesColumnSet)
-            const dbResult = await db.query(insert)
+            await db.query(insert)
 
             // INSERT Containments
             const insertRowData = tbsNodesToCreate.flatMap(node =>

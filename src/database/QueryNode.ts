@@ -5,7 +5,7 @@ export function postgresArrayFromStringArray(strings: string[]): string {
     return `{${strings.map(id => `"${id}"`).join(", ")}}`
 }
 
-export const QueryNodeForIdList = (nodeid: string[]): Object => {
+export const QueryNodeForIdList = (nodeid: string[]): string => {
     const sqlNodeCollection = sqlArrayFromStringArray(nodeid)
     const query = `
 WITH 

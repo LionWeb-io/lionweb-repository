@@ -51,7 +51,7 @@ export class TestClient {
         console.log(`Call to query took ${endTime - startTime} milliseconds`)
 
         // filter out the modelUnitInterfaces
-        // console.log("result node is " + JSON.stringify(x));
+        console.log("result node is " + JSON.stringify(x));
     }
 
     async testRetrieve(nodeIds: string[], depth?: number) {
@@ -65,7 +65,7 @@ export class TestClient {
         return x
     }
 
-    async getWithTimeout<T>(method: string, parameters: { body: Object; params: string }): Promise<T> {
+    async getWithTimeout<T>(method: string, parameters: { body: unknown; params: string }): Promise<T> {
         const params = this.findParams(parameters.params)
         // console.log("getWithTimeout Params = " + parameters.params);
         try {
@@ -87,7 +87,7 @@ export class TestClient {
         return null
     }
 
-    async postWithTimeout<T>(method: string, parameters: { body: Object; params: string }): Promise<T | null> {
+    async postWithTimeout<T>(method: string, parameters: { body: unknown; params: string }): Promise<T | null> {
         const params = this.findParams(parameters.params)
         // console.log("postWithTimeout Params = " + parameters.params);
         try {
@@ -105,13 +105,13 @@ export class TestClient {
             clearTimeout(timeoutId)
             const result = await promise.json()
             return result
-        } catch (e: any) {
+        } catch (e: unknown) {
             this.handleError(e)
         }
         return null
     }
 
-    private async putWithTimeout(method: string, data: Object, params?: string) {
+    private async putWithTimeout(method: string, data: unknown, params?: string) {
         params = this.findParams(params)
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), 2000)
@@ -145,12 +145,16 @@ export class TestClient {
         }
     }
 
-    private handleError(e: Error) {
-        let errorMess: string = e.message
-        if (e.message.includes("aborted")) {
-            errorMess = `Time out: no response from ${this._SERVER_URL}.`
-            console.error(errorMess)
+    private handleError(e: unknown) {
+        if (e instanceof Error) {
+            let errorMess: string = e.message
+            if (e.message.includes("aborted")) {
+                errorMess = `Time out: no response from ${this._SERVER_URL}.`
+                console.error(errorMess)
+            }
+            console.error("handleError: " + JSON.stringify(e))
+        } else {
+            console.error("Exception handleError: " + JSON.stringify(e))
         }
-        console.error("hanldeError: " + JSON.stringify(e))
     }
 }
