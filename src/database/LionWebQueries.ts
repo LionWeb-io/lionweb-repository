@@ -37,7 +37,13 @@ const containmentsColumnSet = new pgp.helpers.ColumnSet(["containment", "childre
 const PROPERTIES_COLUMNSET = new pgp.helpers.ColumnSet(["property", "value", "node_id"], { table: PROPERTIES_TABLE })
 
 // table definition for use with pg-promise helpers
-const REFERENCES_COLUMNSET = new pgp.helpers.ColumnSet(["lw_reference", "targets", "node_id"], { table: REFERENCES_TABLE })
+const REFERENCES_COLUMNSET = new pgp.helpers.ColumnSet([
+    "lw_reference",
+    {
+        name: "targets",
+        cast: "jsonb[]"
+    },
+    "node_id"], { table: REFERENCES_TABLE })
 
 export type NodeTreeResultType = {
     id: string

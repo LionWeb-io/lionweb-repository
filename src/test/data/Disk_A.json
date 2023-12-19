@@ -98,7 +98,21 @@
                     "children": ["ID-8", "ID-9", "ID-10"]
                 }
             ],
-            "references": [],
+            "references": [
+                {
+                    "reference": {
+                        "language": "-default-key-FileSystem",
+                        "version": "2023.1",
+                        "key": "Folder-linked-key"
+                    },
+                    "targets": [
+                        {
+                            "resolveinfo": null,
+                            "reference": "ID-10"
+                        }
+                    ]
+                }
+            ],
             "parent": "ID-3"
         },
         {

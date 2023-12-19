@@ -19,6 +19,10 @@ describe("Repository tests", () => {
 
     it("retrieve nodes", async () => {
         const retrieve = (await t.testRetrieve(["ID-2"])) as LionWebJsonChunk
+        console.log("JSON MODEL ORIGINAL")
+        printChunk(jsonModel)
+        console.log("JSON MODEL RETRIEVED")
+        printChunk(retrieve)
         const diff = new LionWebJsonDiff()
         diff.diffLwChunk(jsonModel, retrieve)
         deepEqual(diff.diffResult.changes, [])
