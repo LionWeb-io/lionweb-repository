@@ -97,7 +97,7 @@ describe("Repository tests", () => {
         })
     })
 
-    describe("Remove node (4) from parent (3)", () => {
+    describe("Remove node (4) from parent (3) and mode child (9) to (5)", () => {
         it("test update full partition", async () => {
             const jsonModel2 = t.readModel(
                 "./src/test/data/remove-child/Disk-remove-child-partition.json",

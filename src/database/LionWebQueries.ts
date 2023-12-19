@@ -11,13 +11,13 @@ import {
     NodeUtils,
     PropertyValueChanged,
     TargetAdded,
-    ReferenceChange
+    ReferenceChange, isEqualMetaPointer
 } from "@lionweb/validation"
 
 import { NodeAdded, ChildAdded, ChildRemoved, LionWebJsonDiff, ParentChanged } from "@lionweb/validation"
 import { db } from "./DbConnection.js"
 import { LIONWEB_BULKAPI_WORKER } from "./LionWebBulkApiWorker.js"
-import { queryNodeTreeForIdList, QueryNodeForIdList, postgresArrayFromStringArray } from "./QueryNode.js"
+import { queryNodeTreeForIdList, QueryNodeForIdList, postgresArrayFromStringArray, sqlArrayFromStringArray } from "./QueryNode.js"
 import { collectUsedLanguages } from "./UsedLanguages.js"
 
 const NODES_TABLE: string = "lionweb_nodes"
@@ -65,7 +65,7 @@ class LionWebQueries {
         const result = await db.query(queryNodeTreeForIdList(nodeIdList, depthLimit))
         // console.log("getNodeTree RESULT is " + JSON.stringify(result))
         return result
-    }
+    } 
 
     /**
      * TODO: Not tested yet
@@ -193,9 +193,9 @@ class LionWebQueries {
         queries += this.makeQueriesForParentChanged(parentChanged)
         queries += this.makeQueriesForImplicitlyRemovedChildNodes(implicitlyRemovedChildNodes, parentsOfImplicitlyRemovedChildNodes)
         queries += this.makeQueriesForImplicitParentChanged(addedAndNotParentChangedChildren)
-        queries += this.makeQueriesForOrphans(removedAndNotAddedChildren.map(ra => ra.childId))
+        // queries += this.makeQueriesForOrphans(removedAndNotAddedChildren.map(ra => ra.childId))
         queries += this.makeQueriesForOrphans(orphansContainedChildrenOrphans.map(oc => oc.id))
-        
+
         // And run them on the database
         if (queries !== "") {
             console.log("QUERIES ")
@@ -206,24 +206,43 @@ class LionWebQueries {
     }
 
     private makeQueriesForOrphans(orphanIds: string[]) {
-        let queries = ""
-        orphanIds.forEach(remove => {
-            queries += `-- Implicit Orphan of parent of children that have been model
-                DELETE FROM lionweb_nodes n
-                WHERE
-                    n.id = '${remove}';
-                DELETE FROM lionweb_properties p
-                WHERE
-                    p.node_id = '${remove}';
-                DELETE FROM lionweb_containments c
-                WHERE
-                    c.node_id = '${remove}';
-                DELETE FROM lionweb_references r
-                WHERE
-                    r.node_id = '${remove}';
+        if (orphanIds.length === 0) {
+            return ""
+        }
+        const sqlIds = sqlArrayFromStringArray(orphanIds)
+        return `-- Implicit Orphan of parent of children that have been model
+                WITH orphan AS (
+                    DELETE FROM lionweb_nodes n
+                    WHERE n.id IN ${sqlIds}
+                    RETURNING *
+                )
+                INSERT INTO lionweb_nodes_orphans
+                    SELECT * FROM orphan;
+                
+                WITH orphan AS (
+                    DELETE FROM lionweb_properties p
+                    WHERE p.node_id IN ${sqlIds}
+                    RETURNING *
+                )
+                INSERT INTO lionweb_properties_orphans
+                    SELECT * FROM orphan;
+
+                WITH orphan AS (
+                    DELETE FROM lionweb_containments c
+                    WHERE c.node_id IN ${sqlIds}
+                    RETURNING *
+                )                
+                INSERT INTO lionweb_containments_orphans
+                    SELECT * FROM orphan;
+
+                WITH orphan AS (
+                    DELETE FROM lionweb_references r
+                    WHERE r.node_id IN ${sqlIds}
+                    RETURNING *
+                )
+                INSERT INTO lionweb_references_orphans
+                    SELECT * FROM orphan;
                 `
-        })
-        return queries
     }
     
     private makeQueriesForPropertyChanges(propertyChanged: PropertyValueChanged[]) {
@@ -292,7 +311,7 @@ class LionWebQueries {
         let queries = ""
         removedChildren.forEach(removed => {
             const afterNode = toBeStoredChunkWrapper.getNode(removed.parentNode.id)
-            const afterContainment = afterNode.containments.find(cont => cont.containment.key === removed.containmentKey)
+            const afterContainment = afterNode.containments.find(cont => isEqualMetaPointer(cont.containment, removed.containment))
             queries += `-- Update node that has children removed.
                 UPDATE lionweb_containments c 
                     SET children = '${postgresArrayFromStringArray(afterContainment.children)}'
@@ -314,7 +333,7 @@ class LionWebQueries {
             if (afterNode === undefined) {
                 console.error("Undefined node for id " + added.parentNode.id)
             }
-            const afterContainment = afterNode.containments.find(cont => cont.containment.key === added.containmentKey)
+            const afterContainment = afterNode.containments.find(cont => isEqualMetaPointer(cont.containment, added.containment))
             queries += `-- Update nodes that have children added
                 UPDATE lionweb_containments c 
                     SET children = '${postgresArrayFromStringArray(afterContainment.children)}'
@@ -342,7 +361,6 @@ class LionWebQueries {
     }
 
     /**
-     * This is a new node, so each child is an AddedChild change.
      * @param node
      */
     removedChildrenFromRemovedNodes(
@@ -357,7 +375,7 @@ class LionWebQueries {
                 for (const childId of containment.children) {
                     // const newchildNode = tbsNodesWrapper.getNode(childId)
                     result.push(
-                        new ChildRemoved(new JsonContext(null, ["containments", index]), node, containment.containment.key, childId)
+                        new ChildRemoved(new JsonContext(null, ["containments", index]), node, containment.containment, childId)
                     )
                     const childNode = databaseNodesWrapper.getNode(childId)
                     if (childNode !== undefined) {
