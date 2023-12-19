@@ -1,4 +1,3 @@
-import { LionWebJsonNode } from "@lionweb/validation"
 import e, { Request, Response } from "express"
 import fs from "fs"
 import { ADDITIONAL_API_WORKER } from "../database/AdditionalApiWorker.js"
@@ -38,7 +37,7 @@ class AdditionalApiImpl implements AdditionalApi {
     }
 }
 
-function readFile(filename: string): any {
+function readFile(filename: string): string | undefined {
     if (fs.existsSync(filename)) {
         const stats = fs.statSync(filename)
         if (stats.isFile()) {

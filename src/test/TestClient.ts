@@ -6,11 +6,11 @@ export class TestClient {
     private _SERVER_IP = "http://127.0.0.1"
     private _SERVER_URL = `${this._SERVER_IP}:${this._nodePort}/`
 
-    readModel(filename: string): any {
+    readModel(filename: string): LionWebJsonChunk {
         if (fs.existsSync(filename)) {
             const stats = fs.statSync(filename)
             if (stats.isFile()) {
-                let chunk: LionWebJsonChunk = JSON.parse(fs.readFileSync(filename).toString())
+                const chunk: LionWebJsonChunk = JSON.parse(fs.readFileSync(filename).toString())
                 return chunk
             }
         }
@@ -24,7 +24,7 @@ export class TestClient {
 
     async testPartitions() {
         console.log(`test.partitions`)
-        let modelUnits: LionWebJsonChunk = await this.getWithTimeout<LionWebJsonChunk>("bulk/partitions", { body: {}, params: "" })
+        const modelUnits: LionWebJsonChunk = await this.getWithTimeout<LionWebJsonChunk>("bulk/partitions", { body: {}, params: "" })
         console.log("testPartitions: " + JSON.stringify(modelUnits))
         return modelUnits
     }
@@ -36,18 +36,18 @@ export class TestClient {
             return
         }
         // console.log("STORING " + JSON.stringify(data));
-        var startTime = performance.now()
-        let result = await this.postWithTimeout(`bulk/store`, { body: data, params: "" })
-        var endTime = performance.now()
+        const startTime = performance.now()
+        const result = await this.postWithTimeout(`bulk/store`, { body: data, params: "" })
+        const endTime = performance.now()
         console.log(`Call to query took ${endTime - startTime} milliseconds`)
         return result
     }
 
     async testGetNodeTree(nodeIds: string[]) {
         console.log(`test.testGetNodeTree`)
-        var startTime = performance.now()
-        let x = await this.postWithTimeout(`getNodeTree`, { body: { ids: nodeIds }, params: "" })
-        var endTime = performance.now()
+        const startTime = performance.now()
+        const x = await this.postWithTimeout(`getNodeTree`, { body: { ids: nodeIds }, params: "" })
+        const endTime = performance.now()
         console.log(`Call to query took ${endTime - startTime} milliseconds`)
 
         // filter out the modelUnitInterfaces
@@ -57,9 +57,9 @@ export class TestClient {
     async testRetrieve(nodeIds: string[], depth?: number) {
         console.log(`test.testRetrieve ${nodeIds} wioth depth ${depth}`)
         depth = depth || 999
-        var startTime = performance.now()
-        let x = await this.postWithTimeout(`bulk/retrieve`, { body: { ids: nodeIds }, params: `depthLimit=${depth}` })
-        var endTime = performance.now()
+        const startTime = performance.now()
+        const x = await this.postWithTimeout(`bulk/retrieve`, { body: { ids: nodeIds }, params: `depthLimit=${depth}` })
+        const endTime = performance.now()
         console.log(`Call to query took ${endTime - startTime} milliseconds`)
         // console.log("++++++++++++++ result node is " + JSON.stringify(x));
         return x

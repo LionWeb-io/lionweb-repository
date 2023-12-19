@@ -3,15 +3,13 @@ import pgPromise from "pg-promise"
 
 const pgp = pgPromise()
 import {
-    JsonContext,
-    LionWebJsonContainment,
     LionWebJsonChunk,
     LionWebJsonNode,
     LionWebJsonChunkWrapper,
     NodeUtils,
     PropertyValueChanged,
-    TargetAdded,
-    ReferenceChange, isEqualMetaPointer
+    ReferenceChange,
+    isEqualMetaPointer
 } from "@lionweb/validation"
 
 import { NodeAdded, ChildAdded, ChildRemoved, LionWebJsonDiff, ParentChanged } from "@lionweb/validation"
@@ -37,13 +35,17 @@ const containmentsColumnSet = new pgp.helpers.ColumnSet(["containment", "childre
 const PROPERTIES_COLUMNSET = new pgp.helpers.ColumnSet(["property", "value", "node_id"], { table: PROPERTIES_TABLE })
 
 // table definition for use with pg-promise helpers
-const REFERENCES_COLUMNSET = new pgp.helpers.ColumnSet([
-    "lw_reference",
-    {
-        name: "targets",
-        cast: "jsonb[]"
-    },
-    "node_id"], { table: REFERENCES_TABLE })
+const REFERENCES_COLUMNSET = new pgp.helpers.ColumnSet(
+    [
+        "lw_reference",
+        {
+            name: "targets",
+            cast: "jsonb[]"
+        },
+        "node_id"
+    ],
+    { table: REFERENCES_TABLE }
+)
 
 export type NodeTreeResultType = {
     id: string
@@ -71,7 +73,7 @@ class LionWebQueries {
         const result = await db.query(queryNodeTreeForIdList(nodeIdList, depthLimit))
         // console.log("getNodeTree RESULT is " + JSON.stringify(result))
         return result
-    } 
+    }
 
     /**
      * TODO: Not tested yet
@@ -146,7 +148,10 @@ class LionWebQueries {
             )
         })
         // Now get all cnhbildren of the orphans
-        const orphansContainedChildren = await this.getNodeTree(removedAndNotAddedChildren.map(rm => rm.childId), 999)
+        const orphansContainedChildren = await this.getNodeTree(
+            removedAndNotAddedChildren.map(rm => rm.childId),
+            999
+        )
         const orphansContainedChildrenOrphans = orphansContainedChildren.filter(contained => {
             return (
                 addedChildren.find(added => added.childId === contained.id) === undefined &&
@@ -250,7 +255,7 @@ class LionWebQueries {
                     SELECT * FROM orphan;
                 `
     }
-    
+
     private makeQueriesForPropertyChanges(propertyChanged: PropertyValueChanged[]) {
         let queries = ""
         propertyChanged.forEach(propertyChange => {
@@ -291,7 +296,7 @@ class LionWebQueries {
     private makeQueriesForParentChanged(parentChanged: ParentChanged[]) {
         let queries = ""
         parentChanged.forEach(parentChanged => {
-            queries += this.updateParentQuery(parentChanged.node.id, parentChanged.afterParentId)
+            queries += this.makeUpdateParentQuery(parentChanged.node.id, parentChanged.afterParentId)
         })
         return queries
     }
@@ -299,12 +304,12 @@ class LionWebQueries {
     private makeQueriesForImplicitParentChanged(addedAndNotParentChangedChildren: ChildAdded[]) {
         let queries = ""
         addedAndNotParentChangedChildren.forEach(added => {
-            queries += this.updateParentQuery(added.childId, added.parentNode.id)
+            queries += this.makeUpdateParentQuery(added.childId, added.parentNode.id)
         })
         return queries
     }
 
-    private updateParentQuery(nodeId: string, parent: string): string {
+    private makeUpdateParentQuery(nodeId: string, parent: string): string {
         return `-- Update of parent of children that have been moved
                 UPDATE lionweb_nodes n 
                     SET parent = '${parent}'
@@ -364,34 +369,6 @@ class LionWebQueries {
                 return c.children
             })
         )
-    }
-
-    /**
-     * @param node
-     */
-    removedChildrenFromRemovedNodes(
-        nodes: LionWebJsonNode[],
-        tbsNodesWrapper: LionWebJsonChunkWrapper,
-        databaseNodesWrapper: LionWebJsonChunkWrapper
-    ): ChildRemoved[] {
-        const result: ChildRemoved[] = []
-        nodes.forEach((node: LionWebJsonNode, index: number) => {
-            node.containments.forEach((containment: LionWebJsonContainment, index: number) => {
-                const key = containment.containment.key
-                for (const childId of containment.children) {
-                    // const newchildNode = tbsNodesWrapper.getNode(childId)
-                    result.push(
-                        new ChildRemoved(new JsonContext(null, ["containments", index]), node, containment.containment, childId)
-                    )
-                    const childNode = databaseNodesWrapper.getNode(childId)
-                    if (childNode !== undefined) {
-                        result.push(...this.removedChildrenFromRemovedNodes([childNode], tbsNodesWrapper, databaseNodesWrapper))
-                    }
-                }
-            })
-        })
-        console.log("removedChildrenFromRemovedNodes: " + result.map(r => `${r.childId} removed from ${r.parentNode.id}`))
-        return result
     }
 
     /**

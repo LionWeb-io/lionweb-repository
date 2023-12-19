@@ -19,6 +19,7 @@
     "build": "rm -rf build/ && tsc",
     "alive": "echo I am alive",
     "cleanup": "rm -rf ./node_modules",
+    "lint": "eslint src",
     "manualtest": "node build/test/ManualTests.js",
     "database": "node build/tools/database",
     "testdiff": "mocha ./build/test/diff/testDiff.js",
@@ -27,6 +28,9 @@
   },
   "devDependencies": {
     "prettier": "3.1.0",
+    "@typescript-eslint/eslint-plugin": "6.13.2",
+    "@typescript-eslint/parser": "6.13.2",
+    "eslint": "8.56.0",
     "typescript": "5.2.2",
     "chai": "4.3.10",
     "@types/chai": "4.3.11",
