@@ -22,7 +22,8 @@
     "manualtest": "node build/test/ManualTests.js",
     "database": "node build/tools/database",
     "testdiff": "mocha ./build/test/diff/testDiff.js",
-    "test": "mocha ./build/test/tests.js"
+    "test": "mocha ./build/test/tests.js",
+    "install-local": "yarn install --registry http://localhost:4873"
   },
   "devDependencies": {
     "@types/chai": "4.3.11",

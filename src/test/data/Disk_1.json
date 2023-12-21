@@ -6,7 +6,7 @@
             "version": "2023.1"
         },
         {
-            "key": "-default-key-LionCore_builtins",
+            "key": "LionCore_builtins",
             "version": "2023.1"
         }
     ],
@@ -21,9 +21,9 @@
             "properties": [
                 {
                     "property": {
-                        "language": "-default-key-LionCore_builtins",
+                        "language": "LionCore_builtins",
                         "version": "2023.1",
-                        "key": "-default-key-INamed-name"
+                        "key": "LionCore-builtins-INamed-name"
                     },
                     "value": "Disk_1"
                 }
@@ -51,9 +51,9 @@
             "properties": [
                 {
                     "property": {
-                        "language": "-default-key-LionCore_builtins",
+                        "language": "LionCore_builtins",
                         "version": "2023.1",
-                        "key": "-default-key-INamed-name"
+                        "key": "LionCore-builtins-INamed-name"
                     },
                     "value": "/"
                 }
@@ -81,9 +81,9 @@
             "properties": [
                 {
                     "property": {
-                        "language": "-default-key-LionCore_builtins",
+                        "language": "LionCore_builtins",
                         "version": "2023.1",
-                        "key": "-default-key-INamed-name"
+                        "key": "LionCore-builtins-INamed-name"
                     },
                     "value": "folder_1"
                 }
@@ -111,9 +111,9 @@
             "properties": [
                 {
                     "property": {
-                        "language": "-default-key-LionCore_builtins",
+                        "language": "LionCore_builtins",
                         "version": "2023.1",
-                        "key": "-default-key-INamed-name"
+                        "key": "LionCore-builtins-INamed-name"
                     },
                     "value": "folder_1_a"
                 }
@@ -141,9 +141,9 @@
             "properties": [
                 {
                     "property": {
-                        "language": "-default-key-LionCore_builtins",
+                        "language": "LionCore_builtins",
                         "version": "2023.1",
-                        "key": "-default-key-INamed-name"
+                        "key": "LionCore-builtins-INamed-name"
                     },
                     "value": "folder_1_b"
                 }
@@ -171,9 +171,9 @@
             "properties": [
                 {
                     "property": {
-                        "language": "-default-key-LionCore_builtins",
+                        "language": "LionCore_builtins",
                         "version": "2023.1",
-                        "key": "-default-key-INamed-name"
+                        "key": "LionCore-builtins-INamed-name"
                     },
                     "value": "file_1_a"
                 }
@@ -192,9 +192,9 @@
             "properties": [
                 {
                     "property": {
-                        "language": "-default-key-LionCore_builtins",
+                        "language": "LionCore_builtins",
                         "version": "2023.1",
-                        "key": "-default-key-INamed-name"
+                        "key": "LionCore-builtins-INamed-name"
                     },
                     "value": "folder_2"
                 }
@@ -222,9 +222,9 @@
             "properties": [
                 {
                     "property": {
-                        "language": "-default-key-LionCore_builtins",
+                        "language": "LionCore_builtins",
                         "version": "2023.1",
-                        "key": "-default-key-INamed-name"
+                        "key": "LionCore-builtins-INamed-name"
                     },
                     "value": "folder_2_a"
                 }
@@ -252,9 +252,9 @@
             "properties": [
                 {
                     "property": {
-                        "language": "-default-key-LionCore_builtins",
+                        "language": "LionCore_builtins",
                         "version": "2023.1",
-                        "key": "-default-key-INamed-name"
+                        "key": "LionCore-builtins-INamed-name"
                     },
                     "value": "root_file_1"
                 }
