@@ -8,7 +8,7 @@ import {
     LionWebJsonChunkWrapper,
     NodeUtils,
     PropertyValueChanged,
-    isEqualMetaPointer, ReferenceChange
+    isEqualMetaPointer, ReferenceChange, LionWebJsonReferenceTarget
 } from "@lionweb/validation"
 
 import { NodeAdded, ChildAdded, ChildRemoved, LionWebJsonDiff, ParentChanged } from "@lionweb/validation"
@@ -152,7 +152,7 @@ class LionWebQueries {
         const removedChildren = diff.diffResult.changes.filter((ch): ch is ChildRemoved => ch.id === "ChildRemoved")
         const parentChanged = diff.diffResult.changes.filter((ch): ch is ParentChanged => ch.id === "ParentChanged")
         const propertyChanged = diff.diffResult.changes.filter((ch): ch is PropertyValueChanged => ch.id === "PropertyValueChanged")
-        const targetChanged = diff.diffResult.changes.filter((ch): ch is ReferenceChange => ch instanceof ReferenceChange)
+        const targetsChanged = diff.diffResult.changes.filter((ch): ch is ReferenceChange => ch instanceof ReferenceChange)
 
         // Only children that already exist in the database
         const databaseChildrenOfNewNodes = this.getContainedIds(toBeStoredNewNodes.map(ch => ch.node))
@@ -225,10 +225,10 @@ class LionWebQueries {
         queries += this.makeQueriesForImplicitParentChanged(addedAndNotParentChangedChildren)
         // queries += this.makeQueriesForOrphans(removedAndNotAddedChildren.map(ra => ra.childId))
         queries += this.makeQueriesForOrphans(orphansContainedChildrenOrphans.map(oc => oc.id))
-
+        queries += this.makeQueriesForReferenceChanges(targetsChanged)
         // And run them on the database
         if (queries !== "") {
-            console.log("QUERIES ")
+            console.log("QUERIES " + queries)
             await db.query(queries)
         }
         await this.dbInsertNodeArray(toBeStoredNewNodes.map(ch => (ch as NodeAdded).node))
@@ -293,15 +293,21 @@ class LionWebQueries {
         referenceChanges.forEach(referenceChange => {
             queries += `-- Reference has changed
                 UPDATE lionweb_references r 
-                    SET targets = '${referenceChange.targetId}'
+                    SET targets = ${this.targetsAsPostgresArray(referenceChange.reference.targets)}
                 WHERE
                     r.node_id = '${referenceChange.node.id}' AND
-                    r.reference->>'key' = '${referenceChange.reference.key}' AND 
-                    r.reference->>'version' = '${referenceChange.reference.version}'  AND
-                    r.reference->>'language' = '${referenceChange.reference.language}' ;
+                    r.lw_reference->>'key' = '${referenceChange.reference.reference.key}' AND 
+                    r.lw_reference->>'version' = '${referenceChange.reference.reference.version}'  AND
+                    r.lw_reference->>'language' = '${referenceChange.reference.reference.language}' ;
                 `
         })
         return queries
+    }
+    
+    targetsAsPostgresArray(targets: LionWebJsonReferenceTarget[]): string {
+        let result = "ARRAY["
+        result += targets.map((target => "'" + JSON.stringify(target) + "'::jsonb")).join(", ")    
+        return result + "]";
     }
 
     private makeQueriesForImplicitlyRemovedChildNodes(

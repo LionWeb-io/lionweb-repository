@@ -134,6 +134,8 @@ describe("Repository tests", () => {
             ) as LionWebJsonChunk
             const diff = new LionWebJsonDiff()
             diff.diffLwChunk(jsonModel, jsonModel2)
+            console.log("DIF " + diff.diffResult.asStringArray())
+            
             const result = (await t.testStore(jsonModel2)) as string[]
             console.log("Result: \n" + result.join("\n"))
 
