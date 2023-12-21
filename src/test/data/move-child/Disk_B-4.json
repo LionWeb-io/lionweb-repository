@@ -6,13 +6,13 @@
             "version": "2023.1"
         },
         {
-            "key": "LionCore_builtins",
+            "key": "LionCore-builtins",
             "version": "2023.1"
         }
     ],
     "nodes": [
         {
-            "id": "ID-4",
+            "id": "ID-9",
             "classifier": {
                 "language": "-default-key-FileSystem",
                 "version": "2023.1",
@@ -21,11 +21,11 @@
             "properties": [
                 {
                     "property": {
-                        "language": "LionCore_builtins",
+                        "language": "LionCore-builtins",
                         "version": "2023.1",
                         "key": "LionCore-builtins-INamed-name"
                     },
-                    "value": "folder-1"
+                    "value": "folder-1-b"
                 }
             ],
             "containments": [
@@ -35,11 +35,11 @@
                         "version": "2023.1",
                         "key": "Folder-listing-key"
                     },
-                    "children": ["ID-8", "ID-10"]
+                    "children": []
                 }
             ],
             "references": [],
-            "parent": "ID-3"
+            "parent": "ID-5"
         },
         {
             "id": "ID-5",
@@ -51,7 +51,7 @@
             "properties": [
                 {
                     "property": {
-                        "language": "LionCore_builtins",
+                        "language": "LionCore-builtins",
                         "version": "2023.1",
                         "key": "LionCore-builtins-INamed-name"
                     },

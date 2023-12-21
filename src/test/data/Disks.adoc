@@ -1,29 +1,49 @@
 = Testcase bulk store
 
 The model with which we start is as follows:
-
+----
+{
+"key": "LionCore-builtins-INamed-name",
+"version": "2023.1",
+"language": "LionCore-builtins"
+}
+----
 .Disk_A initial model
 [subs="quotes"]
 ----
-(ID-2) Disk_A
+(ID-2)
+    *LionCore-builtins-INamed-name*: Disk_A
     *Disk-root-key*
-    (ID-3) root
+    (ID-3)
+        *LionCore-builtins-INamed-name*: root
         *Folder-listing-key*
-        (ID-4) folder-1
+        (ID-4)
+            *LionCore-builtins-INamed-name*: folder-1
             *Folder-listing-key*
-            (ID-8) folder-1-a
-            (ID-9) folder-1-b
-            (ID-10) folder-1-c
-        (ID-5) folder-2
+            (ID-8)
+                *LionCore-builtins-INamed-name*: folder-1-a
+            (ID-10)
+                *LionCore-builtins-INamed-name*: folder-1-c
+        (ID-5)
+            *LionCore-builtins-INamed-name*: folder-2
             *Folder-listing-key*
-            (ID-11) folder-2-a
-            (ID-12) folder-2-b
+            (ID-9)
+                *LionCore-builtins-INamed-name*: folder-1-b
+            (ID-11)
+                *LionCore-builtins-INamed-name*: folder-2-a
+            (ID-12)
+                *LionCore-builtins-INamed-name*: folder-2-b
                 *Folder-listing-key*
-                (ID-13) folder-2-b--i
-                (ID-14) folder-2-b-ii
-                (ID-15) folder-2-b-iii
-        (ID-6) folder-3
-        (ID-7) folder-4
+                (ID-13)
+                    *LionCore-builtins-INamed-name*: folder-2-b--i
+                (ID-14)
+                    *LionCore-builtins-INamed-name*: folder-2-b-ii
+                (ID-15)
+                    *LionCore-builtins-INamed-name*: folder-2-b-iii
+        (ID-6)
+            *LionCore-builtins-INamed-name*: folder-3
+        (ID-7)
+            *LionCore-builtins-INamed-name*: folder-4
 ----
 
 

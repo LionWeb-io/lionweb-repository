@@ -6,11 +6,11 @@ export class TestClient {
     private _SERVER_IP = "http://127.0.0.1"
     private _SERVER_URL = `${this._SERVER_IP}:${this._nodePort}/`
 
-    readModel(filename: string): any {
+    readModel(filename: string): LionWebJsonChunk {
         if (fs.existsSync(filename)) {
             const stats = fs.statSync(filename)
             if (stats.isFile()) {
-                let chunk: LionWebJsonChunk = JSON.parse(fs.readFileSync(filename).toString())
+                const chunk: LionWebJsonChunk = JSON.parse(fs.readFileSync(filename).toString())
                 return chunk
             }
         }
@@ -24,7 +24,7 @@ export class TestClient {
 
     async testPartitions() {
         console.log(`test.partitions`)
-        let modelUnits: LionWebJsonChunk = await this.getWithTimeout<LionWebJsonChunk>("bulk/partitions", { body: {}, params: "" })
+        const modelUnits: LionWebJsonChunk = await this.getWithTimeout<LionWebJsonChunk>("bulk/partitions", { body: {}, params: "" })
         console.log("testPartitions: " + JSON.stringify(modelUnits))
         return modelUnits
     }
@@ -36,36 +36,36 @@ export class TestClient {
             return
         }
         // console.log("STORING " + JSON.stringify(data));
-        var startTime = performance.now()
-        let result = await this.postWithTimeout(`bulk/store`, { body: data, params: "" })
-        var endTime = performance.now()
-        console.log(`Call to query took ${endTime - startTime} milliseconds, result ${result}`)
+        const startTime = performance.now()
+        const result = await this.postWithTimeout(`bulk/store`, { body: data, params: "" })
+        const endTime = performance.now()
+        console.log(`Call to query took ${endTime - startTime} milliseconds`)
         return result
     }
 
     async testGetNodeTree(nodeIds: string[]) {
         console.log(`test.testGetNodeTree`)
-        var startTime = performance.now()
-        let x = await this.postWithTimeout(`getNodeTree`, { body: { ids: nodeIds }, params: "" })
-        var endTime = performance.now()
+        const startTime = performance.now()
+        const x = await this.postWithTimeout(`getNodeTree`, { body: { ids: nodeIds }, params: "" })
+        const endTime = performance.now()
         console.log(`Call to query took ${endTime - startTime} milliseconds`)
 
         // filter out the modelUnitInterfaces
-        // console.log("result node is " + JSON.stringify(x));
+        console.log("result node is " + JSON.stringify(x));
     }
 
     async testRetrieve(nodeIds: string[], depth?: number) {
         console.log(`test.testRetrieve ${nodeIds} wioth depth ${depth}`)
         depth = depth || 999
-        var startTime = performance.now()
-        let x = await this.postWithTimeout(`bulk/retrieve`, { body: { ids: nodeIds }, params: `depthLimit=${depth}` })
-        var endTime = performance.now()
+        const startTime = performance.now()
+        const x = await this.postWithTimeout(`bulk/retrieve`, { body: { ids: nodeIds }, params: `depthLimit=${depth}` })
+        const endTime = performance.now()
         console.log(`Call to query took ${endTime - startTime} milliseconds`)
         // console.log("++++++++++++++ result node is " + JSON.stringify(x));
         return x
     }
 
-    async getWithTimeout<T>(method: string, parameters: { body: Object; params: string }): Promise<T> {
+    async getWithTimeout<T>(method: string, parameters: { body: unknown; params: string }): Promise<T> {
         const params = this.findParams(parameters.params)
         // console.log("getWithTimeout Params = " + parameters.params);
         try {
@@ -87,7 +87,7 @@ export class TestClient {
         return null
     }
 
-    async postWithTimeout<T>(method: string, parameters: { body: Object; params: string }): Promise<T | null> {
+    async postWithTimeout<T>(method: string, parameters: { body: unknown; params: string }): Promise<T | null> {
         const params = this.findParams(parameters.params)
         // console.log("postWithTimeout Params = " + parameters.params);
         try {
@@ -105,13 +105,13 @@ export class TestClient {
             clearTimeout(timeoutId)
             const result = await promise.json()
             return result
-        } catch (e: any) {
+        } catch (e: unknown) {
             this.handleError(e)
         }
         return null
     }
 
-    private async putWithTimeout(method: string, data: Object, params?: string) {
+    private async putWithTimeout(method: string, data: unknown, params?: string) {
         params = this.findParams(params)
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), 2000)
@@ -145,12 +145,16 @@ export class TestClient {
         }
     }
 
-    private handleError(e: Error) {
-        let errorMess: string = e.message
-        if (e.message.includes("aborted")) {
-            errorMess = `Time out: no response from ${this._SERVER_URL}.`
-            console.error(errorMess)
+    private handleError(e: unknown) {
+        if (e instanceof Error) {
+            let errorMess: string = e.message
+            if (e.message.includes("aborted")) {
+                errorMess = `Time out: no response from ${this._SERVER_URL}.`
+                console.error(errorMess)
+            }
+            console.error("handleError: " + JSON.stringify(e))
+        } else {
+            console.error("Exception handleError: " + JSON.stringify(e))
         }
-        console.error("hanldeError: " + JSON.stringify(e))
     }
 }

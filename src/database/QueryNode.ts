@@ -5,7 +5,7 @@ export function postgresArrayFromStringArray(strings: string[]): string {
     return `{${strings.map(id => `"${id}"`).join(", ")}}`
 }
 
-export const QueryNodeForIdList = (nodeid: string[]): Object => {
+export const QueryNodeForIdList = (nodeid: string[]): string => {
     const sqlNodeCollection = sqlArrayFromStringArray(nodeid)
     const query = `
 WITH 
@@ -71,6 +71,11 @@ group by lionweb_nodes.id, prop.id, con.id, prop.properties, containments, rrefe
     return query
 }
 
+/**
+ * Query that will recursively get all child (ids) of all nodes in _nodeIdList_
+ * @param nodeidlist
+ * @param depthLimit
+ */
 export const queryNodeTreeForIdList = (nodeidlist: string[], depthLimit: number): string => {
     const sqlArray = sqlArrayFromStringArray(nodeidlist)
     const query = `
@@ -78,12 +83,40 @@ WITH RECURSIVE tmp AS (
     SELECT id, parent, 0 as depth -- , con.children
     FROM lionweb_nodes
     LEFT JOIN (SELECT children, node_id FROM lionweb_containments) con ON con.node_id = id
-    WHERE id IN ${sqlArray}
+    WHERE id IN ${sqlArray}    
     UNION
         SELECT nn.id, nn.parent, tmp.depth + 1 -- , con.children
         FROM lionweb_nodes as nn
         INNER JOIN tmp ON tmp.id = nn.parent
-        WHERE tmp.depth < ${depthLimit}
+        WHERE tmp.depth < ${depthLimit} -- AND nn.id NOT in ${"otherArray"}
+)
+SELECT * FROM tmp;
+    `
+    // console.log("queryNodeTreeForIdList: " + query);
+    return query
+}
+
+/**
+ * Query that will recursively get all child (ids) of all nodes in _nodeIdList_
+ * Except for ids (recursively) that are in _ignoredIds_ 
+ * @param nodeidlist
+ * @param ignoredIds
+ * @param depthLimit
+ */
+export const queryNodeTreeForIdListPlus = (nodeidlist: string[], ignoredIds: string[], depthLimit: number): string => {
+    const sqlArray = sqlArrayFromStringArray(nodeidlist)
+    const sqlIgnoredArray = sqlArrayFromStringArray(ignoredIds)
+    const query = `
+WITH RECURSIVE tmp AS (
+    SELECT id, parent, 0 as depth -- , con.children
+    FROM lionweb_nodes
+    LEFT JOIN (SELECT children, node_id FROM lionweb_containments) con ON con.node_id = id
+    WHERE id IN ${sqlArray}    
+    UNION
+        SELECT nn.id, nn.parent, tmp.depth + 1 -- , con.children
+        FROM lionweb_nodes as nn
+        INNER JOIN tmp ON tmp.id = nn.parent
+        WHERE tmp.depth < ${depthLimit} ${ignoredIds.length !== 0 ? `nn.id NOT in ${sqlIgnoredArray}` : ""}
 )
 SELECT * FROM tmp;
     `

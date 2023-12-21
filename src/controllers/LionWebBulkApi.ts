@@ -9,8 +9,8 @@ import { LIONWEB_BULKAPI_WORKER } from "../database/LionWebBulkApiWorker.js"
 
 export interface LionWebBulkApi {
     partitions: (req: Request, res: Response) => void
-    store: (req: Request, res: Response) => any
-    retrieve: (req: Request, res: Response) => any
+    store: (req: Request, res: Response) => void
+    retrieve: (req: Request, res: Response) => void
 }
 
 class LionWebBullApiImpl implements LionWebBulkApi {
@@ -44,7 +44,7 @@ class LionWebBullApiImpl implements LionWebBulkApi {
      *            parameter `depthLimit` contains the depth to which the parts are also found.
      * @param res
      */
-    async retrieve(req: Request, res: Response): Promise<any> {
+    async retrieve(req: Request, res: Response): Promise<void> {
         console.log("Api.getNodes: ")
         const mode = req.query["mode"] as string
         const depthLimit = Number.parseInt(req.query["depthLimit"] as string)

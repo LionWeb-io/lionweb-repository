@@ -6,7 +6,7 @@
             "version": "2023.1"
         },
         {
-            "key": "LionCore_builtins",
+            "key": "LionCore-builtins",
             "version": "2023.1"
         }
     ],
@@ -16,16 +16,16 @@
             "classifier": {
                 "language": "-default-key-FileSystem",
                 "version": "2023.1",
-                "key": "Disk-ley"
+                "key": "Disk-key"
             },
             "properties": [
                 {
                     "property": {
-                        "language": "LionCore_builtins",
+                        "language": "LionCore-builtins",
                         "version": "2023.1",
                         "key": "LionCore-builtins-INamed-name"
                     },
-                    "value": "Disk_1"
+                    "value": "Disk_A"
                 }
             ],
             "containments": [
@@ -51,11 +51,11 @@
             "properties": [
                 {
                     "property": {
-                        "language": "LionCore_builtins",
+                        "language": "LionCore-builtins",
                         "version": "2023.1",
                         "key": "LionCore-builtins-INamed-name"
                     },
-                    "value": "/"
+                    "value": "root"
                 }
             ],
             "containments": [
@@ -65,7 +65,7 @@
                         "version": "2023.1",
                         "key": "Folder-listing-key"
                     },
-                    "children": ["ID-4", "ID-5", "ID-6"]
+                    "children": ["ID-4", "ID-5", "ID-6", "ID-7"]
                 }
             ],
             "references": [],
@@ -81,11 +81,11 @@
             "properties": [
                 {
                     "property": {
-                        "language": "LionCore_builtins",
+                        "language": "LionCore-builtins",
                         "version": "2023.1",
                         "key": "LionCore-builtins-INamed-name"
                     },
-                    "value": "folder_1"
+                    "value": "folder-1"
                 }
             ],
             "containments": [
@@ -95,41 +95,11 @@
                         "version": "2023.1",
                         "key": "Folder-listing-key"
                     },
-                    "children": ["ID-7", "ID-8", "ID-9"]
+                    "children": ["ID-8", "ID-10"]
                 }
             ],
             "references": [],
             "parent": "ID-3"
-        },
-        {
-            "id": "ID-7",
-            "classifier": {
-                "language": "-default-key-FileSystem",
-                "version": "2023.1",
-                "key": "Folder-key"
-            },
-            "properties": [
-                {
-                    "property": {
-                        "language": "LionCore_builtins",
-                        "version": "2023.1",
-                        "key": "LionCore-builtins-INamed-name"
-                    },
-                    "value": "folder_1_a"
-                }
-            ],
-            "containments": [
-                {
-                    "containment": {
-                        "language": "-default-key-FileSystem",
-                        "version": "2023.1",
-                        "key": "Folder-listing-key"
-                    },
-                    "children": []
-                }
-            ],
-            "references": [],
-            "parent": "ID-4"
         },
         {
             "id": "ID-8",
@@ -141,11 +111,11 @@
             "properties": [
                 {
                     "property": {
-                        "language": "LionCore_builtins",
+                        "language": "LionCore-builtins",
                         "version": "2023.1",
                         "key": "LionCore-builtins-INamed-name"
                     },
-                    "value": "folder_1_b"
+                    "value": "folder-1-a"
                 }
             ],
             "containments": [
@@ -166,67 +136,16 @@
             "classifier": {
                 "language": "-default-key-FileSystem",
                 "version": "2023.1",
-                "key": "File-key"
-            },
-            "properties": [
-                {
-                    "property": {
-                        "language": "LionCore_builtins",
-                        "version": "2023.1",
-                        "key": "LionCore-builtins-INamed-name"
-                    },
-                    "value": "file_1_a"
-                }
-            ],
-            "containments": [],
-            "references": [],
-            "parent": "ID-4"
-        },
-        {
-            "id": "ID-5",
-            "classifier": {
-                "language": "-default-key-FileSystem",
-                "version": "2023.1",
                 "key": "Folder-key"
             },
             "properties": [
                 {
                     "property": {
-                        "language": "LionCore_builtins",
+                        "language": "LionCore-builtins",
                         "version": "2023.1",
                         "key": "LionCore-builtins-INamed-name"
                     },
-                    "value": "folder_2"
-                }
-            ],
-            "containments": [
-                {
-                    "containment": {
-                        "language": "-default-key-FileSystem",
-                        "version": "2023.1",
-                        "key": "Folder-listing-key"
-                    },
-                    "children": ["ID-10"]
-                }
-            ],
-            "references": [],
-            "parent": "ID-3"
-        },
-        {
-            "id": "ID-10",
-            "classifier": {
-                "language": "-default-key-FileSystem",
-                "version": "2023.1",
-                "key": "Folder-key"
-            },
-            "properties": [
-                {
-                    "property": {
-                        "language": "LionCore_builtins",
-                        "version": "2023.1",
-                        "key": "LionCore-builtins-INamed-name"
-                    },
-                    "value": "folder_2_a"
+                    "value": "folder-1-b"
                 }
             ],
             "containments": [
@@ -243,23 +162,272 @@
             "parent": "ID-5"
         },
         {
-            "id": "ID-6",
+            "id": "ID-10",
             "classifier": {
                 "language": "-default-key-FileSystem",
                 "version": "2023.1",
-                "key": "File-key"
+                "key": "Folder-key"
             },
             "properties": [
                 {
                     "property": {
-                        "language": "LionCore_builtins",
+                        "language": "LionCore-builtins",
                         "version": "2023.1",
                         "key": "LionCore-builtins-INamed-name"
                     },
-                    "value": "root_file_1"
+                    "value": "folder-1-c"
                 }
             ],
-            "containments": [],
+            "containments": [
+                {
+                    "containment": {
+                        "language": "-default-key-FileSystem",
+                        "version": "2023.1",
+                        "key": "Folder-listing-key"
+                    },
+                    "children": []
+                }
+            ],
+            "references": [],
+            "parent": "ID-4"
+        },
+        {
+            "id": "ID-5",
+            "classifier": {
+                "language": "-default-key-FileSystem",
+                "version": "2023.1",
+                "key": "Folder-key"
+            },
+            "properties": [
+                {
+                    "property": {
+                        "language": "LionCore-builtins",
+                        "version": "2023.1",
+                        "key": "LionCore-builtins-INamed-name"
+                    },
+                    "value": "folder-2"
+                }
+            ],
+            "containments": [
+                {
+                    "containment": {
+                        "language": "-default-key-FileSystem",
+                        "version": "2023.1",
+                        "key": "Folder-listing-key"
+                    },
+                    "children": ["ID-9", "ID-11", "ID-12"]
+                }
+            ],
+            "references": [],
+            "parent": "ID-3"
+        },
+        {
+            "id": "ID-11",
+            "classifier": {
+                "language": "-default-key-FileSystem",
+                "version": "2023.1",
+                "key": "Folder-key"
+            },
+            "properties": [
+                {
+                    "property": {
+                        "language": "LionCore-builtins",
+                        "version": "2023.1",
+                        "key": "LionCore-builtins-INamed-name"
+                    },
+                    "value": "folder-2-a"
+                }
+            ],
+            "containments": [
+                {
+                    "containment": {
+                        "language": "-default-key-FileSystem",
+                        "version": "2023.1",
+                        "key": "Folder-listing-key"
+                    },
+                    "children": []
+                }
+            ],
+            "references": [],
+            "parent": "ID-5"
+        },
+        {
+            "id": "ID-12",
+            "classifier": {
+                "language": "-default-key-FileSystem",
+                "version": "2023.1",
+                "key": "Folder-key"
+            },
+            "properties": [
+                {
+                    "property": {
+                        "language": "LionCore-builtins",
+                        "version": "2023.1",
+                        "key": "LionCore-builtins-INamed-name"
+                    },
+                    "value": "folder-2-b"
+                }
+            ],
+            "containments": [
+                {
+                    "containment": {
+                        "language": "-default-key-FileSystem",
+                        "version": "2023.1",
+                        "key": "Folder-listing-key"
+                    },
+                    "children": ["ID-13", "ID-14", "ID-15"]
+                }
+            ],
+            "references": [],
+            "parent": "ID-5"
+        },
+        {
+            "id": "ID-13",
+            "classifier": {
+                "language": "-default-key-FileSystem",
+                "version": "2023.1",
+                "key": "Folder-key"
+            },
+            "properties": [
+                {
+                    "property": {
+                        "language": "LionCore-builtins",
+                        "version": "2023.1",
+                        "key": "LionCore-builtins-INamed-name"
+                    },
+                    "value": "folder-2-b--i"
+                }
+            ],
+            "containments": [
+                {
+                    "containment": {
+                        "language": "-default-key-FileSystem",
+                        "version": "2023.1",
+                        "key": "Folder-listing-key"
+                    },
+                    "children": []
+                }
+            ],
+            "references": [],
+            "parent": "ID-12"
+        },
+        {
+            "id": "ID-14",
+            "classifier": {
+                "language": "-default-key-FileSystem",
+                "version": "2023.1",
+                "key": "Folder-key"
+            },
+            "properties": [
+                {
+                    "property": {
+                        "language": "LionCore-builtins",
+                        "version": "2023.1",
+                        "key": "LionCore-builtins-INamed-name"
+                    },
+                    "value": "folder-2-b-ii"
+                }
+            ],
+            "containments": [
+                {
+                    "containment": {
+                        "language": "-default-key-FileSystem",
+                        "version": "2023.1",
+                        "key": "Folder-listing-key"
+                    },
+                    "children": []
+                }
+            ],
+            "references": [],
+            "parent": "ID-12"
+        },
+        {
+            "id": "ID-15",
+            "classifier": {
+                "language": "-default-key-FileSystem",
+                "version": "2023.1",
+                "key": "Folder-key"
+            },
+            "properties": [
+                {
+                    "property": {
+                        "language": "LionCore-builtins",
+                        "version": "2023.1",
+                        "key": "LionCore-builtins-INamed-name"
+                    },
+                    "value": "folder-2-b-iii"
+                }
+            ],
+            "containments": [
+                {
+                    "containment": {
+                        "language": "-default-key-FileSystem",
+                        "version": "2023.1",
+                        "key": "Folder-listing-key"
+                    },
+                    "children": []
+                }
+            ],
+            "references": [],
+            "parent": "ID-12"
+        },
+        {
+            "id": "ID-6",
+            "classifier": {
+                "language": "-default-key-FileSystem",
+                "version": "2023.1",
+                "key": "Folder-key"
+            },
+            "properties": [
+                {
+                    "property": {
+                        "language": "LionCore-builtins",
+                        "version": "2023.1",
+                        "key": "LionCore-builtins-INamed-name"
+                    },
+                    "value": "folder-3"
+                }
+            ],
+            "containments": [
+                {
+                    "containment": {
+                        "language": "-default-key-FileSystem",
+                        "version": "2023.1",
+                        "key": "Folder-listing-key"
+                    },
+                    "children": []
+                }
+            ],
+            "references": [],
+            "parent": "ID-3"
+        },
+        {
+            "id": "ID-7",
+            "classifier": {
+                "language": "-default-key-FileSystem",
+                "version": "2023.1",
+                "key": "Folder-key"
+            },
+            "properties": [
+                {
+                    "property": {
+                        "language": "LionCore-builtins",
+                        "version": "2023.1",
+                        "key": "LionCore-builtins-INamed-name"
+                    },
+                    "value": "folder-4"
+                }
+            ],
+            "containments": [
+                {
+                    "containment": {
+                        "language": "-default-key-FileSystem",
+                        "version": "2023.1",
+                        "key": "Folder-listing-key"
+                    },
+                    "children": []
+                }
+            ],
             "references": [],
             "parent": "ID-3"
         }
