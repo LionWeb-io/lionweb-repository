@@ -62,8 +62,28 @@ class LionWebQueries {
     }
 
     getNodesFromIdList = async (nodeIdList: string[]): Promise<LionWebJsonNode[]> => {
+        // this is necessary as otherwise the query would crash as it is not intended to be run
+        // on an empty set
+        if (nodeIdList.length == 0) {
+            return [];
+        }
         const nodes = await db.query(QueryNodeForIdList(nodeIdList))
         // console.log("LionWebQueries.getNodesFromIdList " + JSON.stringify(nodes, null, 2))
+        // It seems that where the node has no properties we get this:
+        // "properties": [{
+        //     "value": null,
+        //     "property": null
+        // }],
+        // We could catch this and correct it into:
+        // "properties": [],
+        nodes.forEach(node => {
+            if (node["properties"].length == 1) {
+                const prop = node["properties"][0];
+                if (prop["value"] == null && prop["property"] == null) {
+                    node["properties"] = [];
+                }
+            }
+        })
         return nodes
     }
 
