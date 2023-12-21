@@ -8,7 +8,7 @@ import {
     LionWebJsonChunkWrapper,
     NodeUtils,
     PropertyValueChanged,
-    isEqualMetaPointer
+    isEqualMetaPointer, ReferenceChange
 } from "@lionweb/validation"
 
 import { NodeAdded, ChildAdded, ChildRemoved, LionWebJsonDiff, ParentChanged } from "@lionweb/validation"
@@ -152,7 +152,7 @@ class LionWebQueries {
         const removedChildren = diff.diffResult.changes.filter((ch): ch is ChildRemoved => ch.id === "ChildRemoved")
         const parentChanged = diff.diffResult.changes.filter((ch): ch is ParentChanged => ch.id === "ParentChanged")
         const propertyChanged = diff.diffResult.changes.filter((ch): ch is PropertyValueChanged => ch.id === "PropertyValueChanged")
-        // const targetChanged = diff.diffResult.changes.filter((ch): ch is ReferenceChange => ch instanceof ReferenceChange)
+        const targetChanged = diff.diffResult.changes.filter((ch): ch is ReferenceChange => ch instanceof ReferenceChange)
 
         // Only children that already exist in the database
         const databaseChildrenOfNewNodes = this.getContainedIds(toBeStoredNewNodes.map(ch => ch.node))
@@ -283,6 +283,22 @@ class LionWebQueries {
                     SET value = '${propertyChange.newValue}'
                 WHERE
                     p.node_id = '${propertyChange.nodeId}';
+                `
+        })
+        return queries
+    }
+
+    private makeQueriesForReferenceChanges(referenceChanges: ReferenceChange[]) {
+        let queries = ""
+        referenceChanges.forEach(referenceChange => {
+            queries += `-- Reference has changed
+                UPDATE lionweb_references r 
+                    SET targets = '${referenceChange.targetId}'
+                WHERE
+                    r.node_id = '${referenceChange.node.id}' AND
+                    r.reference->>'key' = '${referenceChange.reference.key}' AND 
+                    r.reference->>'version' = '${referenceChange.reference.version}'  AND
+                    r.reference->>'language' = '${referenceChange.reference.language}' ;
                 `
         })
         return queries

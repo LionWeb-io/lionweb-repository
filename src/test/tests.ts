@@ -127,6 +127,21 @@ describe("Repository tests", () => {
         })
     })
 
+    describe("Add reference", () => {
+        it("test update full partition", async () => {
+            const jsonModel2 = t.readModel(
+                "./src/test/data/add-reference/Disk_add-reference-partition.json",
+            ) as LionWebJsonChunk
+            const diff = new LionWebJsonDiff()
+            diff.diffLwChunk(jsonModel, jsonModel2)
+            const result = (await t.testStore(jsonModel2)) as string[]
+            console.log("Result: \n" + result.join("\n"))
+
+            await testResult("./src/test/data/add-reference/Disk_add-reference-partition.json")
+        })
+    })
+    
+    
     async function testResult(originalJsonFile) {
         const jsonModelFull = t.readModel(originalJsonFile) as LionWebJsonChunk
         const afterRetrieve = (await t.testRetrieve(["ID-2"])) as LionWebJsonChunk
