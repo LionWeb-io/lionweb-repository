@@ -23,6 +23,13 @@ docker pull postgres:16.1
 # create a container and run it
 docker run -d --name lionwebrepodb -p 5432:5432 -e POSTGRES_PASSWORD=lionweb postgres:16.1
 ```
+## Status
+This repository is Work In Progress, currently:
+ - everything except annotations is stored for new nodes.
+ - Changes in children: adding, removing, moving are supported
+ - Changes of property values are supported
+ - Changes in references is not yet sup[ported
+ - Assumption is that empty references, properties and containments are in the JSON, the case where such is missing is not always handled correctly yet
 
 ##  Source code in ./src
 
