@@ -8,7 +8,7 @@ import {
     LionWebJsonChunkWrapper,
     NodeUtils,
     PropertyValueChanged,
-    isEqualMetaPointer, ReferenceChange, LionWebJsonReferenceTarget
+    isEqualMetaPointer, ReferenceChange, LionWebJsonReferenceTarget, TargetAdded, TargetRemoved
 } from "@lionweb/validation"
 
 import { NodeAdded, ChildAdded, ChildRemoved, LionWebJsonDiff, ParentChanged } from "@lionweb/validation"
@@ -290,15 +290,27 @@ class LionWebQueries {
 
     private makeQueriesForReferenceChanges(referenceChanges: ReferenceChange[]) {
         let queries = ""
-        referenceChanges.forEach(referenceChange => {
+        referenceChanges.filter(r => r instanceof TargetAdded).forEach(referenceChange => {
             queries += `-- Reference has changed
                 UPDATE lionweb_references r 
-                    SET targets = ${this.targetsAsPostgresArray(referenceChange.reference.targets)}
+                    SET targets = ${this.targetsAsPostgresArray(referenceChange.afterReference.targets)}
                 WHERE
                     r.node_id = '${referenceChange.node.id}' AND
-                    r.lw_reference->>'key' = '${referenceChange.reference.reference.key}' AND 
-                    r.lw_reference->>'version' = '${referenceChange.reference.reference.version}'  AND
-                    r.lw_reference->>'language' = '${referenceChange.reference.reference.language}' ;
+                    r.lw_reference->>'key' = '${referenceChange.afterReference.reference.key}' AND 
+                    r.lw_reference->>'version' = '${referenceChange.afterReference.reference.version}'  AND
+                    r.lw_reference->>'language' = '${referenceChange.afterReference.reference.language}' ;
+                `
+        })
+        referenceChanges.filter(r => r instanceof TargetRemoved).forEach(referenceChange => {
+            const targets = referenceChange.afterReference === null ? "ARRAY[]::jsonb[]" : this.targetsAsPostgresArray(referenceChange.beforeReference.targets)
+            queries += `-- Reference has changed
+                UPDATE lionweb_references r 
+                    SET targets = ${targets}
+                WHERE
+                    r.node_id = '${referenceChange.node.id}' AND
+                    r.lw_reference->>'key' = '${referenceChange.beforeReference.reference.key}' AND 
+                    r.lw_reference->>'version' = '${referenceChange.beforeReference.reference.version}'  AND
+                    r.lw_reference->>'language' = '${referenceChange.beforeReference.reference.language}' ;
                 `
         })
         return queries
