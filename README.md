@@ -5,7 +5,7 @@ Reference implementation of LionWeb repository
 The database used for storage of models is Postgres, 
 the easiest way to set up Postgres is through Docker.
 
-The Postgres version currently being used is: : postgres:16.1.
+The Postgres version currently being used is: postgres:16.1.
 The `.env` file contains the user/database/port names and numbers being used.
 
 ![picture of database schema](docs/database-schema.svg "Database Schema")
