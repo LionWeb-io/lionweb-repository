@@ -1,6 +1,9 @@
 import { LionWebJsonMetaPointer, LionWebJsonNode, LwJsonUsedLanguage } from "@lionweb/validation"
 
 export function collectUsedLanguages(nodes: LionWebJsonNode[]): LwJsonUsedLanguage[] {
+    if (nodes.length == 0) {
+        return []
+    }
     const languages: Map<string, Set<string>> = new Map<string, Set<string>>()
     nodes.forEach(node => {
         addLanguage(languages, node.classifier)
