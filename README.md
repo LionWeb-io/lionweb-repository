@@ -14,12 +14,23 @@ The `jsonb` types properties are LionWeb metapointers.
 
 We use `pgAdmin 4` to test queries and look directly into the database. 
 
+### How to start Postgres through docker
+
+```
+# download docker
+docker pull postgres:16.1
+
+# create a container and run it
+docker run -d --name lionwebrepodb -p 5432:5432 -e POSTGRES_PASSWORD=lionweb postgres:16.1
+```
+
 ##  Source code in ./src
 
 ### Tools
-Constain code to manipulate the postgres database (create, initialize)
+Contain code to manipulate the postgres database (create, initialize)
 
 ### 
 
 ## CI
-In Github actions a postgres server is started on a gost named `postres`.  In you local development environment this hostname is also being used. You need to ensure that this hostname points to the postgres server. 
+In GitHub actions a postgres server is started on a gost named `postres`.  In you local development environment this 
+hostname is also being used. You need to ensure that this hostname points to the postgres server. 
