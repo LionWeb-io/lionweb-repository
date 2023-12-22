@@ -432,8 +432,10 @@ class LionWebQueries {
             const insertRowData = tbsNodesToCreate.flatMap(node =>
                 node.containments.map(c => ({ node_id: node.id, containment: c.containment, children: c.children }))
             )
-            const insertContainments = pgp.helpers.insert(insertRowData, containmentsColumnSet)
-            await db.query(insertContainments)
+            if (insertRowData.length !== 0) {
+                const insertContainments = pgp.helpers.insert(insertRowData, containmentsColumnSet)
+                await db.query(insertContainments)
+            }
 
             // INSERT Properties
             const insertProperties = tbsNodesToCreate.flatMap(node =>
