@@ -39,6 +39,7 @@
                 }
             ],
             "references": [],
+            "annotations": [],
             "parent": null
         },
         {
@@ -69,6 +70,7 @@
                 }
             ],
             "references": [],
+            "annotations": [],
             "parent": "ID-2"
         },
         {
@@ -113,6 +115,7 @@
                     ]
                 }
             ],
+            "annotations": [],
             "parent": "ID-3"
         },
         {
@@ -143,6 +146,7 @@
                 }
             ],
             "references": [],
+            "annotations": [],
             "parent": "ID-4"
         },
         {
@@ -173,6 +177,7 @@
                 }
             ],
             "references": [],
+            "annotations": [],
             "parent": "ID-4"
         },
         {
@@ -203,6 +208,7 @@
                 }
             ],
             "references": [],
+            "annotations": [],
             "parent": "ID-4"
         },
         {
@@ -233,6 +239,7 @@
                 }
             ],
             "references": [],
+            "annotations": [],
             "parent": "ID-3"
         },
         {
@@ -263,6 +270,7 @@
                 }
             ],
             "references": [],
+            "annotations": [],
             "parent": "ID-5"
         },
         {
@@ -293,6 +301,7 @@
                 }
             ],
             "references": [],
+            "annotations": [],
             "parent": "ID-5"
         },
         {
@@ -323,6 +332,7 @@
                 }
             ],
             "references": [],
+            "annotations": [],
             "parent": "ID-12"
         },
         {
@@ -353,6 +363,7 @@
                 }
             ],
             "references": [],
+            "annotations": [],
             "parent": "ID-12"
         },
         {
@@ -383,6 +394,7 @@
                 }
             ],
             "references": [],
+            "annotations": [],
             "parent": "ID-12"
         },
         {
@@ -413,6 +425,7 @@
                 }
             ],
             "references": [],
+            "annotations": [],
             "parent": "ID-3"
         },
         {
@@ -443,7 +456,22 @@
                 }
             ],
             "references": [],
+            "annotations": ["ANN-1"],
             "parent": "ID-3"
+        },
+        {
+            "id": "ANN-1",
+            "classifier": {
+                "language": "-default-key-FileSystem",
+                "version": "2023.1",
+                "key": "Folder-key"
+            },
+            "properties": [],
+            "containments": [
+            ],
+            "references": [],
+            "annotations": [],
+            "parent": "ID-7"
         }
     ]
 }
