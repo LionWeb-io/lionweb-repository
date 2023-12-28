@@ -43,7 +43,7 @@ describe("Repository tests", () => {
             const diff = new LionWebJsonDiff()
             diff.diffLwChunk(jsonModel, jsonModel2)
             const result = (await t.testStore(jsonModel2)) as string[]
-            console.log("Result: \n" + result.join("\n"))
+            console.log("Result: \n" + result?.join("\n"))
 
             await testResult("./src/test/data/move-child/Disk_B-1.json")
         })
@@ -141,11 +141,37 @@ describe("Repository tests", () => {
 
             await testResult("./src/test/data/add-reference/Disk_add-reference-partition.json")
         })
+        it("test update single node", async () => {
+            const jsonModel2 = t.readModel(
+                "./src/test/data/add-reference/Disk_add-reference-single-node.json",
+            ) as LionWebJsonChunk
+            const diff = new LionWebJsonDiff()
+            diff.diffLwChunk(jsonModel, jsonModel2)
+            console.log("DIF " + diff.diffResult.asStringArray())
+
+            const result = (await t.testStore(jsonModel2)) as string[]
+            console.log("Result: \n" + result.join("\n"))
+
+            await testResult("./src/test/data/add-reference/Disk_add-reference-partition.json")
+        })
     })
     describe("Remove reference", () => {
         it("test update full partition", async () => {
             const jsonModel2 = t.readModel(
                 "./src/test/data/remove-reference/Disk-remove-reference-partition.json",
+            ) as LionWebJsonChunk
+            const diff = new LionWebJsonDiff()
+            diff.diffLwChunk(jsonModel, jsonModel2)
+            console.log("DIF " + diff.diffResult.asStringArray())
+
+            const result = (await t.testStore(jsonModel2)) as string[]
+            console.log("Result: \n" + result.join("\n"))
+
+            await testResult("./src/test/data/remove-reference/Disk-remove-reference-partition.json")
+        })
+        it("test update single node", async () => {
+            const jsonModel2 = t.readModel(
+                "./src/test/data/remove-reference/Disk-remove-reference-single-node.json",
             ) as LionWebJsonChunk
             const diff = new LionWebJsonDiff()
             diff.diffLwChunk(jsonModel, jsonModel2)
