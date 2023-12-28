@@ -91,22 +91,6 @@ class LionWebQueries {
             return [];
         }
         const nodes = await db.query(QueryNodeForIdList(nodeIdList))
-        // console.log("LionWebQueries.getNodesFromIdList " + JSON.stringify(nodes, null, 2))
-        // It seems that where the node has no properties we get this:
-        // "properties": [{
-        //     "value": null,
-        //     "property": null
-        // }],
-        // We could catch this and correct it into:
-        // "properties": [],
-        // nodes.forEach(node => {
-        //     if (node["properties"].length === 1) {
-        //         const prop = node["properties"][0];
-        //         if (prop["value"] === null && prop["property"] === null) {
-        //             node["properties"] = [];
-        //         }
-        //     }
-        // })
         return nodes
     }
 
@@ -133,6 +117,9 @@ class LionWebQueries {
      * @param toBeStoredNodes
      */
     store = async (toBeStoredChunk: LionWebJsonChunk) => {
+        if (toBeStoredChunk === null || toBeStoredChunk === undefined) {
+            return ["null chunk not stored"];
+        }
         const toBeStoredChunkWrapper = new LionWebJsonChunkWrapper(toBeStoredChunk)
         const tbsNodeIds = toBeStoredChunk.nodes.map(node => node.id)
         const tbsContainedChildIds = this.getContainedIds(toBeStoredChunk.nodes)
@@ -278,11 +265,18 @@ class LionWebQueries {
     private makeQueriesForPropertyChanges(propertyChanged: PropertyValueChanged[]) {
         let queries = ""
         propertyChanged.forEach(propertyChange => {
-            queries += `-- Implicit Update of parent of children that have been model
-                UPDATE lionweb_properties p 
-                    SET value = '${propertyChange.newValue}'
-                WHERE
-                    p.node_id = '${propertyChange.nodeId}';
+            // queries += `-- Implicit Update of parent of children that have been model
+            //     UPDATE lionweb_properties p 
+            //         SET value = '${propertyChange.newValue}'
+            //     WHERE
+            //         p.node_id = '${propertyChange.nodeId}';
+            //     `
+            // Using Upsert
+            queries += pgp.helpers.insert({node_id: propertyChange.nodeId, property: propertyChange.property, value: propertyChange.newValue}, PROPERTIES_COLUMNSET)
+            queries += `
+                ON CONFLICT (node_id, property)
+                DO UPDATE 
+                    SET value = '${propertyChange.newValue}';
                 `
         })
         return queries

@@ -101,6 +101,30 @@ describe("Repository tests", () => {
         })
     })
 
+    describe("Add new property ", () => {
+        it("test update full partition", async () => {
+            const jsonModel2 = t.readModel(
+                "./src/test/data/add-new-property-with-value/Disk-Property-add-property-partition.json",
+            ) as LionWebJsonChunk
+            const diff = new LionWebJsonDiff()
+            diff.diffLwChunk(jsonModel, jsonModel2)
+            const result = (await t.testStore(jsonModel2)) as string[]
+            console.log("Result: \n" + result.join("\n"))
+
+            await testResult("./src/test/data/add-new-property-with-value/Disk-Property-add-property-partition.json")
+        })
+        it("test update single node", async () => {
+            const jsonModel2 = t.readModel("./src/test/data/add-new-property-with-value/Disk-Property-add-property-single-node.json") as LionWebJsonChunk
+            const diff = new LionWebJsonDiff()
+            console.log("1 " + jsonModel + " 2 " + jsonModel2)
+            diff.diffLwChunk(jsonModel, jsonModel2)
+            const result = (await t.testStore(jsonModel2)) as string[]
+            console.log("Result: \n" + result.join("\n"))
+
+            await testResult("./src/test/data/add-new-property-with-value/Disk-Property-add-property-partition.json")
+        })
+    })
+
     describe("Remove node (4) from parent (3) and mode child (9) to (5)", () => {
         it("test update full partition", async () => {
             const jsonModel2 = t.readModel(

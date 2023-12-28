@@ -34,7 +34,7 @@ class LionWebBullApiImpl implements LionWebBulkApi {
     async store(req: Request, res: Response): Promise<void> {
         const chunk: LionWebJsonChunk = req.body
         const x = await LIONWEB_BULKAPI_WORKER.bulkStore(chunk)
-        console.log("SENDING " + x)
+        // console.log("SENDING " + x)
         res.send(x)
     }
 

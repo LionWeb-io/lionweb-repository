@@ -28,10 +28,11 @@ CREATE TABLE IF NOT EXISTS lionweb_containments (
 
 -- Creates properties table
 CREATE TABLE IF NOT EXISTS lionweb_properties (
-    p_id     SERIAL NOT NULL PRIMARY KEY,
+    p_id     SERIAL NOT NULL,
     property jsonb  NOT NULL,
     value    text,
-	node_id  text
+	node_id  text,
+	PRIMARY KEY(property, node_id)
 );
 
 -- Creates references table
