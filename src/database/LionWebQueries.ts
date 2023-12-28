@@ -23,7 +23,7 @@ const REFERENCES_TABLE: string = "lionweb_references"
 const PROPERTIES_TABLE: string = "lionweb_properties"
 
 // table definition for use with pg-promise helpers
-const nodesColumnSet = new pgp.helpers.ColumnSet(["id", "classifier_language", "classifier_version", "classifier_key", "parent"], {
+const nodesColumnSet = new pgp.helpers.ColumnSet(["id", "classifier_language", "classifier_version", "classifier_key", "annotations", "parent"], {
     table: NODES_TABLE
 })
 
@@ -99,14 +99,14 @@ class LionWebQueries {
         // }],
         // We could catch this and correct it into:
         // "properties": [],
-        nodes.forEach(node => {
-            if (node["properties"].length == 1) {
-                const prop = node["properties"][0];
-                if (prop["value"] == null && prop["property"] == null) {
-                    node["properties"] = [];
-                }
-            }
-        })
+        // nodes.forEach(node => {
+        //     if (node["properties"].length === 1) {
+        //         const prop = node["properties"][0];
+        //         if (prop["value"] === null && prop["property"] === null) {
+        //             node["properties"] = [];
+        //         }
+        //     }
+        // })
         return nodes
     }
 
@@ -440,6 +440,7 @@ class LionWebQueries {
                     classifier_language: node.classifier.language,
                     classifier_version: node.classifier.version,
                     classifier_key: node.classifier.key,
+                    annotations: node.annotations,
                     parent: node.parent
                 }
             })

@@ -1,10 +1,16 @@
 export function sqlArrayFromStringArray(strings: string[]): string {
     return `(${strings.map(id => `'${id}'`).join(", ")})`
 }
+
 export function postgresArrayFromStringArray(strings: string[]): string {
     return `{${strings.map(id => `"${id}"`).join(", ")}}`
 }
 
+/**
+ * Query to retrieve the full LionWeb nodes from the database. 
+ * @param nodeid string[] The node ids for which the full node needs to be retrieved.
+ * @constructor
+ */
 export const QueryNodeForIdList = (nodeid: string[]): string => {
     const sqlNodeCollection = sqlArrayFromStringArray(nodeid)
     const query = `
@@ -12,7 +18,17 @@ WITH
     node_properties AS ( 
         SELECT
             id ,
-            array_remove(array_agg(jsonb_build_object('property', prop.property, 'value', prop.value)), null) properties
+--            array_remove(array_agg(jsonb_build_object('property', prop.property, 'value', prop.value)), null) properties
+            array_remove(
+                array_agg(
+                    JSON_OBJECT(
+                        'property': prop.property,
+                        'value': prop.value ABSENT ON NULL
+                        RETURNING JSONB
+                    )
+                ),
+                '{}'
+            ) properties
         FROM lionweb_nodes n1 
         left join lionweb_properties prop  on prop.node_id  = n1.id 
         where n1.id IN ${sqlNodeCollection}
@@ -58,7 +74,8 @@ select
     lionweb_nodes.parent,
     array_to_json(prop.properties) properties,
     array_to_json(containments) containments,
-    array_to_json(rreferences) references
+    array_to_json(rreferences) references,
+    annotations annotations
 from lionweb_nodes
 left join node_properties prop on prop.id = lionweb_nodes.id
 left join node_containments con on con.id = lionweb_nodes.id
@@ -73,6 +90,8 @@ group by lionweb_nodes.id, prop.id, con.id, prop.properties, containments, rrefe
 
 /**
  * Query that will recursively get all child (ids) of all nodes in _nodeIdList_
+ * Note that annotations are also considered children for this method.
+ * This works ok because we use the _parent_ column to find the children, not the containment or annotation.
  * @param nodeidlist
  * @param depthLimit
  */
@@ -80,46 +99,18 @@ export const queryNodeTreeForIdList = (nodeidlist: string[], depthLimit: number)
     const sqlArray = sqlArrayFromStringArray(nodeidlist)
     const query = `
 WITH RECURSIVE tmp AS (
-    SELECT id, parent, 0 as depth -- , con.children
+    SELECT id, parent, 0 as depth
     FROM lionweb_nodes
-    LEFT JOIN (SELECT children, node_id FROM lionweb_containments) con ON con.node_id = id
+--  No need, using parent instead
+--  LEFT JOIN (SELECT children, node_id FROM lionweb_containments) con ON con.node_id = id
     WHERE id IN ${sqlArray}    
     UNION
-        SELECT nn.id, nn.parent, tmp.depth + 1 -- , con.children
+        SELECT nn.id, nn.parent, tmp.depth + 1
         FROM lionweb_nodes as nn
         INNER JOIN tmp ON tmp.id = nn.parent
         WHERE tmp.depth < ${depthLimit} -- AND nn.id NOT in ${"otherArray"}
 )
 SELECT * FROM tmp;
     `
-    // console.log("queryNodeTreeForIdList: " + query);
-    return query
-}
-
-/**
- * Query that will recursively get all child (ids) of all nodes in _nodeIdList_
- * Except for ids (recursively) that are in _ignoredIds_ 
- * @param nodeidlist
- * @param ignoredIds
- * @param depthLimit
- */
-export const queryNodeTreeForIdListPlus = (nodeidlist: string[], ignoredIds: string[], depthLimit: number): string => {
-    const sqlArray = sqlArrayFromStringArray(nodeidlist)
-    const sqlIgnoredArray = sqlArrayFromStringArray(ignoredIds)
-    const query = `
-WITH RECURSIVE tmp AS (
-    SELECT id, parent, 0 as depth -- , con.children
-    FROM lionweb_nodes
-    LEFT JOIN (SELECT children, node_id FROM lionweb_containments) con ON con.node_id = id
-    WHERE id IN ${sqlArray}    
-    UNION
-        SELECT nn.id, nn.parent, tmp.depth + 1 -- , con.children
-        FROM lionweb_nodes as nn
-        INNER JOIN tmp ON tmp.id = nn.parent
-        WHERE tmp.depth < ${depthLimit} ${ignoredIds.length !== 0 ? `nn.id NOT in ${sqlIgnoredArray}` : ""}
-)
-SELECT * FROM tmp;
-    `
-    // console.log("queryNodeTreeForIdList: " + query);
     return query
 }
