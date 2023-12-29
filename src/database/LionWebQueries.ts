@@ -134,11 +134,11 @@ class LionWebQueries {
         console.log("STORE.CHANGES ")
         console.log(diff.diffResult.changes.map(ch => "    " + ch.changeMsg()))
 
-        const toBeStoredNewNodes = diff.diffResult.changes.filter((ch): ch is NodeAdded => ch.id === "NodeAdded")
+        const toBeStoredNewNodes = diff.diffResult.changes.filter((ch): ch is NodeAdded => ch.changeType === "NodeAdded")
         const addedChildren: ChildAdded[] = diff.diffResult.changes.filter((ch): ch is ChildAdded => ch instanceof ChildAdded)
-        const removedChildren = diff.diffResult.changes.filter((ch): ch is ChildRemoved => ch.id === "ChildRemoved")
-        const parentChanged = diff.diffResult.changes.filter((ch): ch is ParentChanged => ch.id === "ParentChanged")
-        const propertyChanged = diff.diffResult.changes.filter((ch): ch is PropertyValueChanged => ch.id === "PropertyValueChanged")
+        const removedChildren = diff.diffResult.changes.filter((ch): ch is ChildRemoved => ch.changeType === "ChildRemoved")
+        const parentChanged = diff.diffResult.changes.filter((ch): ch is ParentChanged => ch.changeType === "ParentChanged")
+        const propertyChanged = diff.diffResult.changes.filter((ch): ch is PropertyValueChanged => ch.changeType === "PropertyValueChanged")
         const targetsChanged = diff.diffResult.changes.filter((ch): ch is ReferenceChange => ch instanceof ReferenceChange)
 
         // Only children that already exist in the database
@@ -164,20 +164,7 @@ class LionWebQueries {
                 databaseChildrenOfNewNodes.find(child => child.id === contained.id) === undefined
             )
         })
-
-        // Now add all children of the orphans to the removed children
-        // TODO recursively
-        // const implicitRemovedFromOrphan = this.removedChildrenFromRemovedNodes(
-        //     removedAndNotAddedChildren.map(ch => ch.parentNode),
-        //     toBeStoredChunkWrapper,
-        //     databaseNodesWrapper,
-        // )
-        // removedAndNotAddedChildren.push(
-        //     ...implicitRemovedFromOrphan.filter(removed => {
-        //         return addedChildren.find(added => added.childId === removed.childId) === undefined
-        //     }),
-        // )
-
+        
         // remove child: from old parent
         const addedAndNotRemovedChildren = addedChildren.filter(added => {
             return removedChildren.find(removed => removed.childId === added.childId) === undefined
@@ -186,10 +173,6 @@ class LionWebQueries {
         const addedAndNotParentChangedChildren = addedChildren.filter(added => {
             return parentChanged.find(parentChange => parentChange.node.id === added.childId) === undefined
         })
-        // Orphan if not added, otherwise parent of child needs upodating
-        // const removedAndNotParentChangedChildren = removedChildren.filter(removed => {
-        //     return parentChanged.find(parent => parent.node.id === removed.childId) === undefined
-        // })
 
         // implicit child remove, find all parents
         const implicitlyRemovedChildNodes = await LIONWEB_BULKAPI_WORKER.bulkRetrieve(
@@ -227,7 +210,7 @@ class LionWebQueries {
             return ""
         }
         const sqlIds = sqlArrayFromStringArray(orphanIds)
-        return `-- Implicit Orphan of parent of children that have been model
+        return `-- Remove orphans by moving them to the orphan tables
                 WITH orphan AS (
                     DELETE FROM lionweb_nodes n
                     WHERE n.id IN ${sqlIds}
