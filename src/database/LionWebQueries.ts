@@ -8,7 +8,11 @@ import {
     LionWebJsonChunkWrapper,
     NodeUtils,
     PropertyValueChanged,
-    isEqualMetaPointer, ReferenceChange, LionWebJsonReferenceTarget, TargetAdded, TargetRemoved
+    isEqualMetaPointer,
+    ReferenceChange,
+    LionWebJsonReferenceTarget,
+    TargetAdded,
+    TargetRemoved
 } from "@lionweb/validation"
 
 import { NodeAdded, ChildAdded, ChildRemoved, LionWebJsonDiff, ParentChanged } from "@lionweb/validation"
@@ -23,9 +27,12 @@ const REFERENCES_TABLE: string = "lionweb_references"
 const PROPERTIES_TABLE: string = "lionweb_properties"
 
 // table definition for use with pg-promise helpers
-const nodesColumnSet = new pgp.helpers.ColumnSet(["id", "classifier_language", "classifier_version", "classifier_key", "annotations", "parent"], {
-    table: NODES_TABLE
-})
+const nodesColumnSet = new pgp.helpers.ColumnSet(
+    ["id", "classifier_language", "classifier_version", "classifier_key", "annotations", "parent"],
+    {
+        table: NODES_TABLE
+    }
+)
 
 // table definition for use with pg-promise helpers
 const containmentsColumnSet = new pgp.helpers.ColumnSet(["containment", "children", "node_id"], { table: CONTAINMENTS_TABLE })
@@ -36,7 +43,7 @@ const PROPERTIES_COLUMNSET = new pgp.helpers.ColumnSet(["property", "value", "no
 // table definition for use with pg-promise helpers
 const REFERENCES_COLUMNSET = new pgp.helpers.ColumnSet(
     [
-        "lw_reference",
+        "reference",
         {
             name: "targets",
             cast: "jsonb[]"
@@ -88,7 +95,7 @@ class LionWebQueries {
         // this is necessary as otherwise the query would crash as it is not intended to be run
         // on an empty set
         if (nodeIdList.length == 0) {
-            return [];
+            return []
         }
         const nodes = await db.query(QueryNodeForIdList(nodeIdList))
         return nodes
@@ -118,7 +125,7 @@ class LionWebQueries {
      */
     store = async (toBeStoredChunk: LionWebJsonChunk) => {
         if (toBeStoredChunk === null || toBeStoredChunk === undefined) {
-            return ["null chunk not stored"];
+            return ["null chunk not stored"]
         }
         const toBeStoredChunkWrapper = new LionWebJsonChunkWrapper(toBeStoredChunk)
         const tbsNodeIds = toBeStoredChunk.nodes.map(node => node.id)
@@ -164,7 +171,7 @@ class LionWebQueries {
                 databaseChildrenOfNewNodes.find(child => child.id === contained.id) === undefined
             )
         })
-        
+
         // remove child: from old parent
         const addedAndNotRemovedChildren = addedChildren.filter(added => {
             return removedChildren.find(removed => removed.childId === added.childId) === undefined
@@ -248,14 +255,15 @@ class LionWebQueries {
     private makeQueriesForPropertyChanges(propertyChanged: PropertyValueChanged[]) {
         let queries = ""
         propertyChanged.forEach(propertyChange => {
-            // queries += `-- Implicit Update of parent of children that have been model
-            //     UPDATE lionweb_properties p 
-            //         SET value = '${propertyChange.newValue}'
-            //     WHERE
-            //         p.node_id = '${propertyChange.nodeId}';
-            //     `
-            // Using Upsert
-            queries += pgp.helpers.insert({node_id: propertyChange.nodeId, property: propertyChange.property, value: propertyChange.newValue}, PROPERTIES_COLUMNSET)
+            // Using Postgres Upsert
+            queries += pgp.helpers.insert(
+                {
+                    node_id: propertyChange.nodeId,
+                    property: propertyChange.property,
+                    value: propertyChange.newValue
+                },
+                PROPERTIES_COLUMNSET
+            )
             queries += `
                 ON CONFLICT (node_id, property)
                 DO UPDATE 
@@ -267,36 +275,72 @@ class LionWebQueries {
 
     private makeQueriesForReferenceChanges(referenceChanges: ReferenceChange[]) {
         let queries = ""
-        referenceChanges.filter(r => r instanceof TargetAdded).forEach(referenceChange => {
-            queries += `-- Reference has changed
-                UPDATE lionweb_references r 
+        referenceChanges
+            .filter(r => r instanceof TargetAdded)
+            .forEach(referenceChange => {
+                queries += pgp.helpers.insert({
+                        node_id: referenceChange.node.id,
+                        reference: referenceChange.afterReference.reference,
+                        targets: referenceChange.afterReference.targets
+                    },
+                    REFERENCES_COLUMNSET
+                    )
+                queries += `-- Update if not inserted
+                ON CONFLICT (node_id, reference)
+                DO UPDATE   
                     SET targets = ${this.targetsAsPostgresArray(referenceChange.afterReference.targets)}
-                WHERE
-                    r.node_id = '${referenceChange.node.id}' AND
-                    r.lw_reference->>'key' = '${referenceChange.afterReference.reference.key}' AND 
-                    r.lw_reference->>'version' = '${referenceChange.afterReference.reference.version}'  AND
-                    r.lw_reference->>'language' = '${referenceChange.afterReference.reference.language}' ;
                 `
-        })
-        referenceChanges.filter(r => r instanceof TargetRemoved).forEach(referenceChange => {
-            const targets = referenceChange.afterReference === null ? "ARRAY[]::jsonb[]" : this.targetsAsPostgresArray(referenceChange.beforeReference.targets)
-            queries += `-- Reference has changed
-                UPDATE lionweb_references r 
+                // queries += `-- Reference has changed
+                // UPDATE lionweb_references r 
+                //     SET targets = ${this.targetsAsPostgresArray(referenceChange.afterReference.targets)}
+                // WHERE
+                //     r.node_id = '${referenceChange.node.id}' AND
+                //     r.lw_reference->>'key' = '${referenceChange.afterReference.reference.key}' AND 
+                //     r.lw_reference->>'version' = '${referenceChange.afterReference.reference.version}'  AND
+                //     r.lw_reference->>'language' = '${referenceChange.afterReference.reference.language}' ;
+                // `
+            })
+        referenceChanges
+            .filter(r => r instanceof TargetRemoved)
+            .forEach(referenceChange => {
+                queries += pgp.helpers.insert({
+                        node_id: referenceChange.node.id,
+                        reference: referenceChange.beforeReference?.reference || referenceChange?.afterReference.reference,
+                        targets: referenceChange.afterReference?.targets || []
+                    },
+                    REFERENCES_COLUMNSET
+                )
+                const targets =
+                    referenceChange.afterReference === null
+                        ? "ARRAY[]::jsonb[]"
+                        : this.targetsAsPostgresArray(referenceChange.beforeReference.targets)
+                queries += `-- Update if not inserted
+                ON CONFLICT (node_id, reference)
+                DO UPDATE 
                     SET targets = ${targets}
-                WHERE
-                    r.node_id = '${referenceChange.node.id}' AND
-                    r.lw_reference->>'key' = '${referenceChange.beforeReference.reference.key}' AND 
-                    r.lw_reference->>'version' = '${referenceChange.beforeReference.reference.version}'  AND
-                    r.lw_reference->>'language' = '${referenceChange.beforeReference.reference.language}' ;
                 `
-        })
+
+                // const targets =
+                //     referenceChange.afterReference === null
+                //         ? "ARRAY[]::jsonb[]"
+                //         : this.targetsAsPostgresArray(referenceChange.beforeReference.targets)
+                // queries += `-- Reference has changed
+                // UPDATE lionweb_references r 
+                //     SET targets = ${targets}
+                // WHERE
+                //     r.node_id = '${referenceChange.node.id}' AND
+                //     r.lw_reference->>'key' = '${referenceChange.beforeReference.reference.key}' AND 
+                //     r.lw_reference->>'version' = '${referenceChange.beforeReference.reference.version}'  AND
+                //     r.lw_reference->>'language' = '${referenceChange.beforeReference.reference.language}' ;
+                // `
+            })
         return queries
     }
-    
+
     targetsAsPostgresArray(targets: LionWebJsonReferenceTarget[]): string {
         let result = "ARRAY["
-        result += targets.map((target => "'" + JSON.stringify(target) + "'::jsonb")).join(", ")    
-        return result + "]";
+        result += targets.map(target => "'" + JSON.stringify(target) + "'::jsonb").join(", ")
+        return result + "]"
     }
 
     private makeQueriesForImplicitlyRemovedChildNodes(
@@ -442,7 +486,7 @@ class LionWebQueries {
 
             // INSERT REFERENCES
             const insertReferences = tbsNodesToCreate.flatMap(node =>
-                node.references.map(reference => ({ node_id: node.id, lw_reference: reference.reference, targets: reference.targets }))
+                node.references.map(reference => ({ node_id: node.id, reference: reference.reference, targets: reference.targets }))
             )
             if (insertReferences.length !== 0) {
                 const insertReferencesQuery = pgp.helpers.insert(insertReferences, REFERENCES_COLUMNSET)

@@ -39,10 +39,10 @@ CREATE TABLE IF NOT EXISTS lionweb_properties (
 -- Creates references table
 CREATE TABLE IF NOT EXISTS lionweb_references (
     r_id         SERIAL  NOT NULL, 
-    lw_reference jsonb   NOT NULL,
+    reference    jsonb   NOT NULL,
     targets      jsonb[],
     node_id      text,
-    PRIMARY KEY(lw_reference, node_id)
+    PRIMARY KEY(reference, node_id)
 );
 
 CREATE TABLE IF NOT EXISTS lionweb_nodes_orphans (
@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS lionweb_properties_orphans   (
 );
 CREATE TABLE IF NOT EXISTS lionweb_references_orphans   (
     r_id         integer, 
-    lw_reference jsonb     NOT NULL,
+    reference jsonb     NOT NULL,
     targets      jsonb[],
     node_id      text
 );

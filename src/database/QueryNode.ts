@@ -54,8 +54,8 @@ WITH
             n1.id ,
             array_remove(array_agg(
                 CASE 
-                    WHEN rref.lw_reference IS NOT NULL THEN
-                        jsonb_build_object('reference', rref.lw_reference, 'targets', rref.targets)
+                    WHEN rref.reference IS NOT NULL THEN
+                        jsonb_build_object('reference', rref.reference, 'targets', rref.targets)
                     WHEN TRUE THEN
                         null
                 END), null)        rreferences

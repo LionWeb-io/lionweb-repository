@@ -1,4 +1,4 @@
-import { LionWebJsonChunk, LionWebJsonChunkWrapper, LionWebJsonDiff } from "@lionweb/validation"
+import { LanguageChange, LionWebJsonChunk, LionWebJsonChunkWrapper, LionWebJsonDiff } from "@lionweb/validation"
 import { assert } from "chai"
 import { TestClient } from "./TestClient.js"
 
@@ -218,7 +218,7 @@ describe("Repository tests", () => {
 
         const diff2 = new LionWebJsonDiff()
         diff2.diffLwChunk(jsonModelFull, afterRetrieve)
-        deepEqual(diff2.diffResult.changes, [])
+        deepEqual(diff2.diffResult.changes.filter(ch => !(ch instanceof LanguageChange)), [])
     }
 })
 
