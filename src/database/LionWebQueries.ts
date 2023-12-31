@@ -12,7 +12,7 @@ import {
     ReferenceChange,
     LionWebJsonReferenceTarget,
     TargetAdded,
-    TargetRemoved
+    TargetRemoved, AnnotationAdded, AnnotationChange, AnnotationRemoved
 } from "@lionweb/validation"
 
 import { NodeAdded, ChildAdded, ChildRemoved, LionWebJsonDiff, ParentChanged } from "@lionweb/validation"
@@ -130,7 +130,6 @@ class LionWebQueries {
         const toBeStoredChunkWrapper = new LionWebJsonChunkWrapper(toBeStoredChunk)
         const tbsNodeIds = toBeStoredChunk.nodes.map(node => node.id)
         const tbsContainedChildIds = this.getContainedIds(toBeStoredChunk.nodes)
-        // TODO do the same for annotations
         const tbsNodeAndChildIds = [...tbsNodeIds, ...tbsContainedChildIds.filter(cid => !tbsNodeIds.includes(cid))]
         // Retrieve nodes for all id's that exist
         const databaseChunk = await LIONWEB_BULKAPI_WORKER.bulkRetrieve(tbsNodeAndChildIds, "", 0)
@@ -147,6 +146,8 @@ class LionWebQueries {
         const parentChanged = diff.diffResult.changes.filter((ch): ch is ParentChanged => ch.changeType === "ParentChanged")
         const propertyChanged = diff.diffResult.changes.filter((ch): ch is PropertyValueChanged => ch.changeType === "PropertyValueChanged")
         const targetsChanged = diff.diffResult.changes.filter((ch): ch is ReferenceChange => ch instanceof ReferenceChange)
+        const addedAnnotations = diff.diffResult.changes.filter((ch): ch is AnnotationAdded => ch instanceof AnnotationAdded)
+        const removedAnnotations = diff.diffResult.changes.filter((ch): ch is AnnotationRemoved => ch instanceof AnnotationRemoved)
 
         // Only children that already exist in the database
         const databaseChildrenOfNewNodes = this.getContainedIds(toBeStoredNewNodes.map(ch => ch.node))
@@ -160,7 +161,14 @@ class LionWebQueries {
                 databaseChildrenOfNewNodes.find(child => child.id === removed.childId) === undefined
             )
         })
-        // Now get all cnhbildren of the orphans
+        // Orpjaned annotations
+        const removedAndNotAddedAnnotations = removedAnnotations.filter(removed => {
+            return (
+                addedAnnotations.find(added => added.annotationId === removed.annotationId) === undefined &&
+                databaseChildrenOfNewNodes.find(child => child.id === removed.annotationId) === undefined
+            )
+        })
+        // Now get all children of the orphans
         const orphansContainedChildren = await this.getNodeTree(
             removedAndNotAddedChildren.map(rm => rm.childId),
             999
@@ -202,7 +210,9 @@ class LionWebQueries {
         queries += this.makeQueriesForImplicitParentChanged(addedAndNotParentChangedChildren)
         // queries += this.makeQueriesForOrphans(removedAndNotAddedChildren.map(ra => ra.childId))
         queries += this.makeQueriesForOrphans(orphansContainedChildrenOrphans.map(oc => oc.id))
+        queries += this.makeQueriesForOrphans(removedAndNotAddedAnnotations.map(oc => oc.annotationId))
         queries += this.makeQueriesForReferenceChanges(targetsChanged)
+        queries += this.makeQueriesForAnnotationsChanged([...addedAnnotations, ...removedAnnotations])
         // And run them on the database
         if (queries !== "") {
             console.log("QUERIES " + queries)
@@ -392,6 +402,25 @@ class LionWebQueries {
                 `
     }
 
+    private makeQueriesForAnnotationsChanged(annotationChanges: AnnotationChange[]) {
+        let queries = ""
+        annotationChanges.filter((ch): ch is AnnotationRemoved => ch instanceof AnnotationRemoved).forEach(annotationChange => {
+            queries += this.makeUpdateAnnotationsQuery(annotationChange.nodeBefore.id, annotationChange.nodeAfter.annotations)
+        })
+        return queries
+    }
+
+    private makeUpdateAnnotationsQuery(nodeId: string, annotations: string[]): string {
+        return `-- Update of annotations that have been moved
+                UPDATE lionweb_nodes n 
+                    SET annotations = '${postgresArrayFromStringArray(annotations)}'
+                WHERE
+                    n.id = '${nodeId}';
+                `
+    }
+
+
+
     private makeQueriesForRemovedChildren(removedChildren: ChildRemoved[], toBeStoredChunkWrapper: LionWebJsonChunkWrapper) {
         let queries = ""
         removedChildren.forEach(removed => {
@@ -442,6 +471,8 @@ class LionWebQueries {
             node.containments.flatMap(c => {
                 return c.children
             })
+        ).concat(
+            nodes.flatMap(node => node.annotations)
         )
     }
 
