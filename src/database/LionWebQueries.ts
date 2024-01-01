@@ -451,15 +451,28 @@ class LionWebQueries {
                 console.error("Undefined node for id " + added.parentNode.id)
             }
             const afterContainment = afterNode.containments.find(cont => isEqualMetaPointer(cont.containment, added.containment))
-            queries += `-- Update nodes that have children added
-                UPDATE lionweb_containments c 
-                    SET children = '${postgresArrayFromStringArray(afterContainment.children)}'
-                WHERE
-                    c.node_id = '${afterNode.id}' AND
-                    c.containment->>'key' = '${afterContainment.containment.key}' AND 
-                    c.containment->>'version' = '${afterContainment.containment.version}'  AND
-                    c.containment->>'language' = '${afterContainment.containment.language}' ;
+            const children = postgresArrayFromStringArray(afterContainment.children)
+            // queries += `-- Update nodes that have children added
+            //     UPDATE lionweb_containments c 
+            //         SET children = '${children}'
+            //     WHERE
+            //         c.node_id = '${afterNode.id}' AND
+            //         c.containment->>'key' = '${afterContainment.containment.key}' AND 
+            //         c.containment->>'version' = '${afterContainment.containment.version}'  AND
+            //         c.containment->>'language' = '${afterContainment.containment.language}' ;
+            //     `
+            // INSERT Containments
+            const insertRowData = [{ node_id: afterNode.id, containment: afterContainment.containment, children: afterContainment.children }]
+            if (insertRowData.length > 0) {
+                const insertContainments = pgp.helpers.insert(insertRowData, containmentsColumnSet)
+                queries += insertContainments
+                queries += `\n-- Up date if not inserted
+                ON CONFLICT (node_id, containment)
+                DO UPDATE 
+                    SET children = '${children}';
                 `
+            }
+
         })
         return queries
     }
@@ -485,6 +498,7 @@ class LionWebQueries {
      * @param tbsNodesToCreate
      */
     private async dbInsertNodeArray(tbsNodesToCreate: LionWebJsonNode[]) {
+        console.log("Queries insertnew nodes " + tbsNodesToCreate.map(n => n.id))
         {
             if (tbsNodesToCreate.length === 0) {
                 return

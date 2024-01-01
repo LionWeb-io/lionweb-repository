@@ -265,6 +265,35 @@ describe("Repository tests", () => {
             await testResult("./src/test/data/add-new-annotation/Disk-add-new-annotation-partition.json")
         })
     })
+    describe("Add new node", () => {
+        // TODO ANN-1 is still in the repo !!!
+        it("test update full partition", async () => {
+            const jsonModel2 = t.readModel(
+                "./src/test/data/add-new-nodes/Disk-add-new-nodes-partition.json",
+            ) as LionWebJsonChunk
+            const diff = new LionWebJsonDiff()
+            diff.diffLwChunk(jsonModel, jsonModel2)
+            console.log("DIF " + diff.diffResult.asStringArray())
+
+            const result = (await t.testStore(jsonModel2)) as string[]
+            console.log("Result: \n" + result.join("\n"))
+
+            await testResult("./src/test/data/add-new-nodes/Disk-add-new-nodes-partition.json")
+        })
+        it("test update single node", async () => {
+            const jsonModel2 = t.readModel(
+                "./src/test/data/add-new-nodes/Disk-add-new-nodes-single-node.json",
+            ) as LionWebJsonChunk
+            const diff = new LionWebJsonDiff()
+            diff.diffLwChunk(jsonModel, jsonModel2)
+            console.log("DIF " + diff.diffResult.asStringArray())
+
+            const result = (await t.testStore(jsonModel2)) as string[]
+            console.log("Result: \n" + result.join("\n"))
+
+            await testResult("./src/test/data/add-new-nodes/Disk-add-new-nodes-partition.json")
+        })
+    })
 
     async function testResult(originalJsonFile) {
         const jsonModelFull = t.readModel(originalJsonFile) as LionWebJsonChunk
