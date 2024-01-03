@@ -11,7 +11,7 @@ import {
     TargetAdded,
     TargetRemoved
 } from "@lionweb/validation"
-import { db } from "./DbConnection.js"
+import { dbConnection } from "./DbConnection.js"
 import { postgresArrayFromStringArray, sqlArrayFromStringArray } from "./QueryNode.js"
 import { CONTAINMENTS_COLUMNSET, NODES_COLUMNSET, NODES_TABLE, pgp, PROPERTIES_COLUMNSET, REFERENCES_COLUMNSET } from "./TableDefinitions.js"
 
@@ -280,7 +280,7 @@ export class Db {
                 }
             })
             const insert = pgp.helpers.insert(node_rows, NODES_COLUMNSET)
-            await db.query(insert)
+            await dbConnection.query(insert)
 
             await this.insertContainments(tbsNodesToCreate)
 
@@ -290,7 +290,7 @@ export class Db {
             )
             if (insertProperties.length !== 0) {
                 const insertQuery = pgp.helpers.insert(insertProperties, PROPERTIES_COLUMNSET)
-                await db.query(insertQuery)
+                await dbConnection.query(insertQuery)
             }
 
             // INSERT REFERENCES
@@ -299,7 +299,7 @@ export class Db {
             )
             if (insertReferences.length !== 0) {
                 const insertReferencesQuery = pgp.helpers.insert(insertReferences, REFERENCES_COLUMNSET)
-                await db.query(insertReferencesQuery)
+                await dbConnection.query(insertReferencesQuery)
             }
         }
     }
@@ -311,7 +311,7 @@ export class Db {
         )
         if (insertRowData.length > 0) {
             const insertContainments = pgp.helpers.insert(insertRowData, CONTAINMENTS_COLUMNSET)
-            await db.query(insertContainments)
+            await dbConnection.query(insertContainments)
         }
     }
 }

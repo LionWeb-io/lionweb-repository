@@ -1,4 +1,4 @@
-import { db } from "./DbConnection.js"
+import { dbConnection } from "./DbConnection.js"
 import { LIONWEB_QUERIES } from "./LionWebQueries.js"
 
 /**
@@ -11,7 +11,7 @@ class AdditionalApiWorker {
     }
 
     async init(sql: string) {
-        return await db.query(sql)
+        return await dbConnection.query(sql)
     }
 }
 

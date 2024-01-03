@@ -10,7 +10,7 @@ import {
 
 import { NodeAdded, ChildAdded, ChildRemoved, LionWebJsonDiff, ParentChanged } from "@lionweb/validation"
 import { DB } from "./Db.js";
-import { db } from "./DbConnection.js"
+import { dbConnection } from "./DbConnection.js"
 import { LIONWEB_BULKAPI_WORKER } from "./LionWebBulkApiWorker.js"
 import { queryNodeTreeForIdList, QueryNodeForIdList, postgresArrayFromStringArray } from "./QueryNode.js"
 import { collectUsedLanguages } from "./UsedLanguages.js"
@@ -38,7 +38,7 @@ class LionWebQueries {
             return []
         }
         // TODO Currently only gives the node id's, should give full node.
-        const result = await db.query(queryNodeTreeForIdList(nodeIdList, depthLimit))
+        const result = await dbConnection.query(queryNodeTreeForIdList(nodeIdList, depthLimit))
         // console.log("getNodeTree RESULT is " + JSON.stringify(result))
         return result
     }
@@ -48,7 +48,7 @@ class LionWebQueries {
      */
     getAllDbNodes = async (): Promise<LionWebJsonNode[]> => {
         console.log("LionWebQueries.getAllDbNodes")
-        const queryResult = (await db.query("SELECT id FROM lionweb_nodes")) as string[]
+        const queryResult = (await dbConnection.query("SELECT id FROM lionweb_nodes")) as string[]
         return this.getNodesFromIdList(queryResult)
     }
 
@@ -59,7 +59,7 @@ class LionWebQueries {
         if (nodeIdList.length == 0) {
             return []
         }
-        const nodes = await db.query(QueryNodeForIdList(nodeIdList))
+        const nodes = await dbConnection.query(QueryNodeForIdList(nodeIdList))
         return nodes
     }
 
@@ -69,7 +69,7 @@ class LionWebQueries {
     getPartitions = async (): Promise<LionWebJsonChunk> => {
         console.log("LionWebQueries.getPartitions")
         // TODO Optimization?: The following WHERE can also directly be includes in the getNodesFromIdList
-        const result = (await db.query("SELECT id FROM lionweb_nodes WHERE parent is null")) as { id: string }[]
+        const result = (await dbConnection.query("SELECT id FROM lionweb_nodes WHERE parent is null")) as { id: string }[]
         console.log("LionWebQueries.getPartitions.Result: " + JSON.stringify(result))
         const nodes = await this.getNodesFromIdList(result.map(n => n.id))
         return {
@@ -178,7 +178,7 @@ class LionWebQueries {
         // And run them on the database
         if (queries !== "") {
             console.log("QUERIES " + queries)
-            await db.query(queries)
+            await dbConnection.query(queries)
         }
         await DB.dbInsertNodeArray(toBeStoredNewNodes.map(ch => (ch as NodeAdded).node))
         return [queries]
