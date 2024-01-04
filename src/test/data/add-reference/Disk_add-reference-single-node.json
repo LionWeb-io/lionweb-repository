@@ -47,16 +47,17 @@
                     },
                     "targets": [
                         {
-                            "resolveinfo": null,
+                            "resolveInfo": null,
                             "reference": "ID-10"
                         },
                         {
-                            "resolveinfo": null,
+                            "resolveInfo": null,
                             "reference": "ID-3"
                         }
                     ]
                 }
             ],
+            "annotations": [],
             "parent": "ID-3"
         }
     ]

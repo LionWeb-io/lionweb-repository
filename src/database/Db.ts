@@ -281,7 +281,6 @@ export class Db {
             })
             const insert = pgp.helpers.insert(node_rows, NODES_COLUMNSET)
             await dbConnection.query(insert)
-
             await this.insertContainments(tbsNodesToCreate)
 
             // INSERT Properties
@@ -313,6 +312,11 @@ export class Db {
             const insertContainments = pgp.helpers.insert(insertRowData, CONTAINMENTS_COLUMNSET)
             await dbConnection.query(insertContainments)
         }
+    }
+
+    public async selectNodesIdsWithoutParent(): Promise<{ id:string }[]> {
+        const result = (await dbConnection.query("SELECT id FROM lionweb_nodes WHERE parent is null")) as { id: string }[]
+        return result
     }
 }
 

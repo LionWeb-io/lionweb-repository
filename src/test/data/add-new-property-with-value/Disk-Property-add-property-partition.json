@@ -117,7 +117,7 @@
                     },
                     "targets": [
                         {
-                            "resolveinfo": null,
+                            "resolveInfo": null,
                             "reference": "ID-10"
                         }
                     ]

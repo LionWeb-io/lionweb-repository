@@ -69,7 +69,7 @@ class LionWebQueries {
     getPartitions = async (): Promise<LionWebJsonChunk> => {
         console.log("LionWebQueries.getPartitions")
         // TODO Optimization?: The following WHERE can also directly be includes in the getNodesFromIdList
-        const result = (await dbConnection.query("SELECT id FROM lionweb_nodes WHERE parent is null")) as { id: string }[]
+        const result = await DB.selectNodesIdsWithoutParent()
         console.log("LionWebQueries.getPartitions.Result: " + JSON.stringify(result))
         const nodes = await this.getNodesFromIdList(result.map(n => n.id))
         return {
