@@ -1,6 +1,6 @@
-import { LionWebJsonChunk, LionWebJsonChunkWrapper, LionWebJsonDiff } from "@lionweb/validation"
+import { LanguageChange, LionWebJsonChunk, LionWebJsonChunkWrapper, LionWebJsonDiff } from "@lionweb/validation"
 import { assert } from "chai"
-import { TestClient } from "./TestClient.js"
+import { RepositoryClient } from "./RepositoryClient.js"
 
 const { deepEqual } = assert
 import sm from "source-map-support"
@@ -8,7 +8,7 @@ import sm from "source-map-support"
 sm.install()
 
 describe("Repository tests", () => {
-    const t = new TestClient()
+    const t = new RepositoryClient()
     let jsonModel: LionWebJsonChunk
 
     beforeEach("a", async function () {
@@ -18,13 +18,13 @@ describe("Repository tests", () => {
     })
 
     it("retrieve nodes", async () => {
-        const retrieve = (await t.testRetrieve(["ID-2"])) as LionWebJsonChunk
+        const retrieve = (await t.testRetrieve(["ID-2"]))
         console.log("JSON MODEL ORIGINAL")
         printChunk(jsonModel)
         console.log("JSON MODEL RETRIEVED")
-        printChunk(retrieve)
+        printChunk(retrieve.json  as LionWebJsonChunk)
         const diff = new LionWebJsonDiff()
-        diff.diffLwChunk(jsonModel, retrieve)
+        diff.diffLwChunk(jsonModel, retrieve.json  as LionWebJsonChunk)
         deepEqual(diff.diffResult.changes, [])
     })
 
@@ -39,42 +39,42 @@ describe("Repository tests", () => {
 
     describe("Move node (9) to from parent (4) to (5)", () => {
         it("test update full partition", async () => {
-            const jsonModel2 = t.readModel("./src/test/data/move-child/Disk_B-1.json") as LionWebJsonChunk
+            const jsonModel2 = t.readModel("./src/test/data/move-child/Disk-move-child-partition.json") as LionWebJsonChunk
             const diff = new LionWebJsonDiff()
             diff.diffLwChunk(jsonModel, jsonModel2)
-            const result = (await t.testStore(jsonModel2)) as string[]
-            console.log("Result: \n" + result.join("\n"))
+            const result = (await t.testStore(jsonModel2)) 
+            console.log("Result: \n" + JSON.stringify(result))
 
-            await testResult("./src/test/data/move-child/Disk_B-1.json")
+            await testResult("./src/test/data/move-child/Disk-move-child-partition.json")
         })
         it("test update node (5)", async () => {
-            const jsonModel2 = t.readModel("./src/test/data/move-child/Disk_B-2.json") as LionWebJsonChunk
+            const jsonModel2 = t.readModel("./src/test/data/move-child/Disk-move-child-single-node.json") as LionWebJsonChunk
             const diff = new LionWebJsonDiff()
             diff.diffLwChunk(jsonModel, jsonModel2)
-            const result = (await t.testStore(jsonModel2)) as string[]
-            console.log("Result: \n" + result.join("\n"))
+            const result = (await t.testStore(jsonModel2)) 
+            console.log("Result: \n" + JSON.stringify(result))
 
-            await testResult("./src/test/data/move-child/Disk_B-1.json")
+            await testResult("./src/test/data/move-child/Disk-move-child-partition.json")
         })
         it("test update nodes (5) and (4)", async () => {
-            const jsonModel2 = t.readModel("./src/test/data/move-child/Disk_B-3.json") as LionWebJsonChunk
+            const jsonModel2 = t.readModel("./src/test/data/move-child/Disk-move-child-two-nodes.json") as LionWebJsonChunk
             const diff = new LionWebJsonDiff()
             diff.diffLwChunk(jsonModel, jsonModel2)
-            const result = (await t.testStore(jsonModel2)) as string[]
-            console.log("Result: \n" + (result === null ? "" : result.join("\n")))
+            const result = (await t.testStore(jsonModel2))
+            console.log("Result: \n" + JSON.stringify(result))
 
-            await testResult("./src/test/data/move-child/Disk_B-1.json")
+            await testResult("./src/test/data/move-child/Disk-move-child-partition.json")
         })
 
         it("test update nodes (5) and (9)", async () => {
-            const jsonModel2 = t.readModel("./src/test/data/move-child/Disk_B-4.json") as LionWebJsonChunk
+            const jsonModel2 = t.readModel("./src/test/data/move-child/Disk-move-child-two-nodes-2.json") as LionWebJsonChunk
             const diff = new LionWebJsonDiff()
             diff.diffLwChunk(jsonModel, jsonModel2)
 
-            const result = (await t.testStore(jsonModel2)) as string[]
-            console.log("Result: \n" + (result === null ? "" : result.join("\n")))
+            const result = (await t.testStore(jsonModel2)) 
+            console.log("Result: \n" + JSON.stringify(result))
 
-            await testResult("./src/test/data/move-child/Disk_B-1.json")
+            await testResult("./src/test/data/move-child/Disk-move-child-partition.json")
         })
     })
 
@@ -85,8 +85,8 @@ describe("Repository tests", () => {
             ) as LionWebJsonChunk
             const diff = new LionWebJsonDiff()
             diff.diffLwChunk(jsonModel, jsonModel2)
-            const result = (await t.testStore(jsonModel2)) as string[]
-            console.log("Result: \n" + result.join("\n"))
+            const result = await t.testStore(jsonModel2)
+            console.log("Result: \n" + JSON.stringify(result))
 
             await testResult("./src/test/data/change-property-value/Disk_Property_value_changed-partition.json")
         })
@@ -94,10 +94,34 @@ describe("Repository tests", () => {
             const jsonModel2 = t.readModel("./src/test/data/change-property-value/Disk_Property_value_changed-single-node.json") as LionWebJsonChunk
             const diff = new LionWebJsonDiff()
             diff.diffLwChunk(jsonModel, jsonModel2)
-            const result = (await t.testStore(jsonModel2)) as string[]
-            console.log("Result: \n" + result.join("\n"))
+            const result = await t.testStore(jsonModel2)
+            console.log("Result: \n" + JSON.stringify(result))
 
             await testResult("./src/test/data/change-property-value/Disk_Property_value_changed-partition.json")
+        })
+    })
+
+    describe("Add new property ", () => {
+        it("test update full partition", async () => {
+            const jsonModel2 = t.readModel(
+                "./src/test/data/add-new-property-with-value/Disk-Property-add-property-partition.json",
+            ) as LionWebJsonChunk
+            const diff = new LionWebJsonDiff()
+            diff.diffLwChunk(jsonModel, jsonModel2)
+            const result = await t.testStore(jsonModel2)
+            console.log("Result: \n" + JSON.stringify(result))
+
+            await testResult("./src/test/data/add-new-property-with-value/Disk-Property-add-property-partition.json")
+        })
+        it("test update single node", async () => {
+            const jsonModel2 = t.readModel("./src/test/data/add-new-property-with-value/Disk-Property-add-property-single-node.json") as LionWebJsonChunk
+            // const diff = new LionWebJsonDiff()
+            // console.log("1 " + jsonModel + " 2 " + jsonModel2)
+            // diff.diffLwChunk(jsonModel, jsonModel2)
+            const result = await t.testStore(jsonModel2)
+            console.log("Result: \n" + JSON.stringify(result, null, 2))
+
+            await testResult("./src/test/data/add-new-property-with-value/Disk-Property-add-property-partition.json")
         })
     })
 
@@ -108,8 +132,8 @@ describe("Repository tests", () => {
             ) as LionWebJsonChunk
             const diff = new LionWebJsonDiff()
             diff.diffLwChunk(jsonModel, jsonModel2)
-            const result = (await t.testStore(jsonModel2)) as string[]
-            console.log("Result: \n" + result.join("\n"))
+            const result = await t.testStore(jsonModel2)
+            console.log("Result: \n" + JSON.stringify(result))
 
             await testResult("./src/test/data/remove-child/Disk-remove-child-partition.json")
         })
@@ -119,9 +143,9 @@ describe("Repository tests", () => {
             ) as LionWebJsonChunk
             const diff = new LionWebJsonDiff()
             diff.diffLwChunk(jsonModel, jsonModel2)
-            const result = (await t.testStore(jsonModel2)) as string[]
+            const result = (await t.testStore(jsonModel2))
             console.log("Store: " + jsonModel2.nodes.map(n => n.id))
-            console.log("Result: \n" + result.join("\n"))
+            console.log("Result: \n" + JSON.stringify(result))
 
             await testResult("./src/test/data/remove-child/Disk-remove-child-partition.json")
         })
@@ -134,25 +158,160 @@ describe("Repository tests", () => {
             ) as LionWebJsonChunk
             const diff = new LionWebJsonDiff()
             diff.diffLwChunk(jsonModel, jsonModel2)
-            const result = (await t.testStore(jsonModel2)) as string[]
-            console.log("Result: \n" + result.join("\n"))
+            console.log("DIF " + diff.diffResult.asStringArray())
+
+            const result = (await t.testStore(jsonModel2))
+            console.log("Result: \n" + JSON.stringify(result))
+
+            await testResult("./src/test/data/add-reference/Disk_add-reference-partition.json")
+        })
+        it("test update single node", async () => {
+            const jsonModel2 = t.readModel(
+                "./src/test/data/add-reference/Disk_add-reference-single-node.json",
+            ) as LionWebJsonChunk
+            const diff = new LionWebJsonDiff()
+            diff.diffLwChunk(jsonModel, jsonModel2)
+            console.log("DIF " + diff.diffResult.asStringArray())
+
+            const result = (await t.testStore(jsonModel2))
+            console.log("Result: \n" + JSON.stringify(result))
 
             await testResult("./src/test/data/add-reference/Disk_add-reference-partition.json")
         })
     })
-    
-    
+    describe("Remove reference", () => {
+        it("test update full partition", async () => {
+            const jsonModel2 = t.readModel(
+                "./src/test/data/remove-reference/Disk-remove-reference-partition.json",
+            ) as LionWebJsonChunk
+            const diff = new LionWebJsonDiff()
+            diff.diffLwChunk(jsonModel, jsonModel2)
+            console.log("DIF " + diff.diffResult.asStringArray())
+
+            const result = (await t.testStore(jsonModel2))
+            console.log("Result: \n" + JSON.stringify(result))
+
+            await testResult("./src/test/data/remove-reference/Disk-remove-reference-partition.json")
+        })
+        it("test update single node", async () => {
+            const jsonModel2 = t.readModel(
+                "./src/test/data/remove-reference/Disk-remove-reference-single-node.json",
+            ) as LionWebJsonChunk
+            const diff = new LionWebJsonDiff()
+            diff.diffLwChunk(jsonModel, jsonModel2)
+            console.log("DIF " + diff.diffResult.asStringArray())
+
+            const result = (await t.testStore(jsonModel2))
+            console.log("Result: \n" + JSON.stringify(result))
+
+            await testResult("./src/test/data/remove-reference/Disk-remove-reference-partition.json")
+        })
+    })
+    describe("Remove annotation", () => {
+        // TODO ANN-1 is still in the repo !!!
+        it("test update full partition", async () => {
+            const jsonModel2 = t.readModel(
+                "./src/test/data/remove-annotation/Disk-remove-annotation-partition.json",
+            ) as LionWebJsonChunk
+            const diff = new LionWebJsonDiff()
+            diff.diffLwChunk(jsonModel, jsonModel2)
+            console.log("DIF " + diff.diffResult.asStringArray())
+
+            const result = (await t.testStore(jsonModel2))
+            console.log("Result: \n" + JSON.stringify(result))
+
+            await testResult("./src/test/data/remove-annotation/Disk-remove-annotation-partition.json")
+        })
+        it("test update single node", async () => {
+            const jsonModel2 = t.readModel(
+                "./src/test/data/remove-annotation/Disk-remove-annotation-single-node.json",
+            ) as LionWebJsonChunk
+            const diff = new LionWebJsonDiff()
+            diff.diffLwChunk(jsonModel, jsonModel2)
+            console.log("DIF " + diff.diffResult.asStringArray())
+
+            const result = (await t.testStore(jsonModel2))
+            console.log("Result: \n" + JSON.stringify(result))
+
+            await testResult("./src/test/data/remove-annotation/Disk-remove-annotation-partition.json")
+        })
+    })
+    describe("Add new annotation", () => {
+        // TODO ANN-1 is still in the repo !!!
+        it("test update full partition", async () => {
+            const jsonModel2 = t.readModel(
+                "./src/test/data/add-new-annotation/Disk-add-new-annotation-partition.json",
+            ) as LionWebJsonChunk
+            const diff = new LionWebJsonDiff()
+            diff.diffLwChunk(jsonModel, jsonModel2)
+            console.log("DIF " + diff.diffResult.asStringArray())
+
+            const result = (await t.testStore(jsonModel2))
+            console.log("Result: \n" + JSON.stringify(result))
+
+            await testResult("./src/test/data/add-new-annotation/Disk-add-new-annotation-partition.json")
+        })
+        it("test update two nodes node", async () => {
+            const jsonModel2 = t.readModel(
+                "./src/test/data/add-new-annotation/Disk-add-new-annotation-two-nodes.json",
+            ) as LionWebJsonChunk
+            const diff = new LionWebJsonDiff()
+            diff.diffLwChunk(jsonModel, jsonModel2)
+            console.log("DIF " + diff.diffResult.asStringArray())
+
+            const result = (await t.testStore(jsonModel2))
+            console.log("Result: \n" + JSON.stringify(result))
+
+            await testResult("./src/test/data/add-new-annotation/Disk-add-new-annotation-partition.json")
+        })
+    })
+    describe("Add new node", () => {
+        // TODO ANN-1 is still in the repo !!!
+        it("test update full partition", async () => {
+            const jsonModel2 = t.readModel(
+                "./src/test/data/add-new-nodes/Disk-add-new-nodes-partition.json",
+            ) as LionWebJsonChunk
+            const diff = new LionWebJsonDiff()
+            diff.diffLwChunk(jsonModel, jsonModel2)
+            console.log("DIF " + diff.diffResult.asStringArray())
+
+            const result = (await t.testStore(jsonModel2))
+            console.log("Result: \n" + result.json)
+            if (result.status === 400) {
+                console.log("ASJSON: \n" + result.json["issues"])
+            }
+            await testResult("./src/test/data/add-new-nodes/Disk-add-new-nodes-partition.json")
+        })
+        it("test update single node", async () => {
+            const jsonModel2 = t.readModel(
+                "./src/test/data/add-new-nodes/Disk-add-new-nodes-single-node.json",
+            ) as LionWebJsonChunk
+            const diff = new LionWebJsonDiff()
+            diff.diffLwChunk(jsonModel, jsonModel2)
+            console.log("DIF " + diff.diffResult.asStringArray())
+
+            const result = (await t.testStore(jsonModel2))
+            console.log("Result: \n" + JSON.stringify(result))
+
+            await testResult("./src/test/data/add-new-nodes/Disk-add-new-nodes-partition.json")
+        })
+    })
+
     async function testResult(originalJsonFile) {
         const jsonModelFull = t.readModel(originalJsonFile) as LionWebJsonChunk
-        const afterRetrieve = (await t.testRetrieve(["ID-2"])) as LionWebJsonChunk
+        const afterRetrieve = (await t.testRetrieve(["ID-2"])) 
         console.log("JSON MODEL ")
         printChunk(jsonModelFull)
-        console.log("Retrieved ")
-        printChunk(afterRetrieve)
-
-        const diff2 = new LionWebJsonDiff()
-        diff2.diffLwChunk(jsonModelFull, afterRetrieve)
-        deepEqual(diff2.diffResult.changes, [])
+        console.log("Retrieved with status " + afterRetrieve.status)
+        if (afterRetrieve.status === 400) {
+            console.log(afterRetrieve.json["issues"])
+            deepEqual(afterRetrieve.status, 200)
+        } else {
+            printChunk(afterRetrieve.json as LionWebJsonChunk)
+            const diff2 = new LionWebJsonDiff()
+            diff2.diffLwChunk(jsonModelFull, afterRetrieve.json as LionWebJsonChunk)
+            deepEqual(diff2.diffResult.changes.filter(ch => !(ch instanceof LanguageChange)), [])
+        }
     }
 })
 

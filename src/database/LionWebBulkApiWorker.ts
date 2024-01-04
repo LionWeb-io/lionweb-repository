@@ -38,7 +38,7 @@ class LionWebBulkApiWorker {
             }
         }
         const allNodes = await LIONWEB_QUERIES.getNodeTree(nodeIdList, depthLimit)
-        console.log("LionWebBulkApiWorker.bulkRetrieve: all " + allNodes.map(n => n.id))
+        // console.log("LionWebBulkApiWorker.bulkRetrieve: all " + allNodes.map(n => n.id))
         if (allNodes.length === 0) {
             return {
                 serializationFormatVersion: "2023.1",

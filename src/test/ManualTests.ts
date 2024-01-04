@@ -1,7 +1,7 @@
 import { LionWebJsonChunk } from "@lionweb/validation"
-import { TestClient } from "./TestClient.js"
+import { RepositoryClient } from "./RepositoryClient.js"
 
-const test = new TestClient()
+const test = new RepositoryClient()
 
 console.log("Testing: " + process.argv[2])
 switch (process.argv[2]) {

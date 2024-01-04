@@ -29,6 +29,7 @@ class AdditionalApiImpl implements AdditionalApi {
         const sql = readFile("./src/tools/lionweb-init-tables.sql")
         if (sql === undefined) {
             console.error("************************************ File not found")
+            res.status(200)
             res.send("File not found")
         } else {
             await ADDITIONAL_API_WORKER.init(sql)

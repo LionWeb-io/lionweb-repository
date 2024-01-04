@@ -39,7 +39,6 @@
                 }
             ],
             "references": [],
-            "annotations": [],
             "parent": null
         },
         {
@@ -56,7 +55,7 @@
                         "version": "2023.1",
                         "key": "LionCore-builtins-INamed-name"
                     },
-                    "value": "root-new-value"
+                    "value": "root"
                 }
             ],
             "containments": [
@@ -70,7 +69,6 @@
                 }
             ],
             "references": [],
-            "annotations": [],
             "parent": "ID-2"
         },
         {
@@ -101,7 +99,6 @@
                 }
             ],
             "references": [],
-            "annotations": [],
             "parent": "ID-3"
         },
         {
@@ -132,7 +129,6 @@
                 }
             ],
             "references": [],
-            "annotations": [],
             "parent": "ID-4"
         },
         {
@@ -163,7 +159,6 @@
                 }
             ],
             "references": [],
-            "annotations": [],
             "parent": "ID-4"
         },
         {
@@ -194,7 +189,6 @@
                 }
             ],
             "references": [],
-            "annotations": [],
             "parent": "ID-4"
         },
         {
@@ -225,7 +219,6 @@
                 }
             ],
             "references": [],
-            "annotations": [],
             "parent": "ID-3"
         },
         {
@@ -256,7 +249,6 @@
                 }
             ],
             "references": [],
-            "annotations": [],
             "parent": "ID-5"
         },
         {
@@ -287,7 +279,6 @@
                 }
             ],
             "references": [],
-            "annotations": [],
             "parent": "ID-5"
         },
         {
@@ -318,7 +309,6 @@
                 }
             ],
             "references": [],
-            "annotations": [],
             "parent": "ID-12"
         },
         {
@@ -349,7 +339,6 @@
                 }
             ],
             "references": [],
-            "annotations": [],
             "parent": "ID-12"
         },
         {
@@ -380,7 +369,6 @@
                 }
             ],
             "references": [],
-            "annotations": [],
             "parent": "ID-12"
         },
         {
@@ -411,7 +399,6 @@
                 }
             ],
             "references": [],
-            "annotations": [],
             "parent": "ID-3"
         },
         {
@@ -457,7 +444,6 @@
             "containments": [
             ],
             "references": [],
-            "annotations": [],
             "parent": "ID-7"
         }
     ]

@@ -1,7 +1,13 @@
 import { LionWebJsonChunk } from "@lionweb/validation"
 import fs from "fs"
 
-export class TestClient {
+export type Status = number
+export type ClientResponse = { 
+    json: object,
+    status: Status
+}
+
+export class RepositoryClient {
     private _nodePort = process.env.NODE_PORT || 3005
     private _SERVER_IP = "http://127.0.0.1"
     private _SERVER_URL = `${this._SERVER_IP}:${this._nodePort}/`
@@ -17,9 +23,9 @@ export class TestClient {
         return null
     }
 
-    async init(): Promise<string> {
+    async init(): Promise<Status> {
         const x = await this.postWithTimeout("init", { body: {}, params: "" })
-        return x as string
+        return x === null ? null : x.status
     }
 
     async testPartitions() {
@@ -55,9 +61,10 @@ export class TestClient {
     }
 
     async testRetrieve(nodeIds: string[], depth?: number) {
-        console.log(`test.testRetrieve ${nodeIds} wioth depth ${depth}`)
+        console.log(`test.testRetrieve ${nodeIds} with depth ${depth}`)
         depth = depth || 999
         const startTime = performance.now()
+        // const x = await this.postWithTimeout(`bulk/retrieve`, { body: { ids: nodeIds }, params: `depthLimit=${depth}` })
         const x = await this.postWithTimeout(`bulk/retrieve`, { body: { ids: nodeIds }, params: `depthLimit=${depth}` })
         const endTime = performance.now()
         console.log(`Call to query took ${endTime - startTime} milliseconds`)
@@ -87,14 +94,14 @@ export class TestClient {
         return null
     }
 
-    async postWithTimeout<T>(method: string, parameters: { body: unknown; params: string }): Promise<T | null> {
+    async postWithTimeout(method: string, parameters: { body: unknown; params: string }): Promise<ClientResponse | null> {
         const params = this.findParams(parameters.params)
         // console.log("postWithTimeout Params = " + parameters.params);
         try {
             const controller = new AbortController()
             const timeoutId = setTimeout(() => controller.abort(), 2000)
             console.log("postWithTimeout: " + `${this._SERVER_URL}${method}${params}`)
-            const promise = await fetch(`${this._SERVER_URL}${method}${params}`, {
+            const promise: Response = await fetch(`${this._SERVER_URL}${method}${params}`, {
                 signal: controller.signal,
                 method: "post",
                 headers: {
@@ -103,8 +110,9 @@ export class TestClient {
                 body: JSON.stringify(parameters.body),
             })
             clearTimeout(timeoutId)
+            const status = promise.status
             const result = await promise.json()
-            return result
+            return { json: result, status: status }
         } catch (e: unknown) {
             this.handleError(e)
         }

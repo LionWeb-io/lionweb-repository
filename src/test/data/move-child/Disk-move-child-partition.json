@@ -56,7 +56,7 @@
                         "version": "2023.1",
                         "key": "LionCore-builtins-INamed-name"
                     },
-                    "value": "root-new-value"
+                    "value": "root"
                 }
             ],
             "containments": [
@@ -97,7 +97,7 @@
                         "version": "2023.1",
                         "key": "Folder-listing-key"
                     },
-                    "children": ["ID-8", "ID-9", "ID-10"]
+                    "children": ["ID-8", "ID-10"]
                 }
             ],
             "references": [],
@@ -131,8 +131,8 @@
                     "children": []
                 }
             ],
-            "references": [],
             "annotations": [],
+            "references": [],
             "parent": "ID-4"
         },
         {
@@ -164,7 +164,7 @@
             ],
             "references": [],
             "annotations": [],
-            "parent": "ID-4"
+            "parent": "ID-5"
         },
         {
             "id": "ID-10",
@@ -221,7 +221,7 @@
                         "version": "2023.1",
                         "key": "Folder-listing-key"
                     },
-                    "children": ["ID-11", "ID-12"]
+                    "children": ["ID-9", "ID-11", "ID-12"]
                 }
             ],
             "references": [],
@@ -460,5 +460,6 @@
             "annotations": [],
             "parent": "ID-7"
         }
+
     ]
 }

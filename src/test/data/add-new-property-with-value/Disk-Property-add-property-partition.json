@@ -26,6 +26,14 @@
                         "key": "LionCore-builtins-INamed-name"
                     },
                     "value": "Disk_A"
+                },
+                {
+                    "property": {
+                        "language": "-default-key-FileSystem",
+                        "version": "2023.1",
+                        "key": "FileSystem-virtual-key"
+                    },
+                    "value": "true"
                 }
             ],
             "containments": [
@@ -56,7 +64,7 @@
                         "version": "2023.1",
                         "key": "LionCore-builtins-INamed-name"
                     },
-                    "value": "root-new-value"
+                    "value": "root"
                 }
             ],
             "containments": [
@@ -100,7 +108,21 @@
                     "children": ["ID-8", "ID-9", "ID-10"]
                 }
             ],
-            "references": [],
+            "references": [
+                {
+                    "reference": {
+                        "language": "-default-key-FileSystem",
+                        "version": "2023.1",
+                        "key": "Folder-linked-key"
+                    },
+                    "targets": [
+                        {
+                            "resolveInfo": null,
+                            "reference": "ID-10"
+                        }
+                    ]
+                }
+            ],
             "annotations": [],
             "parent": "ID-3"
         },
@@ -452,8 +474,7 @@
                 "version": "2023.1",
                 "key": "Folder-key"
             },
-            "properties": [
-            ],
+            "properties": [],
             "containments": [
             ],
             "references": [],
