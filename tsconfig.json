@@ -13,8 +13,10 @@
     "strict": false,
     "skipLibCheck": true,
     "sourceRoot": "./src",
-  },
-  "include": [
-    "src/**/*"
-  ]
+    "paths": {
+      "@lionweb/*": [
+        "./packages/*/"
+      ]
+    }
+  }
 }
