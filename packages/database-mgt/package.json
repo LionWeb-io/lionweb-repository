@@ -2,7 +2,7 @@
   "name": "@lionweb/repository-mgt",
   "version": "0.1.0",
   "private": false,
-  "main": "src/server.ts",
+  "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
   "type": "module",

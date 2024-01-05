@@ -1,6 +1,6 @@
-import { INIT_TABLES_SQL } from "@lionweb/repository-mgt/dist/tools/init-tables-sql.js";
+import { INIT_TABLES_SQL } from "@lionweb/repository-mgt";
 import e, { Request, Response } from "express"
-import fs from "fs"
+// import fs from "fs"
 import { ADDITIONAL_API_WORKER } from "../database/AdditionalApiWorker.js"
 
 export interface AdditionalApi {
@@ -39,14 +39,14 @@ class AdditionalApiImpl implements AdditionalApi {
     }
 }
 
-function readFile(filename: string): string | undefined {
-    if (fs.existsSync(filename)) {
-        const stats = fs.statSync(filename)
-        if (stats.isFile()) {
-            return fs.readFileSync(filename).toString()
-        }
-    }
-    return undefined
-}
+// function readFile(filename: string): string | undefined {
+//     if (fs.existsSync(filename)) {
+//         const stats = fs.statSync(filename)
+//         if (stats.isFile()) {
+//             return fs.readFileSync(filename).toString()
+//         }
+//     }
+//     return undefined
+// }
 
 export const ADDITIONAL_API: AdditionalApi = new AdditionalApiImpl()
