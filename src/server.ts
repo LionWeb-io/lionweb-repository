@@ -5,6 +5,7 @@ import bodyParser from "body-parser"
 import { ADDITIONAL_API } from "./controllers/AdditionalApi.js"
 import { LIONWEB_BULK_API } from "./controllers/LionWebBulkApi.js"
 import cors from "cors"
+import { registerDBAdmin } from "@lionweb/repository-dbadmin/build/main.js"
 
 dotenv.config()
 

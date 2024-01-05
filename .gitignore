@@ -2,3 +2,4 @@
 /tools/initdb.js
 /build
 /node_modules
+.idea

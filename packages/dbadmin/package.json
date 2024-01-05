@@ -1,0 +1,24 @@
+{
+  "name": "@lionweb/repository-dbadmin",
+  "version": "0.0.1",
+  "private": false,
+  "description": "DB Admin routes for the lionweb repository",
+  "main": "src/main.ts",
+  "types": "dist/index.d.ts",
+  "typings": "dist/index.d.ts",
+  "type": "module",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LionWeb-io/lionweb-repository.git"
+  },
+  "bugs": {
+    "url": "https://github.com/LionWeb-io/lionweb-repository/issues"
+  },
+  "scripts": {
+    "build": "rm -rf build/ && tsc",
+    "cleanup": "rm -rf ./node_modules",
+    "lint": "eslint src"
+  },
+  "devDependencies": {}
+}

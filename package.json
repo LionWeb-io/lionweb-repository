@@ -35,7 +35,6 @@
     "eslint": "8.56.0",
     "chai": "4.3.10",
     "mocha": "10.2.0",
-    "prettier": "3.1.0",
     "ts-node": "10.9.2",
     "typescript": "5.2.2"
   },
@@ -51,5 +50,8 @@
     "pg": "8.11.3",
     "pg-promise": "11.5.4",
     "source-map-support": "0.5.21"
-  }
+  },
+  "workspaces": [
+    "packages/dbadmin"
+  ]
 }
