@@ -1,11 +1,7 @@
 {
-  "name": "@lionweb/repository",
+  "name": "@lionweb/repository-packages",
   "version": "0.1.0",
   "private": false,
-  "main": "src/server.ts",
-  "types": "dist/index.d.ts",
-  "typings": "dist/index.d.ts",
-  "type": "module",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -15,16 +11,12 @@
     "url": "https://github.com/LionWeb-io/lionweb-repository/issues"
   },
   "scripts": {
-    "dev": "nodemon build/server.js",
-    "build": "rm -rf build/ && tsc",
-    "alive": "echo I am alive",
-    "cleanup": "rm -rf ./node_modules",
-    "lint": "eslint src",
-    "manualtest": "node build/test/ManualTests.js",
-    "database": "node build/tools/database",
-    "testdiff": "mocha ./build/test/diff/testDiff.js",
-    "test": "mocha ./build/test/tests.js",
-    "install-local": "yarn install --registry http://localhost:4873"
+    "build": "npm run build -w packages",
+    "lint": "npm run lint -w packages",
+    "test": "npm run test -w packages",
+    "database": "node packages/database-mgt/dist/tools/database",
+    "npm-install-local": "npm config set registry http://localhost:4873 && npm install && npm config set registry https://registry.npmjs.com",
+    "npm-install": "npm config set registry https://registry.npmjs.com && npm install"
   },
   "devDependencies": {
     "prettier": "3.1.0",
@@ -39,17 +31,7 @@
     "ts-node": "10.9.2",
     "typescript": "5.2.2"
   },
-  "dependencies": {
-    "@lionweb/validation": "0.6.0-beta.4",
-    "@types/express": "4.17.21",
-    "body-parser": "1.20.2",
-    "cors": "2.8.5",
-    "dotenv": "16.3.1",
-    "express": "4.18.2",
-    "fs-extra": "11.1.1",
-    "nodemon": "3.0.1",
-    "pg": "8.11.3",
-    "pg-promise": "11.5.4",
-    "source-map-support": "0.5.21"
-  }
+  "workspaces": [
+    "./packages/*"
+  ]
 }

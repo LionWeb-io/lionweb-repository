@@ -26,7 +26,7 @@ class AdditionalApiImpl implements AdditionalApi {
     }
 
     async init(req: e.Request, res: e.Response) {
-        const sql = readFile("./src/tools/lionweb-init-tables.sql")
+        const sql = readFile("../database-mgt/src/tools/lionweb-init-tables.sql")
         if (sql === undefined) {
             console.error("************************************ File not found")
             res.status(200)

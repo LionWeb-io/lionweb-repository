@@ -1,0 +1,22 @@
+insert into "lionweb_references"
+("lw_reference","targets","node_id")
+values
+('
+  {
+    "targets":[
+        {"reference":"ID-10","resolveinfo":null}
+      ],
+    "reference":
+      {
+        "key":"Folder-linked-key",
+        "version":"2023.1",
+        "language":"-default-key-FileSystem"
+      }
+  }',
+  array[
+      '{"resolveinfo":null,"reference":"ID-10"}',
+      '{"resolveinfo":null,"reference":"ID-3"}']::jsonb[],
+      '{"id":"ID-4","classifier":{"key":"Folder-key","version":"2023.1","language":"-default-key-FileSystem"},"parent":"ID-3","properties":[{"value":"folder-1","property":{"key":"LionCore-builtins-INamed-name","version":"2023.1","language":"LionCore-builtins"}}],"containments":[{"children":["ID-8","ID-9","ID-10"],"containment":{"key":"Folder-listing-key","version":"2023.1","language":"-default-key-FileSystem"}}],"references":[{"targets":[{"reference":"ID-10","resolveinfo":null}],"reference":{"key":"Folder-linked-key","version":"2023.1","language":"-default-key-FileSystem"}}],"annotations":[]}')-- Update if not inserted
+ON CONFLICT (node_id, lw_reference)
+DO UPDATE
+SET targets = ARRAY['{"resolveinfo":null,"reference":"ID-10"}'::jsonb, '{"resolveinfo":null,"reference":"ID-3"}'::jsonb]

@@ -1,0 +1,25 @@
+{
+  "name": "@lionweb/repository-mgt",
+  "version": "0.1.0",
+  "private": false,
+  "main": "src/server.ts",
+  "types": "dist/index.d.ts",
+  "typings": "dist/index.d.ts",
+  "type": "module",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LionWeb-io/lionweb-repository.git"
+  },
+  "bugs": {
+    "url": "https://github.com/LionWeb-io/lionweb-repository/issues"
+  },
+  "scripts": {
+    "build": "rm -rf dist/ && tsc",
+    "alive": "echo I am alive",
+    "cleanup": "rm -rf ./node_modules",
+    "lint": "eslint src",
+    "manualtest": "node dist/test/ManualTests.js",
+    "test": "echo No tests in repository-mgt"
+  }
+}
