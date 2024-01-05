@@ -1,3 +1,4 @@
+export const INIT_TABLES_SQL = `
 -- Drops nodes table
 DROP TABLE IF EXISTS lionweb_nodes;
 DROP TABLE IF EXISTS lionweb_containments;
@@ -71,3 +72,4 @@ CREATE TABLE IF NOT EXISTS lionweb_references_orphans   (
     targets      jsonb[],
     node_id      text
 );
+`

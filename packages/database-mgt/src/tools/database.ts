@@ -1,6 +1,8 @@
 import dotenv from "dotenv"
 import fs from "fs-extra"
 import pgPromise from "pg-promise"
+import { CREATE_DATABASE_SQL } from "./create-database-sql.js";
+import { INIT_TABLES_SQL } from "./init-tables-sql.js";
 
 const init = async (envFile: string, sqlFile: string) => {
     // read environment variables
@@ -26,7 +28,7 @@ const init = async (envFile: string, sqlFile: string) => {
         // await db.connect();
         console.log("!!!")
         // read the contents of the initdb.pgsql file
-        const sql = await fs.readFile(sqlFile, { encoding: "UTF-8" })
+        const sql = sqlFile // await fs.readFile(sqlFile, { encoding: "UTF-8" })
         console.log("FS: " + JSON.stringify(sql))
         // split the file into separate statements
         // client.database;
@@ -55,11 +57,11 @@ const command = process.argv[2]
 let sqlfile = ""
 let envFile = ""
 if (command === "create") {
-    sqlfile = "./src/tools/lionweb-create-database.sql"
+    sqlfile = CREATE_DATABASE_SQL // "./src/tools/lionweb-create-database.sql"
     // Environment without database name
     envFile = "./src/tools/.env_create"
 } else if (command === "init") {
-    sqlfile = "./src/tools/lionweb-init-tables.sql"
+    sqlfile = INIT_TABLES_SQL  // "./src/tools/lionweb-init-tables.sql"
     envFile = "./src/tools/.env_init"
 } else {
     console.log("Usage: node initdb (create | init)")

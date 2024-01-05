@@ -1,3 +1,4 @@
+export const CREATE_DATABASE_SQL: string =`
 CREATE DATABASE lionweb_test
     WITH
     OWNER = postgres
@@ -12,3 +13,4 @@ CREATE DATABASE lionweb_test
 GRANT TEMPORARY, CONNECT ON DATABASE lionweb_test TO PUBLIC;
 
 GRANT ALL ON DATABASE lionweb_test TO postgres;
+`

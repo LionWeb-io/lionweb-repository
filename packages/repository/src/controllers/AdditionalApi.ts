@@ -1,3 +1,4 @@
+import { INIT_TABLES_SQL } from "@lionweb/repository-mgt/dist/tools/init-tables-sql.js";
 import e, { Request, Response } from "express"
 import fs from "fs"
 import { ADDITIONAL_API_WORKER } from "../database/AdditionalApiWorker.js"
@@ -26,7 +27,7 @@ class AdditionalApiImpl implements AdditionalApi {
     }
 
     async init(req: e.Request, res: e.Response) {
-        const sql = readFile("../database-mgt/src/tools/lionweb-init-tables.sql")
+        const sql = INIT_TABLES_SQL // readFile("../database-mgt/src/tools/lionweb-init-tables.sql")
         if (sql === undefined) {
             console.error("************************************ File not found")
             res.status(200)
