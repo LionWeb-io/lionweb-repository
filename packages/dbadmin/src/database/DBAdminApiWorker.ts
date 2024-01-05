@@ -7,7 +7,7 @@ import pg from "pg-promise/typescript/pg-subset.js"
  */
 export class DBAdminApiWorker {
 
-    constructor(private dbConnection: pgPromise.IDatabase<{ } , pg.IClient>) {
+    constructor(private dbConnection: pgPromise.IDatabase<object, pg.IClient>) {
     }
 
     async init(sql: string) {
@@ -15,7 +15,7 @@ export class DBAdminApiWorker {
     }
 }
 
-export function createDBAdminApiWorker(dbConnection: pgPromise.IDatabase<{ } , pg.IClient>) {
+export function createDBAdminApiWorker(dbConnection: pgPromise.IDatabase<object , pg.IClient>) {
     DB_ADMIN_WORKER = new DBAdminApiWorker(dbConnection);
 }
 

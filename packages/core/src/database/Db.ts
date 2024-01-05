@@ -13,7 +13,7 @@ import {
 } from "@lionweb/validation"
 import { dbConnection } from "./DbConnection.js"
 import { postgresArrayFromStringArray, sqlArrayFromStringArray } from "./QueryNode.js"
-import { CONTAINMENTS_COLUMNSET, NODES_COLUMNSET, NODES_TABLE, pgp, PROPERTIES_COLUMNSET, REFERENCES_COLUMNSET } from "./TableDefinitions.js"
+import { CONTAINMENTS_COLUMNSET, NODES_COLUMNSET, pgp, PROPERTIES_COLUMNSET, REFERENCES_COLUMNSET } from "./TableDefinitions.js"
 
 
 export type NodeTreeResultType = {

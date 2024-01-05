@@ -4,7 +4,7 @@ import pgPromise from "pg-promise"
 import pg from "pg-promise/typescript/pg-subset.js"
 import { createDBAdminApiWorker } from "./database/DBAdminApiWorker.js"
 
-export function registerDBAdmin(app: Express, dbConnection: pgPromise.IDatabase<{ } , pg.IClient>) {
+export function registerDBAdmin(app: Express, dbConnection: pgPromise.IDatabase<object , pg.IClient>) {
     console.log("Registering DB Admin");
     createDBAdminApiWorker(dbConnection)
     const dbAdminApi: DBAdminApi = createDBAdminApi();

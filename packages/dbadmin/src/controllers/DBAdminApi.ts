@@ -1,8 +1,6 @@
 import e, { Request, Response } from "express"
 import fs from "fs"
-import pgPromise from "pg-promise"
-import pg from "pg-promise/typescript/pg-subset.js"
-import { createDBAdminApiWorker, DB_ADMIN_WORKER, DBAdminApiWorker } from "../database/DBAdminApiWorker.js"
+import { DB_ADMIN_WORKER } from "../database/DBAdminApiWorker.js"
 
 export interface DBAdminApi {
     init(req: Request, res: Response): void
