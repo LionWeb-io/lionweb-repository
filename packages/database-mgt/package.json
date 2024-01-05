@@ -15,7 +15,7 @@
     "url": "https://github.com/LionWeb-io/lionweb-repository/issues"
   },
   "scripts": {
-    "build": "rm -rf dist/ && tsc",
+    "build": "rm -rf dist/ && tsc && cp src/tools/*.sql dist/tools && cp src/tools/.env* dist/tools",
     "alive": "echo I am alive",
     "cleanup": "rm -rf ./node_modules",
     "lint": "eslint src",
