@@ -12,6 +12,9 @@
     "forceConsistentCasingInFileNames": true,
     "strict": false,
     "skipLibCheck": true,
-    "sourceRoot": "./src"
-  }
+    "sourceRoot": "./src",
+  },
+  "include": [
+    "src/**/*"
+  ]
 }

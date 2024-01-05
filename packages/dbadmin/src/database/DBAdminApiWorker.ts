@@ -15,6 +15,8 @@ export class DBAdminApiWorker {
     }
 }
 
-export function createDBAdminApiWorker(dbConnection: pgPromise.IDatabase<{ } , pg.IClient>) : DBAdminApiWorker {
-    return new DBAdminApiWorker(dbConnection);
+export function createDBAdminApiWorker(dbConnection: pgPromise.IDatabase<{ } , pg.IClient>) {
+    DB_ADMIN_WORKER = new DBAdminApiWorker(dbConnection);
 }
+
+export let DB_ADMIN_WORKER: DBAdminApiWorker
