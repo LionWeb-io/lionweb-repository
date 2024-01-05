@@ -3,7 +3,7 @@ import pg from "pg-promise/typescript/pg-subset.js"
 
 
 /**
- * Implementations of the additional non-LionWeb methods.
+ * Implementations of the additional non-LionWeb methods for DB Administration.
  */
 export class DBAdminApiWorker {
 

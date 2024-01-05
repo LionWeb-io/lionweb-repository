@@ -1,4 +1,3 @@
-import { dbConnection } from "./DbConnection.js"
 import { LIONWEB_QUERIES } from "./LionWebQueries.js"
 
 /**
@@ -10,9 +9,6 @@ class AdditionalApiWorker {
         return await LIONWEB_QUERIES.getNodeTree(nodeIds, depthLimit)
     }
 
-    async init(sql: string) {
-        return await dbConnection.query(sql)
-    }
 }
 
 export const ADDITIONAL_API_WORKER = new AdditionalApiWorker()

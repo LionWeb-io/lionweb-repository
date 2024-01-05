@@ -1,11 +1,8 @@
-import e, { Request, Response } from "express"
-import fs from "fs"
+import { Request, Response } from "express"
 import { ADDITIONAL_API_WORKER } from "../database/AdditionalApiWorker.js"
 
 export interface AdditionalApi {
     getNodeTree(req: Request, res: Response): void
-
-    init(req: Request, res: Response): void
 }
 
 class AdditionalApiImpl implements AdditionalApi {
@@ -24,28 +21,6 @@ class AdditionalApiImpl implements AdditionalApi {
         const result = await ADDITIONAL_API_WORKER.getNodeTree(idList, depthLimit)
         res.send(result)
     }
-
-    async init(req: e.Request, res: e.Response) {
-        const sql = readFile("./src/tools/lionweb-init-tables.sql")
-        if (sql === undefined) {
-            console.error("************************************ File not found")
-            res.status(200)
-            res.send("File not found")
-        } else {
-            await ADDITIONAL_API_WORKER.init(sql)
-            res.send("initialized")
-        }
-    }
-}
-
-function readFile(filename: string): string | undefined {
-    if (fs.existsSync(filename)) {
-        const stats = fs.statSync(filename)
-        if (stats.isFile()) {
-            return fs.readFileSync(filename).toString()
-        }
-    }
-    return undefined
 }
 
 export const ADDITIONAL_API: AdditionalApi = new AdditionalApiImpl()
