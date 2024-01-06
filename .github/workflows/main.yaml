@@ -42,7 +42,7 @@ jobs:
         run: npm install
         
       - name: tsc
-        run: npm run build
+        run: npm run build -w packages
 
       - name: Create and iniitialize Postgres database
         # Runs a script that creates a PostgreSQL table, populates
