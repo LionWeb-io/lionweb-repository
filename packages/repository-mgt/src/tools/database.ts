@@ -1,8 +1,6 @@
-// import dotenv from "dotenv"
-// import fs from "fs-extra"
 import pgPromise from "pg-promise"
-import { CREATE_DATABASE_SQL } from "./create-database-sql.js";
-import { INIT_TABLES_SQL } from "./init-tables-sql.js";
+import { CREATE_DATABASE_SQL } from "./create-database-sql.js"
+import { INIT_TABLES_SQL } from "./init-tables-sql.js"
 
 type PostgresConfig = {
     host: string
@@ -15,30 +13,17 @@ const CREATE_CONFIG: PostgresConfig = {
     host: process.env.PGHOST || "postgres",
     port: parseInt(process.env.PGPORT || "5432", 10),
     user: process.env.PGUSER || "postgres",
-    password: process.env.PGPASSWORD || "lionweb",
+    password: process.env.PGPASSWORD || "lionweb"
 }
 const INIT_CONFIG: PostgresConfig = {
     host: process.env.PGHOST || "postgres",
     database: "lionweb_test",
     port: parseInt(process.env.PGPORT || "5432", 10),
     user: process.env.PGUSER || "postgres",
-    password: process.env.PGPASSWORD || "lionweb",
+    password: process.env.PGPASSWORD || "lionweb"
 }
 
 const init = async (config: PostgresConfig, sqlFile: string) => {
-    // read environment variables
-    // dotenv.config({ path: envFile })
-    // const port = parseInt(process.env.PGPORT || "5432", 10)
-    // const config = {
-    //     database: process.env.PGDATABASE || "postgres",
-        // host: process.env.PGHOST || "localhost",
-        // port: port,
-        // user: process.env.PGUSER || "postgres",
-        // password: process.env.PGPASSWORD || "lionweb",
-    // }
-    // let db
-    // create an instance of the PostgreSQL client
-    // const client = new Client.Client();
     try {
         // connect to the local database server
         const pgp = pgPromise()
@@ -78,11 +63,11 @@ const command = process.argv[2]
 let sqlfile = ""
 let envFile: PostgresConfig = null
 if (command === "create") {
-    sqlfile = CREATE_DATABASE_SQL // "./src/tools/lionweb-create-database.sql"
+    sqlfile = CREATE_DATABASE_SQL
     // Environment without database name
     envFile = CREATE_CONFIG
 } else if (command === "init") {
-    sqlfile = INIT_TABLES_SQL  // "./src/tools/lionweb-init-tables.sql"
+    sqlfile = INIT_TABLES_SQL
     envFile = INIT_CONFIG
 } else {
     console.log("Usage: node initdb (create | init)")

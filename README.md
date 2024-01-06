@@ -10,7 +10,8 @@ The `.env` file contains the user/database/port names and numbers being used.
 
 ![picture of database schema](docs/database-schema.svg "Database Schema")
 
-The `jsonb` types properties are LionWeb metapointers.
+The `lionweb_properties.property`, `lionweb_containments.containment` and `lionweb_references.reference` 
+fields are LionWeb metapointers.
 
 We use `pgAdmin 4` to test queries and look directly into the database. 
 
@@ -23,21 +24,50 @@ docker pull postgres:16.1
 # create a container and run it
 docker run -d --name lionwebrepodb -p 5432:5432 -e POSTGRES_PASSWORD=lionweb postgres:16.1
 ```
+
+### How to build
+
+```
+npm run build
+npm run lint
+```
+
+### How to start the repository server
+Ensure that Postgress is running.
+The repository server is started with `npm run dev` in  the `packages/repository` folder:
+
+```
+cd packages/repository
+npm run dev
+```
+
+### How to test
+Ensure the Postgres server and the rspository server are both running.
+Then do
+
+```
+npm run test
+```
+
 ## Status
 This repository is Work In Progress, currently:
- - everything except annotations is stored for new nodes.
- - Changes in children: adding, removing, moving are supported
- - Changes of property values are supported
- - Changes in references is not yet sup[ported
- - Assumption is that empty references, properties and containments are in the JSON, the case where such is missing is not always handled correctly yet
+- Changes in children: adding, removing, moving are supported
+- Changes of property values are supported
+- Changes of reference targets are supported
+- Changes of annotations are supported.
+ 
+##  Packages
 
-##  Source code in ./src
-
-### Tools
+### repository-mgt
 Contain code to manipulate the postgres database (create, initialize)
 
-### 
+### repository
+The core repository
+
+### test
+Tests for the repository package
 
 ## CI
-In GitHub actions a postgres server is started on a gost named `postres`.  In you local development environment this 
-hostname is also being used. You need to ensure that this hostname points to the postgres server. 
+In GitHub actions a postgres server is started on a host named `postres`.
+In you local development environment this hostname is also being used.
+You need to ensure that this hostname points to the postgres server. 

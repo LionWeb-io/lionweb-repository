@@ -18,7 +18,7 @@ entity lionweb_properties {
 entity lionweb_containments {
     * c_id <<key>>
     --
-    * classifier: jsonb
+    * containment: jsonb
     * children: text[]
     * node_id <FK>
 }
