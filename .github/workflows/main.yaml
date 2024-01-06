@@ -47,7 +47,7 @@ jobs:
       - name: Create and iniitialize Postgres database
         # Runs a script that creates a PostgreSQL table, populates
         # the table with data, and then retrieves the data.
-        run: node packages/database-mgt/dist/tools/database.js create && node packages/database-mgt/dist/tools/database.js init      
+        run: node packages/repository-mgt/dist/tools/database.js create && node packages/database-mgt/dist/tools/database.js init      
       
       - name: start server and run tests (one step, else server will be down when tests start)
         run: |
