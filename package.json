@@ -11,7 +11,7 @@
     "url": "https://github.com/LionWeb-io/lionweb-repository/issues"
   },
   "scripts": {
-    "build": "npm run build -w packages",
+    "build": "npm run build -w packages/repository-mgt && npm run build -w packages/repository && npm run build -w packages/test",
     "lint": "npm run lint -w packages",
     "test": "npm run test -w packages",
     "database": "node packages/database-mgt/dist/tools/database",
