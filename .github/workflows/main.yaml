@@ -42,7 +42,7 @@ jobs:
         run: npm install
         
       - name: tsc
-        run: }
+        run: |
           npm run build -w packages/repository-mgt
           npm run build -w packages/repository
           npm run build -w packages/test
