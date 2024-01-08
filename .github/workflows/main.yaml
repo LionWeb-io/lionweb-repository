@@ -51,7 +51,7 @@ jobs:
       
       - name: start server and run tests (one step, else server will be down when tests start)
         run: |
-          cd packages/repository-core
+          cd packages/core
           npm run dev &
           sleep 6
           cd ../../packages/test
