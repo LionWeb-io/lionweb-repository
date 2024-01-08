@@ -34,7 +34,7 @@ const init = async (config: PostgresConfig, sqlFile: string) => {
         // await db.connect();
         console.log("!!!")
         // read the contents of the initdb.pgsql file
-        const sql = sqlFile // await fs.readFile(sqlFile, { encoding: "UTF-8" })
+        const sql = sqlFile 
         console.log("FS: " + JSON.stringify(sql))
         // split the file into separate statements
         // client.database;
