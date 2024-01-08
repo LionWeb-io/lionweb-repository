@@ -5,7 +5,7 @@
 
 import { Request, Response } from "express"
 import { LionWebJsonChunk, LionWebValidator } from "@lionweb/validation"
-import { LIONWEB_BULKAPI_WORKER } from "../database/LionWebBulkApiWorker.js"
+import { LIONWEB_BULKAPI_WORKER } from "./LionWebBulkApiWorker.js"
 
 export interface LionWebBulkApi {
     partitions: (req: Request, res: Response) => void

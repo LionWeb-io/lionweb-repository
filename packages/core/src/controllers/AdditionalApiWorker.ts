@@ -1,4 +1,4 @@
-import { LIONWEB_QUERIES } from "./LionWebQueries.js"
+import { LIONWEB_QUERIES } from "../database/LionWebQueries.js"
 
 /**
  * Implementations of the additional non-LionWeb methods.

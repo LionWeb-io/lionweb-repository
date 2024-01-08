@@ -42,7 +42,7 @@ jobs:
         run: npm install
         
       - name: tsc
-        run: npm run build -w packages
+        run: npm run build
 
       - name: Create and iniitialize Postgres database
         # Runs a script that creates a PostgreSQL table, populates
@@ -51,10 +51,8 @@ jobs:
       
       - name: start server and run tests (one step, else server will be down when tests start)
         run: |
-          cd packages/core
-          npm run dev &
+          npm run -w @lionweb/repository-core dev &
           sleep 6
-          cd ../../packages/test
           npm run test
         # Environment variables used by the `client.js` script to create a new PostgreSQL table.
         env:

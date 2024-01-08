@@ -1,5 +1,5 @@
 import { Request, Response } from "express"
-import { ADDITIONAL_API_WORKER } from "../database/AdditionalApiWorker.js"
+import { ADDITIONAL_API_WORKER } from "./AdditionalApiWorker.js"
 
 export interface AdditionalApi {
     getNodeTree(req: Request, res: Response): void
