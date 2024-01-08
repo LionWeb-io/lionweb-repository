@@ -34,10 +34,10 @@ npm run lint
 
 ### How to start the repository server
 Ensure that Postgress is running.
-The repository server is started with `npm run dev` in  the `packages/repository` folder:
+The repository server is started with `npm run dev` in  the `packages/core` folder:
 
 ```
-cd packages/repository
+cd packages/core
 npm run dev
 ```
 
@@ -58,14 +58,14 @@ This repository is Work In Progress, currently:
  
 ##  Packages
 
-### repository-mgt
+### dbadmin
 Contain code to manipulate the postgres database (create, initialize)
 
-### repository
+### core
 The core repository
 
 ### test
-Tests for the repository package
+Tests for the core package
 
 ## CI
 In GitHub actions a postgres server is started on a host named `postres`.

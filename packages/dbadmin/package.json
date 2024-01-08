@@ -1,7 +1,8 @@
 {
-  "name": "@lionweb/repository-mgt",
+  "name": "@lionweb/repository-dbadmin",
   "version": "0.1.0",
   "private": false,
+  "description": "DB Admin routes for the lionweb repository",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
@@ -16,10 +17,8 @@
   },
   "scripts": {
     "build": "rm -rf dist/ && tsc",
-    "alive": "echo I am alive",
     "cleanup": "rm -rf ./node_modules",
     "lint": "eslint src",
-    "manualtest": "node dist/test/ManualTests.js",
-    "test": "echo No tests in repository-mgt"
+    "test": "echo No tests in repository-dbadmin"
   }
 }

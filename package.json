@@ -1,7 +1,7 @@
 {
   "name": "@lionweb/repository-packages",
   "version": "0.1.0",
-  "private": false,
+  "private": true,
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -11,7 +11,7 @@
     "url": "https://github.com/LionWeb-io/lionweb-repository/issues"
   },
   "scripts": {
-    "build": "echo Running build for all packages",
+    "build": " npm run build -w packages",
     "lint": "npm run lint -w packages",
     "test": "npm run test -w packages",
     "database": "node packages/database-mgt/dist/tools/database",
@@ -32,8 +32,8 @@
     "typescript": "5.2.2"
   },
   "workspaces": [
-    "./packages/repository-mgt",
-    "./packages/repository",
+    "./packages/dbadmin",
+    "./packages/core",
     "./packages/test"
   ]
 }

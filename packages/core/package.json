@@ -1,5 +1,5 @@
 {
-  "name": "@lionweb/repository",
+  "name": "@lionweb/repository-core",
   "version": "0.1.0",
   "private": false,
   "main": "src/server.ts",
@@ -37,7 +37,7 @@
     "typescript": "5.2.2"
   },
   "dependencies": {
-    "@lionweb/repository-mgt": "0.1.0",
+    "@lionweb/repository-dbadmin": "0.1.0",
     "@lionweb/validation": "0.6.0-beta.4",
     "@types/express": "4.17.21",
     "body-parser": "1.20.2",
