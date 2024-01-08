@@ -1,4 +1,4 @@
-import { LionWebJsonChunk, LwJsonUsedLanguage } from "@lionweb/validation"
+import { LionWebJsonChunk } from "@lionweb/validation"
 import { LIONWEB_QUERIES } from "../database/LionWebQueries.js"
 import { collectUsedLanguages } from "../database/UsedLanguages.js"
 
