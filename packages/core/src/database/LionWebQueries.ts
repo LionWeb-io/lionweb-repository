@@ -11,7 +11,7 @@ import {
 import { NodeAdded, ChildAdded, ChildRemoved, LionWebJsonDiff, ParentChanged } from "@lionweb/validation"
 import { DB } from "./Db.js";
 import { dbConnection } from "./DbConnection.js"
-import { LIONWEB_BULKAPI_WORKER } from "./LionWebBulkApiWorker.js"
+import { LIONWEB_BULKAPI_WORKER } from "../controllers/LionWebBulkApiWorker.js"
 import { queryNodeTreeForIdList, QueryNodeForIdList, postgresArrayFromStringArray } from "./QueryNode.js"
 import { collectUsedLanguages } from "./UsedLanguages.js"
 
@@ -246,7 +246,7 @@ class LionWebQueries {
     }
 
     /**
-     * Recursively get all contained child ids.
+     * Recursively get all directly contained child ids in _nodes_, including annotation children.
      * @param nodes
      * @private
      */

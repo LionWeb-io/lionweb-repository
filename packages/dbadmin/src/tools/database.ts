@@ -1,32 +1,40 @@
-import dotenv from "dotenv"
-import fs from "fs-extra"
 import pgPromise from "pg-promise"
+import { CREATE_DATABASE_SQL } from "./create-database-sql.js"
+import { INIT_TABLES_SQL } from "./init-tables-sql.js"
 
-const init = async (envFile: string, sqlFile: string) => {
-    // read environment variables
-    dotenv.config({ path: envFile })
-    const port = parseInt(process.env.PGPORT || "5432", 10)
-    const config = {
-        // database: process.env.PGDATABASE || "postgres",
-        host: process.env.PGHOST || "localhost",
-        port: port,
-        user: process.env.PGUSER || "postgres",
-        password: process.env.PGPASSWORD || "lionweb",
-    }
-    let db
-    // create an instance of the PostgreSQL client
-    // const client = new Client.Client();
+type PostgresConfig = {
+    host: string
+    port: number
+    user: string
+    database?: string
+    password: string
+}
+const CREATE_CONFIG: PostgresConfig = {
+    host: process.env.PGHOST || "postgres",
+    port: parseInt(process.env.PGPORT || "5432", 10),
+    user: process.env.PGUSER || "postgres",
+    password: process.env.PGPASSWORD || "lionweb"
+}
+const INIT_CONFIG: PostgresConfig = {
+    host: process.env.PGHOST || "postgres",
+    database: "lionweb_test",
+    port: parseInt(process.env.PGPORT || "5432", 10),
+    user: process.env.PGUSER || "postgres",
+    password: process.env.PGPASSWORD || "lionweb"
+}
+
+const init = async (config: PostgresConfig, sqlFile: string) => {
     try {
         // connect to the local database server
         const pgp = pgPromise()
         console.log("config " + JSON.stringify(config, null, 2))
-        db = pgp(config)
+        const db = pgp(config)
 
         console.log("???")
         // await db.connect();
         console.log("!!!")
         // read the contents of the initdb.pgsql file
-        const sql = await fs.readFile(sqlFile, { encoding: "UTF-8" })
+        const sql = sqlFile 
         console.log("FS: " + JSON.stringify(sql))
         // split the file into separate statements
         // client.database;
@@ -53,14 +61,14 @@ const init = async (envFile: string, sqlFile: string) => {
 
 const command = process.argv[2]
 let sqlfile = ""
-let envFile = ""
+let envFile: PostgresConfig = null
 if (command === "create") {
-    sqlfile = "./src/tools/lionweb-create-database.sql"
+    sqlfile = CREATE_DATABASE_SQL
     // Environment without database name
-    envFile = "./src/tools/.env_create"
+    envFile = CREATE_CONFIG
 } else if (command === "init") {
-    sqlfile = "./src/tools/lionweb-init-tables.sql"
-    envFile = "./src/tools/.env_init"
+    sqlfile = INIT_TABLES_SQL
+    envFile = INIT_CONFIG
 } else {
     console.log("Usage: node initdb (create | init)")
     process.exit(1)

@@ -5,6 +5,8 @@ import bodyParser from "body-parser"
 import { ADDITIONAL_API } from "./controllers/AdditionalApi.js"
 import { LIONWEB_BULK_API } from "./controllers/LionWebBulkApi.js"
 import cors from "cors"
+import { registerDBAdmin } from "@lionweb/repository-dbadmin"
+import { dbConnection } from "./database/DbConnection.js"
 
 dotenv.config()
 
@@ -28,7 +30,7 @@ app.post("/bulk/store", LIONWEB_BULK_API.store)
 app.post("/bulk/retrieve", LIONWEB_BULK_API.retrieve)
 
 app.post("/getNodeTree", ADDITIONAL_API.getNodeTree)
-app.post("/init", ADDITIONAL_API.init)
+registerDBAdmin(app, dbConnection)
 
 const httpServer = http.createServer(app)
 

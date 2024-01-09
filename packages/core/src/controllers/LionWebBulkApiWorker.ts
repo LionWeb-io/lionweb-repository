@@ -1,6 +1,6 @@
-import { LionWebJsonChunk, LwJsonUsedLanguage } from "@lionweb/validation"
-import { LIONWEB_QUERIES } from "./LionWebQueries.js"
-import { collectUsedLanguages } from "./UsedLanguages.js"
+import { LionWebJsonChunk } from "@lionweb/validation"
+import { LIONWEB_QUERIES } from "../database/LionWebQueries.js"
+import { collectUsedLanguages } from "../database/UsedLanguages.js"
 
 /**
  * Implementations of the LionWebBulkApi methods.
@@ -47,10 +47,9 @@ class LionWebBulkApiWorker {
             }
         }
         const nodes = await LIONWEB_QUERIES.getNodesFromIdList(allNodes.map(node => node.id))
-        const usedLanguages: LwJsonUsedLanguage[] = collectUsedLanguages(nodes)
         return {
             serializationFormatVersion: "2023.1",
-            languages: usedLanguages,
+            languages: collectUsedLanguages(nodes),
             nodes: nodes,
         }
     }

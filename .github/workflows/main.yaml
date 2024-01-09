@@ -44,14 +44,14 @@ jobs:
       - name: tsc
         run: npm run build
 
-      - name: Create and iniytialize Postgres database
+      - name: Create and iniitialize Postgres database
         # Runs a script that creates a PostgreSQL table, populates
         # the table with data, and then retrieves the data.
-        run: node build/tools/database.js create && node build/tools/database.js init      
+        run: node packages/dbadmin/dist/tools/database.js create && node packages/dbadmin/dist/tools/database.js init      
       
       - name: start server and run tests (one step, else server will be down when tests start)
         run: |
-          npm run dev &
+          npm run -w @lionweb/repository-core dev &
           sleep 6
           npm run test
         # Environment variables used by the `client.js` script to create a new PostgreSQL table.
