@@ -54,7 +54,13 @@ class LionWebBulkApiImpl implements LionWebBulkApi {
     async retrieve(req: Request, res: Response): Promise<void> {
         console.log("LionWebBulkApiImpl.retrieve: ")
         const mode = req.query["mode"] as string
-        const depthLimit = Number.parseInt(req.query["depthLimit"] as string)
+        const depthParam = req.query["depthLimit"];
+        let depthLimit: number
+        if (typeof depthParam !== "string") {
+            depthLimit = Number.MAX_SAFE_INTEGER; 
+        } else {
+            depthLimit = Number.parseInt(depthParam)
+        }
         const idList = req.body.ids
         console.log("Api.getNodes: " + JSON.stringify(req.body) + " depth " + depthLimit)
         if (isNaN(depthLimit)) {
