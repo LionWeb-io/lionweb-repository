@@ -13,8 +13,7 @@
   "scripts": {
     "build": " npm run build -w packages",
     "lint": "npm run lint -w packages",
-    "test": "npm run test -w packages",
-    "dev": "npm run dev -w @lionweb/repository-core",
+    "test": "npm run test -w packages --if-present",
     "database": "node packages/database-mgt/dist/tools/database",
     "npm-install-local": "npm config set registry http://localhost:4873 && npm install && npm config set registry https://registry.npmjs.com",
     "npm-install": "npm config set registry https://registry.npmjs.com && npm install"

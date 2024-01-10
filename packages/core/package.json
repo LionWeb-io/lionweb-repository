@@ -20,8 +20,7 @@
     "alive": "echo I am alive",
     "cleanup": "rm -rf ./node_modules",
     "lint": "eslint src",
-    "manualtest": "node dist/test/ManualTests.js",
-    "test": "echo No tests in repository"
+    "manualtest": "node dist/test/ManualTests.js"
   },
   "devDependencies": {
     "prettier": "3.1.0",
