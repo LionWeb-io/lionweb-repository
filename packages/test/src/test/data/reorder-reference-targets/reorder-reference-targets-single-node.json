@@ -48,15 +48,11 @@
                     "targets": [
                         {
                             "resolveInfo": null,
-                            "reference": "ID-10"
-                        },
-                        {
-                            "resolveInfo": null,
                             "reference": "ID-8"
                         },
                         {
                             "resolveInfo": null,
-                            "reference": "ID-3"
+                            "reference": "ID-10"
                         }
                     ]
                 }

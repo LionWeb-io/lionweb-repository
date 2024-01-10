@@ -8,7 +8,7 @@ import {
     LionWebJsonReferenceTarget, NodeUtils,
     PropertyValueChanged,
     ReferenceChange,
-    TargetAdded,
+    TargetAdded, TargetOrderChanged,
     TargetRemoved
 } from "@lionweb/validation"
 import { dbConnection } from "./DbConnection.js"
@@ -105,7 +105,7 @@ export class Db {
                 queries += `-- Update if not inserted
                 ON CONFLICT (node_id, reference)
                 DO UPDATE   
-                    SET targets = ${this.targetsAsPostgresArray(referenceChange.afterReference.targets)}
+                    SET targets = ${this.targetsAsPostgresArray(referenceChange.afterReference.targets)};
                 `
             })
         referenceChanges
@@ -126,12 +126,16 @@ export class Db {
                 queries += `-- Update if not inserted
                 ON CONFLICT (node_id, reference)
                 DO UPDATE 
-                    SET targets = ${targets}
+                    SET targets = ${targets};
                 `
             })
         return queries
     }
 
+    /**
+     * Old Update instead of Upsert method. keeping it in case this is needed.
+     * @param referenceChanges
+     */
     public updateQueriesForReferenceChanges(referenceChanges: ReferenceChange[]) {
         let queries = ""
         referenceChanges
@@ -142,9 +146,9 @@ export class Db {
                     SET targets = ${this.targetsAsPostgresArray(referenceChange.afterReference.targets)}
                 WHERE
                     r.node_id = '${referenceChange.node.id}' AND
-                    r.wwwreference->>'key' = '${referenceChange.afterReference.reference.key}' AND
-                    r.wwwreference->>'version' = '${referenceChange.afterReference.reference.version}'  AND
-                    r.wwwreference->>'language' = '${referenceChange.afterReference.reference.language}' ;
+                    r.reference->>'key' = '${referenceChange.afterReference.reference.key}' AND
+                    r.reference->>'version' = '${referenceChange.afterReference.reference.version}'  AND
+                    r.reference->>'language' = '${referenceChange.afterReference.reference.language}' ;
                 `
             })
         referenceChanges
@@ -162,6 +166,26 @@ export class Db {
                     r.reference->>'key' = '${referenceChange.beforeReference.reference.key}' AND
                     r.reference->>'version' = '${referenceChange.beforeReference.reference.version}'  AND
                     r.reference->>'language' = '${referenceChange.beforeReference.reference.language}' ;
+                `
+            })
+        return queries
+    }
+
+    /**
+     * @param ordersChanged
+     */
+    public updateReferenceTargetOrder(ordersChanged: TargetOrderChanged[]) {
+        let queries = ""
+        ordersChanged
+            .forEach(orderChange => {
+                queries += `-- Reference has changed
+                UPDATE lionweb_references r
+                    SET targets = ${this.targetsAsPostgresArray(orderChange.afterReference.targets)}
+                WHERE
+                    r.node_id = '${orderChange.node.id}' AND
+                    r.reference->>'key' = '${orderChange.afterReference.reference.key}' AND
+                    r.reference->>'version' = '${orderChange.afterReference.reference.version}'  AND
+                    r.reference->>'language' = '${orderChange.afterReference.reference.language}' ;
                 `
             })
         return queries

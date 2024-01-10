@@ -114,6 +114,10 @@
                         },
                         {
                             "resolveInfo": null,
+                            "reference": "ID-8"
+                        },
+                        {
+                            "resolveInfo": null,
                             "reference": "ID-3"
                         }
                     ]
@@ -471,8 +475,7 @@
                 "key": "Folder-key"
             },
             "properties": [],
-            "containments": [
-            ],
+            "containments": [],
             "references": [],
             "annotations": [],
             "parent": "ID-7"
@@ -485,8 +488,7 @@
                 "key": "Folder-key"
             },
             "properties": [],
-            "containments": [
-            ],
+            "containments": [],
             "references": [],
             "annotations": [],
             "parent": "ID-7"
@@ -499,8 +501,7 @@
                 "key": "Folder-key"
             },
             "properties": [],
-            "containments": [
-            ],
+            "containments": [],
             "references": [],
             "annotations": [],
             "parent": "ID-7"

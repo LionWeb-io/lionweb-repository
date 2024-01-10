@@ -358,6 +358,37 @@ describe("Repository tests", () => {
             await testResult("./src/test/data/reorder-annotations/reorder-annotations-partition.json")
         })
     })
+    describe("Reorder reference targets", () => {
+        it("test update full partition", async () => {
+            const jsonModel2 = t.readModel(
+                "./src/test/data/reorder-reference-targets/reorder-reference-targets-partition.json",
+            ) as LionWebJsonChunk
+            const diff = new LionWebJsonDiff()
+            diff.diffLwChunk(jsonModel, jsonModel2)
+            console.log("DIF " + diff.diffResult.asStringArray())
+
+            const result = (await t.testStore(jsonModel2))
+            console.log("Result: \n" + result.json)
+            if (result.status === 400) {
+                console.log("ASJSON: \n" + result.json["issues"])
+            }
+            await testResult("./src/test/data/reorder-reference-targets/reorder-reference-targets-partition.json")
+        })
+        it("test update single node", async () => {
+            const jsonModel2 = t.readModel(
+                "./src/test/data/reorder-reference-targets/reorder-reference-targets-single-node.json",
+            ) as LionWebJsonChunk
+            const diff = new LionWebJsonDiff()
+            diff.diffLwChunk(jsonModel, jsonModel2)
+            console.log("DIF " + diff.diffResult.asStringArray())
+
+            const result = (await t.testStore(jsonModel2))
+            console.log("Result: \n" + JSON.stringify(result))
+            assert(result.status === 200)
+
+            await testResult("./src/test/data/reorder-reference-targets/reorder-reference-targets-partition.json")
+        })
+    })
 
     async function testResult(originalJsonFile) {
         const jsonModelFull = t.readModel(originalJsonFile) as LionWebJsonChunk

@@ -5,7 +5,8 @@ import {
     NodeUtils,
     PropertyValueChanged,
     ReferenceChange,
-    LionWebJsonReferenceTarget, AnnotationAdded, AnnotationChange, AnnotationRemoved, ChildOrderChanged
+    TargetOrderChanged,
+    LionWebJsonReferenceTarget, AnnotationAdded, AnnotationChange, AnnotationRemoved, ChildOrderChanged,         
 } from "@lionweb/validation"
 
 import { NodeAdded, ChildAdded, ChildRemoved, LionWebJsonDiff, ParentChanged, AnnotationOrderChanged } from "@lionweb/validation"
@@ -112,6 +113,7 @@ class LionWebQueries {
         const removedAnnotations = diff.diffResult.changes.filter((ch): ch is AnnotationRemoved => ch instanceof AnnotationRemoved)
         const childrenOrderChanged = diff.diffResult.changes.filter((ch): ch is ChildOrderChanged => ch instanceof ChildOrderChanged)
         const annotationOrderChanged = diff.diffResult.changes.filter((ch): ch is AnnotationOrderChanged => ch instanceof AnnotationOrderChanged)
+        const targetOrderChanged = diff.diffResult.changes.filter((ch): ch is TargetOrderChanged => ch instanceof TargetOrderChanged)
 
         // Only children that already exist in the database
         const databaseChildrenOfNewNodes = this.getContainedIds(toBeStoredNewNodes.map(ch => ch.node))
@@ -177,6 +179,7 @@ class LionWebQueries {
         queries += DB.makeQueriesForOrphans(orphansContainedChildrenOrphans.map(oc => oc.id))
         queries += DB.makeQueriesForOrphans(removedAndNotAddedAnnotations.map(oc => oc.annotationId))
         queries += DB.upsertQueriesForReferenceChanges(targetsChanged)
+        queries += DB.updateReferenceTargetOrder(targetOrderChanged)
         queries += this.makeQueriesForAnnotationsChanged([...addedAnnotations, ...removedAnnotations, ... annotationOrderChanged])
         // And run them on the database
         if (queries !== "") {

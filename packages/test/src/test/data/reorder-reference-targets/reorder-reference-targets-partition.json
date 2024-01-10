@@ -110,11 +110,11 @@
                     "targets": [
                         {
                             "resolveInfo": null,
-                            "reference": "ID-10"
+                            "reference": "ID-8"
                         },
                         {
                             "resolveInfo": null,
-                            "reference": "ID-8"
+                            "reference": "ID-10"
                         }
                     ]
                 }
@@ -460,7 +460,7 @@
                 }
             ],
             "references": [],
-            "annotations": ["ANN-1", "ANN-2"],
+            "annotations": ["ANN-1", "ANN-9", "ANN-10"],
             "parent": "ID-3"
         },
         {
@@ -478,7 +478,21 @@
             "parent": "ID-7"
         },
         {
-            "id": "ANN-2",
+            "id": "ANN-9",
+            "classifier": {
+                "language": "-default-key-FileSystem",
+                "version": "2023.1",
+                "key": "Folder-key"
+            },
+            "properties": [],
+            "containments": [
+            ],
+            "references": [],
+            "annotations": [],
+            "parent": "ID-7"
+        },
+        {
+            "id": "ANN-10",
             "classifier": {
                 "language": "-default-key-FileSystem",
                 "version": "2023.1",
