@@ -5,10 +5,10 @@ import {
     NodeUtils,
     PropertyValueChanged,
     ReferenceChange,
-    LionWebJsonReferenceTarget, AnnotationAdded, AnnotationChange, AnnotationRemoved
+    LionWebJsonReferenceTarget, AnnotationAdded, AnnotationChange, AnnotationRemoved, ChildOrderChanged
 } from "@lionweb/validation"
 
-import { NodeAdded, ChildAdded, ChildRemoved, LionWebJsonDiff, ParentChanged } from "@lionweb/validation"
+import { NodeAdded, ChildAdded, ChildRemoved, LionWebJsonDiff, ParentChanged, AnnotationOrderChanged } from "@lionweb/validation"
 import { DB } from "./Db.js";
 import { dbConnection } from "./DbConnection.js"
 import { LIONWEB_BULKAPI_WORKER } from "../controllers/LionWebBulkApiWorker.js"
@@ -110,6 +110,8 @@ class LionWebQueries {
         const targetsChanged = diff.diffResult.changes.filter((ch): ch is ReferenceChange => ch instanceof ReferenceChange)
         const addedAnnotations = diff.diffResult.changes.filter((ch): ch is AnnotationAdded => ch instanceof AnnotationAdded)
         const removedAnnotations = diff.diffResult.changes.filter((ch): ch is AnnotationRemoved => ch instanceof AnnotationRemoved)
+        const childrenOrderChanged = diff.diffResult.changes.filter((ch): ch is ChildOrderChanged => ch instanceof ChildOrderChanged)
+        const annotationOrderChanged = diff.diffResult.changes.filter((ch): ch is AnnotationOrderChanged => ch instanceof AnnotationOrderChanged)
 
         // Only children that already exist in the database
         const databaseChildrenOfNewNodes = this.getContainedIds(toBeStoredNewNodes.map(ch => ch.node))
@@ -167,6 +169,7 @@ class LionWebQueries {
         queries += DB.upsertQueriesForPropertyChanges(propertyChanged)
         queries += DB.upsertAddedChildrenQuery(addedChildren, toBeStoredChunkWrapper)
         queries += DB.updateQueriesForRemovedChildren(removedChildren, toBeStoredChunkWrapper)
+        queries += DB.updateQueriesForChildOrder(childrenOrderChanged)
         queries += this.makeQueriesForParentChanged(parentChanged)
         queries += this.updateQueriesForImplicitlyRemovedChildNodes(implicitlyRemovedChildNodes, parentsOfImplicitlyRemovedChildNodes)
         queries += this.makeQueriesForImplicitParentChanged(addedAndNotParentChangedChildren)
@@ -174,7 +177,7 @@ class LionWebQueries {
         queries += DB.makeQueriesForOrphans(orphansContainedChildrenOrphans.map(oc => oc.id))
         queries += DB.makeQueriesForOrphans(removedAndNotAddedAnnotations.map(oc => oc.annotationId))
         queries += DB.upsertQueriesForReferenceChanges(targetsChanged)
-        queries += this.makeQueriesForAnnotationsChanged([...addedAnnotations, ...removedAnnotations])
+        queries += this.makeQueriesForAnnotationsChanged([...addedAnnotations, ...removedAnnotations, ... annotationOrderChanged])
         // And run them on the database
         if (queries !== "") {
             console.log("QUERIES " + queries)
@@ -232,13 +235,13 @@ class LionWebQueries {
 
     private makeQueriesForAnnotationsChanged(annotationChanges: AnnotationChange[]) {
         let queries = ""
+        // annotationChanges
+        //     .filter((ch): ch is AnnotationRemoved => ch instanceof AnnotationRemoved)
+        //     .forEach(annotationChange => {
+        //         queries += DB.updateAnnotationsQuery(annotationChange.nodeBefore.id, annotationChange.nodeAfter.annotations)
+        //     })
         annotationChanges
-            .filter((ch): ch is AnnotationRemoved => ch instanceof AnnotationRemoved)
-            .forEach(annotationChange => {
-                queries += DB.updateAnnotationsQuery(annotationChange.nodeBefore.id, annotationChange.nodeAfter.annotations)
-            })
-        annotationChanges
-            .filter((ch): ch is AnnotationAdded => ch instanceof AnnotationAdded)
+            // .filter((ch): ch is AnnotationAdded => ch instanceof AnnotationAdded)
             .forEach(annotationChange => {
                 queries += DB.updateAnnotationsQuery(annotationChange.nodeBefore.id, annotationChange.nodeAfter.annotations)
             })

@@ -1,11 +1,11 @@
 // const pgp = require("pg-promise")();
 import {
-    ChildAdded,
+    ChildAdded, ChildOrderChanged,
     ChildRemoved,
     isEqualMetaPointer,
     LionWebJsonChunkWrapper,
     LionWebJsonNode,
-    LionWebJsonReferenceTarget,
+    LionWebJsonReferenceTarget, NodeUtils,
     PropertyValueChanged,
     ReferenceChange,
     TargetAdded,
@@ -23,7 +23,7 @@ export type NodeTreeResultType = {
 }
 
 /**
- * Database functions.
+ * Function that build SQL queries.
  */
 export class Db {
     constructor() {}
@@ -142,9 +142,9 @@ export class Db {
                     SET targets = ${this.targetsAsPostgresArray(referenceChange.afterReference.targets)}
                 WHERE
                     r.node_id = '${referenceChange.node.id}' AND
-                    r.lw_reference->>'key' = '${referenceChange.afterReference.reference.key}' AND
-                    r.lw_reference->>'version' = '${referenceChange.afterReference.reference.version}'  AND
-                    r.lw_reference->>'language' = '${referenceChange.afterReference.reference.language}' ;
+                    r.wwwreference->>'key' = '${referenceChange.afterReference.reference.key}' AND
+                    r.wwwreference->>'version' = '${referenceChange.afterReference.reference.version}'  AND
+                    r.wwwreference->>'language' = '${referenceChange.afterReference.reference.language}' ;
                 `
             })
         referenceChanges
@@ -159,9 +159,9 @@ export class Db {
                     SET targets = ${targets}
                 WHERE
                     r.node_id = '${referenceChange.node.id}' AND
-                    r.lw_reference->>'key' = '${referenceChange.beforeReference.reference.key}' AND
-                    r.lw_reference->>'version' = '${referenceChange.beforeReference.reference.version}'  AND
-                    r.lw_reference->>'language' = '${referenceChange.beforeReference.reference.language}' ;
+                    r.reference->>'key' = '${referenceChange.beforeReference.reference.key}' AND
+                    r.reference->>'version' = '${referenceChange.beforeReference.reference.version}'  AND
+                    r.reference->>'language' = '${referenceChange.beforeReference.reference.language}' ;
                 `
             })
         return queries
@@ -187,8 +187,25 @@ export class Db {
                 UPDATE lionweb_nodes
                     SET annotations = '${postgresArrayFromStringArray(annotations)}'
                 WHERE
-                    id = '${nodeId}';
+                     id = '${nodeId}';
                 `
+    }
+
+    public updateQueriesForChildOrder(childOrderChange: ChildOrderChanged[]): string {
+        let queries = ""
+        childOrderChange.forEach(orderChanged => {
+            const afterContainment = orderChanged.afterContainment
+            queries += `-- Order of children has changed
+                UPDATE lionweb_containments
+                    SET children = '${postgresArrayFromStringArray(afterContainment?.children)}'
+                WHERE
+                    node_id = '${orderChanged.parentNode.id}' AND
+                    containment->>'key' = '${orderChanged.containment.key}' AND
+                    containment->>'version' = '${orderChanged.containment.version}' AND
+                    containment->>'language' = '${orderChanged.containment.language}';
+        `
+        })
+        return queries
     }
 
     public updateQueriesForRemovedChildren(removedChildren: ChildRemoved[], toBeStoredChunkWrapper: LionWebJsonChunkWrapper) {
