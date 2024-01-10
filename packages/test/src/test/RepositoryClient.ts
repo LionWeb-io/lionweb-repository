@@ -62,13 +62,11 @@ export class RepositoryClient {
 
     async testRetrieve(nodeIds: string[], depth?: number) {
         console.log(`test.testRetrieve ${nodeIds} with depth ${depth}`)
-        depth = depth || 999
+        const params = (depth === undefined) ? "" : `depthLimit=${depth}`
         const startTime = performance.now()
-        // const x = await this.postWithTimeout(`bulk/retrieve`, { body: { ids: nodeIds }, params: `depthLimit=${depth}` })
-        const x = await this.postWithTimeout(`bulk/retrieve`, { body: { ids: nodeIds }, params: `depthLimit=${depth}` })
+        const x = await this.postWithTimeout(`bulk/retrieve`, { body: { ids: nodeIds }, params: `${params}` })
         const endTime = performance.now()
         console.log(`Call to query took ${endTime - startTime} milliseconds`)
-        // console.log("++++++++++++++ result node is " + JSON.stringify(x));
         return x
     }
 
