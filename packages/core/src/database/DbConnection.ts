@@ -1,7 +1,7 @@
 import pgPromise from "pg-promise"
 import dotenv from "dotenv"
 
-// Ininitalize and export the database connection with configuration from _env_
+// Initialize and export the database connection with configuration from _env_
 
 dotenv.config()
 

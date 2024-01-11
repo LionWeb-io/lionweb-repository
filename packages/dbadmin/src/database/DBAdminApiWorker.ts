@@ -1,13 +1,11 @@
 import pgPromise from "pg-promise"
-import pg from "pg-promise/typescript/pg-subset.js"
-
 
 /**
  * Implementations of the additional non-LionWeb methods for DB Administration.
  */
 export class DBAdminApiWorker {
 
-    constructor(private dbConnection: pgPromise.IDatabase<object, pg.IClient>) {
+    constructor(private dbConnection: pgPromise.IDatabase<object>) {
     }
 
     async init(sql: string) {
@@ -15,7 +13,7 @@ export class DBAdminApiWorker {
     }
 }
 
-export function createDBAdminApiWorker(dbConnection: pgPromise.IDatabase<object , pg.IClient>) {
+export function createDBAdminApiWorker(dbConnection: pgPromise.IDatabase<object>) {
     DB_ADMIN_WORKER = new DBAdminApiWorker(dbConnection);
 }
 

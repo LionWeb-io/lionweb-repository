@@ -9,8 +9,7 @@ export interface DBAdminApi {
 class DBAdminApiImpl implements DBAdminApi {
 
     async init(req: e.Request, res: e.Response) {
-        const sql = INIT_TABLES_SQL
-        await DB_ADMIN_WORKER.init(sql)
+        await DB_ADMIN_WORKER.init(INIT_TABLES_SQL)
         res.send("initialized")
     }
 }

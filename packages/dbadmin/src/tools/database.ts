@@ -30,14 +30,9 @@ const init = async (config: PostgresConfig, sqlFile: string) => {
         console.log("config " + JSON.stringify(config, null, 2))
         const db = pgp(config)
 
-        console.log("???")
-        // await db.connect();
-        console.log("!!!")
-        // read the contents of the initdb.pgsql file
         const sql = sqlFile 
         console.log("FS: " + JSON.stringify(sql))
         // split the file into separate statements
-        // client.database;
         const statements = sql.split(/;\s*$/m)
         for (const statement of statements) {
             if (statement.length > 3) {
@@ -50,31 +45,26 @@ const init = async (config: PostgresConfig, sqlFile: string) => {
     } catch (err) {
         console.error("ERROR: " + err)
         throw err
-    } finally {
-        // close the database client
-        console.log("Closing database")
     }
-    // await db.end();
-    console.log("Closed")
     return true
 }
 
 const command = process.argv[2]
-let sqlfile = ""
+let sqlFile = ""
 let envFile: PostgresConfig = null
 if (command === "create") {
-    sqlfile = CREATE_DATABASE_SQL
+    sqlFile = CREATE_DATABASE_SQL
     // Environment without database name
     envFile = CREATE_CONFIG
 } else if (command === "init") {
-    sqlfile = INIT_TABLES_SQL
+    sqlFile = INIT_TABLES_SQL
     envFile = INIT_CONFIG
 } else {
-    console.log("Usage: node initdb (create | init)")
+    console.log("Usage: node database (create | init)")
     process.exit(1)
 }
 
-init(envFile, sqlfile)
+init(envFile, sqlFile)
     .then(() => {
         console.log("finished ok")
         process.exit(0)

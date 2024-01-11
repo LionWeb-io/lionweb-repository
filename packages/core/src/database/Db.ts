@@ -1,11 +1,12 @@
 // const pgp = require("pg-promise")();
+import { CONTAINMENTS_TABLE, NODES_TABLE, PROPERTIES_TABLE, REFERENCES_TABLE } from "@lionweb/repository-dbadmin";
 import {
     ChildAdded, ChildOrderChanged,
     ChildRemoved,
     isEqualMetaPointer,
     LionWebJsonChunkWrapper,
     LionWebJsonNode,
-    LionWebJsonReferenceTarget, NodeUtils,
+    LionWebJsonReferenceTarget,
     PropertyValueChanged,
     ReferenceChange,
     TargetAdded, TargetOrderChanged,
@@ -13,14 +14,7 @@ import {
 } from "@lionweb/validation"
 import { dbConnection } from "./DbConnection.js"
 import { postgresArrayFromStringArray, sqlArrayFromStringArray } from "./QueryNode.js"
-import { CONTAINMENTS_COLUMNSET, NODES_COLUMNSET, pgp, PROPERTIES_COLUMNSET, REFERENCES_COLUMNSET } from "./TableDefinitions.js"
-
-
-export type NodeTreeResultType = {
-    id: string
-    parent: string
-    depth: number
-}
+import { CONTAINMENTS_COLUMN_SET, NODES_COLUMN_SET, pgp, PROPERTIES_COLUMN_SET, REFERENCES_COLUMN_SET } from "./TableDefinitions.js"
 
 /**
  * Function that build SQL queries.
@@ -35,7 +29,7 @@ export class Db {
         const sqlIds = sqlArrayFromStringArray(orphanIds)
         return `-- Remove orphans by moving them to the orphan tables
                 WITH orphan AS (
-                    DELETE FROM lionweb_nodes n
+                    DELETE FROM ${NODES_TABLE} n
                     WHERE n.id IN ${sqlIds}
                     RETURNING *
                 )
@@ -43,7 +37,7 @@ export class Db {
                     SELECT * FROM orphan;
                 
                 WITH orphan AS (
-                    DELETE FROM lionweb_properties p
+                    DELETE FROM ${PROPERTIES_TABLE} p
                     WHERE p.node_id IN ${sqlIds}
                     RETURNING *
                 )
@@ -51,7 +45,7 @@ export class Db {
                     SELECT * FROM orphan;
 
                 WITH orphan AS (
-                    DELETE FROM lionweb_containments c
+                    DELETE FROM ${CONTAINMENTS_TABLE} c
                     WHERE c.node_id IN ${sqlIds}
                     RETURNING *
                 )                
@@ -59,7 +53,7 @@ export class Db {
                     SELECT * FROM orphan;
 
                 WITH orphan AS (
-                    DELETE FROM lionweb_references r
+                    DELETE FROM ${REFERENCES_TABLE} r
                     WHERE r.node_id IN ${sqlIds}
                     RETURNING *
                 )
@@ -78,7 +72,7 @@ export class Db {
                     property: propertyChange.property,
                     value: propertyChange.newValue
                 },
-                PROPERTIES_COLUMNSET
+                PROPERTIES_COLUMN_SET
             )
             queries += `
                 ON CONFLICT (node_id, property)
@@ -100,7 +94,7 @@ export class Db {
                         reference: referenceChange.afterReference.reference,
                         targets: referenceChange.afterReference.targets
                     },
-                    REFERENCES_COLUMNSET
+                    REFERENCES_COLUMN_SET
                 )
                 queries += `-- Update if not inserted
                 ON CONFLICT (node_id, reference)
@@ -117,7 +111,7 @@ export class Db {
                         reference: referenceChange.beforeReference?.reference || referenceChange?.afterReference.reference,
                         targets: referenceChange.afterReference?.targets || []
                     },
-                    REFERENCES_COLUMNSET
+                    REFERENCES_COLUMN_SET
                 )
                 const targets =
                     referenceChange.afterReference === null
@@ -142,7 +136,7 @@ export class Db {
             .filter(r => r instanceof TargetAdded)
             .forEach(referenceChange => {
                 queries += `-- Reference has changed
-                UPDATE lionweb_references r
+                UPDATE ${REFERENCES_TABLE} r
                     SET targets = ${this.targetsAsPostgresArray(referenceChange.afterReference.targets)}
                 WHERE
                     r.node_id = '${referenceChange.node.id}' AND
@@ -159,7 +153,7 @@ export class Db {
                         ? "ARRAY[]::jsonb[]"
                         : this.targetsAsPostgresArray(referenceChange.beforeReference.targets)
                 queries += `-- Reference has changed
-                UPDATE lionweb_references r
+                UPDATE ${REFERENCES_TABLE} r
                     SET targets = ${targets}
                 WHERE
                     r.node_id = '${referenceChange.node.id}' AND
@@ -179,7 +173,7 @@ export class Db {
         ordersChanged
             .forEach(orderChange => {
                 queries += `-- Reference has changed
-                UPDATE lionweb_references r
+                UPDATE ${REFERENCES_TABLE} r
                     SET targets = ${this.targetsAsPostgresArray(orderChange.afterReference.targets)}
                 WHERE
                     r.node_id = '${orderChange.node.id}' AND
@@ -199,7 +193,7 @@ export class Db {
 
     public updateParentQuery(nodeId: string, parent: string): string {
         return `-- Update of parent of children that have been moved
-                UPDATE lionweb_nodes n 
+                UPDATE ${NODES_TABLE} n 
                     SET parent = '${parent}'
                 WHERE
                     n.id = '${nodeId}';
@@ -208,7 +202,7 @@ export class Db {
 
     public updateAnnotationsQuery(nodeId: string, annotations: string[]): string {
         return `-- Update of annotations that have been moved
-                UPDATE lionweb_nodes
+                UPDATE ${NODES_TABLE}
                     SET annotations = '${postgresArrayFromStringArray(annotations)}'
                 WHERE
                      id = '${nodeId}';
@@ -220,13 +214,13 @@ export class Db {
         childOrderChange.forEach(orderChanged => {
             const afterContainment = orderChanged.afterContainment
             queries += `-- Order of children has changed
-                UPDATE lionweb_containments
+                UPDATE ${CONTAINMENTS_TABLE}
                     SET children = '${postgresArrayFromStringArray(afterContainment?.children)}'
                 WHERE
                     node_id = '${orderChanged.parentNode.id}' AND
-                    containment->>'key' = '${orderChanged.containment.key}' AND
-                    containment->>'version' = '${orderChanged.containment.version}' AND
-                    containment->>'language' = '${orderChanged.containment.language}';
+                    containment->>'key' = '${afterContainment.containment.key}' AND
+                    containment->>'version' = '${afterContainment.containment.version}' AND
+                    containment->>'language' = '${afterContainment.containment.language}';
         `
         })
         return queries
@@ -238,7 +232,7 @@ export class Db {
             const afterNode = toBeStoredChunkWrapper.getNode(removed.parentNode.id)
             const afterContainment = afterNode.containments.find(cont => isEqualMetaPointer(cont.containment, removed.containment))
             queries += `-- Update node that has children removed.
-                UPDATE lionweb_containments c 
+                UPDATE ${CONTAINMENTS_TABLE} c 
                     SET children = '${postgresArrayFromStringArray(afterContainment.children)}'
                 WHERE
                     c.node_id = '${afterNode.id}' AND
@@ -265,7 +259,7 @@ export class Db {
                 { node_id: afterNode.id, containment: afterContainment.containment, children: afterContainment.children }
             ]
             if (insertRowData.length > 0) {
-                const insertContainments = pgp.helpers.insert(insertRowData, CONTAINMENTS_COLUMNSET)
+                const insertContainments = pgp.helpers.insert(insertRowData, CONTAINMENTS_COLUMN_SET)
                 queries += insertContainments
                 queries += `\n-- Up date if not inserted
                 ON CONFLICT (node_id, containment)
@@ -287,7 +281,7 @@ export class Db {
             const afterContainment = afterNode.containments.find(cont => isEqualMetaPointer(cont.containment, added.containment))
             const children = postgresArrayFromStringArray(afterContainment.children)
             query += `-- Update nodes that have children added
-                UPDATE lionweb_containments c
+                UPDATE ${CONTAINMENTS_TABLE} c
                     SET children = '${children}'
                 WHERE
                     c.node_id = '${afterNode.id}' AND
@@ -305,7 +299,7 @@ export class Db {
      * @param tbsNodesToCreate
      */
     public async dbInsertNodeArray(tbsNodesToCreate: LionWebJsonNode[]) {
-        console.log("Queries insertnew nodes " + tbsNodesToCreate.map(n => n.id))
+        console.log("Queries insert new nodes " + tbsNodesToCreate.map(n => n.id))
         {
             if (tbsNodesToCreate.length === 0) {
                 return
@@ -320,7 +314,7 @@ export class Db {
                     parent: node.parent
                 }
             })
-            const insert = pgp.helpers.insert(node_rows, NODES_COLUMNSET)
+            const insert = pgp.helpers.insert(node_rows, NODES_COLUMN_SET)
             await dbConnection.query(insert)
             await this.insertContainments(tbsNodesToCreate)
 
@@ -329,7 +323,7 @@ export class Db {
                 node.properties.map(prop => ({ node_id: node.id, property: prop.property, value: prop.value }))
             )
             if (insertProperties.length !== 0) {
-                const insertQuery = pgp.helpers.insert(insertProperties, PROPERTIES_COLUMNSET)
+                const insertQuery = pgp.helpers.insert(insertProperties, PROPERTIES_COLUMN_SET)
                 await dbConnection.query(insertQuery)
             }
 
@@ -338,7 +332,7 @@ export class Db {
                 node.references.map(reference => ({ node_id: node.id, reference: reference.reference, targets: reference.targets }))
             )
             if (insertReferences.length !== 0) {
-                const insertReferencesQuery = pgp.helpers.insert(insertReferences, REFERENCES_COLUMNSET)
+                const insertReferencesQuery = pgp.helpers.insert(insertReferences, REFERENCES_COLUMN_SET)
                 await dbConnection.query(insertReferencesQuery)
             }
         }
@@ -350,14 +344,13 @@ export class Db {
             node.containments.map(c => ({ node_id: node.id, containment: c.containment, children: c.children }))
         )
         if (insertRowData.length > 0) {
-            const insertContainments = pgp.helpers.insert(insertRowData, CONTAINMENTS_COLUMNSET)
+            const insertContainments = pgp.helpers.insert(insertRowData, CONTAINMENTS_COLUMN_SET)
             await dbConnection.query(insertContainments)
         }
     }
 
     public async selectNodesIdsWithoutParent(): Promise<{ id:string }[]> {
-        const result = (await dbConnection.query("SELECT id FROM lionweb_nodes WHERE parent is null")) as { id: string }[]
-        return result
+        return (await dbConnection.query(`SELECT id FROM ${NODES_TABLE} WHERE parent is null`)) as { id: string }[]
     }
 }
 

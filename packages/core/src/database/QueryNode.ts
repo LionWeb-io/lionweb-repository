@@ -1,3 +1,5 @@
+import { CONTAINMENTS_TABLE, NODES_TABLE, PROPERTIES_TABLE, REFERENCES_TABLE } from "@lionweb/repository-dbadmin";
+
 export function sqlArrayFromStringArray(strings: string[]): string {
     return `(${strings.map(id => `'${id}'`).join(", ")})`
 }
@@ -13,12 +15,11 @@ export function postgresArrayFromStringArray(strings: string[]): string {
  */
 export const QueryNodeForIdList = (nodeid: string[]): string => {
     const sqlNodeCollection = sqlArrayFromStringArray(nodeid)
-    const query = `
+    return `-- get full nodes from node id's
 WITH 
     node_properties AS ( 
         SELECT
             id ,
---            array_remove(array_agg(jsonb_build_object('property', prop.property, 'value', prop.value)), null) properties
             array_remove(
                 array_agg(
                     JSON_OBJECT(
@@ -29,8 +30,8 @@ WITH
                 ),
                 '{}'
             ) properties
-        FROM lionweb_nodes n1 
-        left join lionweb_properties prop  on prop.node_id  = n1.id 
+        FROM ${NODES_TABLE} n1 
+        left join ${PROPERTIES_TABLE} prop  on prop.node_id  = n1.id 
         where n1.id IN ${sqlNodeCollection}
         group by n1.id, prop.node_id
     ),
@@ -44,8 +45,8 @@ WITH
                     WHEN TRUE THEN
                         null
                 END), null)        containments
-        from lionweb_nodes n1
-        left join lionweb_containments con  on con.node_id  = n1.id 
+        from ${NODES_TABLE} n1
+        left join ${CONTAINMENTS_TABLE} con  on con.node_id  = n1.id 
         where n1.id IN ${sqlNodeCollection}
         group by n1.id, con.node_id
     ),
@@ -59,8 +60,8 @@ WITH
                     WHEN TRUE THEN
                         null
                 END), null)        rreferences
-        from lionweb_nodes n1
-        left join lionweb_references rref  on rref.node_id  = n1.id 
+        from ${NODES_TABLE} n1
+        left join ${REFERENCES_TABLE} rref  on rref.node_id  = n1.id 
         where n1.id IN ${sqlNodeCollection}
         group by n1.id, rref.node_id
     )
@@ -76,7 +77,7 @@ select
     array_to_json(containments) containments,
     array_to_json(rreferences) references,
     annotations annotations
-from lionweb_nodes
+from ${NODES_TABLE}
 left join node_properties prop on prop.id = lionweb_nodes.id
 left join node_containments con on con.id = lionweb_nodes.id
 left join node_references rref on rref.id = lionweb_nodes.id
@@ -84,8 +85,6 @@ where lionweb_nodes.id IN ${sqlNodeCollection}
 group by lionweb_nodes.id, prop.id, con.id, prop.properties, containments, rreferences
 
     `
-    // console.log("QueryNodeForIdList: " + query);
-    return query
 }
 
 /**
@@ -97,20 +96,17 @@ group by lionweb_nodes.id, prop.id, con.id, prop.properties, containments, rrefe
  */
 export const queryNodeTreeForIdList = (nodeidlist: string[], depthLimit: number): string => {
     const sqlArray = sqlArrayFromStringArray(nodeidlist)
-    const query = `
-WITH RECURSIVE tmp AS (
-    SELECT id, parent, 0 as depth
-    FROM lionweb_nodes
---  No need, using parent instead
---  LEFT JOIN (SELECT children, node_id FROM lionweb_containments) con ON con.node_id = id
-    WHERE id IN ${sqlArray}    
-    UNION
-        SELECT nn.id, nn.parent, tmp.depth + 1
-        FROM lionweb_nodes as nn
-        INNER JOIN tmp ON tmp.id = nn.parent
-        WHERE tmp.depth < ${depthLimit} -- AND nn.id NOT in ${"otherArray"}
-)
-SELECT * FROM tmp;
+    return `-- Recursively retrieve node tree
+            WITH RECURSIVE tmp AS (
+                SELECT id, parent, 0 as depth
+                FROM ${NODES_TABLE}
+                WHERE id IN ${sqlArray}    
+                UNION
+                    SELECT nn.id, nn.parent, tmp.depth + 1
+                    FROM ${NODES_TABLE} as nn
+                    INNER JOIN tmp ON tmp.id = nn.parent
+                    WHERE tmp.depth < ${depthLimit} -- AND nn.id NOT in ${"otherArray"}
+            )
+            SELECT * FROM tmp;
     `
-    return query
 }

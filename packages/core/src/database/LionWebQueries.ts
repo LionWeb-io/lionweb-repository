@@ -1,3 +1,4 @@
+import { CONTAINMENTS_TABLE, NODES_TABLE } from "@lionweb/repository-dbadmin";
 import {
     LionWebJsonChunk,
     LionWebJsonNode,
@@ -6,7 +7,7 @@ import {
     PropertyValueChanged,
     ReferenceChange,
     TargetOrderChanged,
-    LionWebJsonReferenceTarget, AnnotationAdded, AnnotationChange, AnnotationRemoved, ChildOrderChanged,         
+    AnnotationAdded, AnnotationChange, AnnotationRemoved, ChildOrderChanged,         
 } from "@lionweb/validation"
 
 import { NodeAdded, ChildAdded, ChildRemoved, LionWebJsonDiff, ParentChanged, AnnotationOrderChanged } from "@lionweb/validation"
@@ -39,9 +40,7 @@ class LionWebQueries {
             return []
         }
         // TODO Currently only gives the node id's, should give full node.
-        const result = await dbConnection.query(queryNodeTreeForIdList(nodeIdList, depthLimit))
-        // console.log("getNodeTree RESULT is " + JSON.stringify(result))
-        return result
+        return await dbConnection.query(queryNodeTreeForIdList(nodeIdList, depthLimit))
     }
 
     /**
@@ -49,7 +48,7 @@ class LionWebQueries {
      */
     getAllDbNodes = async (): Promise<LionWebJsonNode[]> => {
         console.log("LionWebQueries.getAllDbNodes")
-        const queryResult = (await dbConnection.query("SELECT id FROM lionweb_nodes")) as string[]
+        const queryResult = (await dbConnection.query(`SELECT id FROM ${NODES_TABLE}`)) as string[]
         return this.getNodesFromIdList(queryResult)
     }
 
@@ -60,8 +59,7 @@ class LionWebQueries {
         if (nodeIdList.length == 0) {
             return []
         }
-        const nodes = await dbConnection.query(QueryNodeForIdList(nodeIdList))
-        return nodes
+        return await dbConnection.query(QueryNodeForIdList(nodeIdList))
     }
 
     /**
@@ -84,7 +82,7 @@ class LionWebQueries {
     /**
      * Store all nodes in the `nodes` collection in the nodes table.
      *
-     * @param toBeStoredNodes
+     * @param toBeStoredChunk
      */
     store = async (toBeStoredChunk: LionWebJsonChunk) => {
         if (toBeStoredChunk === null || toBeStoredChunk === undefined) {
@@ -127,7 +125,7 @@ class LionWebQueries {
                 databaseChildrenOfNewNodes.find(child => child.id === removed.childId) === undefined
             )
         })
-        // Orpjaned annotations
+        // Orpaned annotations
         const removedAndNotAddedAnnotations = removedAnnotations.filter(removed => {
             return (
                 addedAnnotations.find(added => added.annotationId === removed.annotationId) === undefined &&
@@ -190,12 +188,6 @@ class LionWebQueries {
         return [queries]
     }
 
-    targetsAsPostgresArray(targets: LionWebJsonReferenceTarget[]): string {
-        let result = "ARRAY["
-        result += targets.map(target => "'" + JSON.stringify(target) + "'::jsonb").join(", ")
-        return result + "]"
-    }
-
     private updateQueriesForImplicitlyRemovedChildNodes(
         implicitlyRemovedChildNodes: LionWebJsonChunk,
         parentsOfImplicitlyRemovedChildNodes: LionWebJsonChunk
@@ -208,7 +200,7 @@ class LionWebQueries {
             const newChildren = [...changedContainment.children]
             newChildren.splice(index, 1)
             queries += `-- Implicitly removed children
-                UPDATE lionweb_containments c 
+                UPDATE ${CONTAINMENTS_TABLE} c 
                     SET children = '${postgresArrayFromStringArray(newChildren)}'
                 WHERE
                     c.node_id = '${previousParentNode.id}' AND
