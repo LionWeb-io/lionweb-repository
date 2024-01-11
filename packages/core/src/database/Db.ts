@@ -1,7 +1,17 @@
 // const pgp = require("pg-promise")();
-import { CONTAINMENTS_TABLE, NODES_TABLE, PROPERTIES_TABLE, REFERENCES_TABLE } from "@lionweb/repository-dbadmin";
 import {
-    ChildAdded, ChildOrderChanged,
+    CONTAINMENTS_TABLE,
+    NODES_TABLE,
+    ORPHANS_CONTAINMENTS_TABLE,
+    ORPHANS_NODES_TABLE,
+    ORPHANS_PROPERTIES_TABLE,
+    ORPHANS_REFERENCES_TABLE,
+    PROPERTIES_TABLE,
+    REFERENCES_TABLE
+} from "@lionweb/repository-dbadmin"
+import {
+    ChildAdded,
+    ChildOrderChanged,
     ChildRemoved,
     isEqualMetaPointer,
     LionWebJsonChunkWrapper,
@@ -9,7 +19,8 @@ import {
     LionWebJsonReferenceTarget,
     PropertyValueChanged,
     ReferenceChange,
-    TargetAdded, TargetOrderChanged,
+    TargetAdded,
+    TargetOrderChanged,
     TargetRemoved
 } from "@lionweb/validation"
 import { dbConnection } from "./DbConnection.js"
@@ -33,7 +44,7 @@ export class Db {
                     WHERE n.id IN ${sqlIds}
                     RETURNING *
                 )
-                INSERT INTO lionweb_nodes_orphans
+                INSERT INTO ${ORPHANS_NODES_TABLE}
                     SELECT * FROM orphan;
                 
                 WITH orphan AS (
@@ -41,7 +52,7 @@ export class Db {
                     WHERE p.node_id IN ${sqlIds}
                     RETURNING *
                 )
-                INSERT INTO lionweb_properties_orphans
+                INSERT INTO ${ORPHANS_PROPERTIES_TABLE}
                     SELECT * FROM orphan;
 
                 WITH orphan AS (
@@ -49,7 +60,7 @@ export class Db {
                     WHERE c.node_id IN ${sqlIds}
                     RETURNING *
                 )                
-                INSERT INTO lionweb_containments_orphans
+                INSERT INTO ${ORPHANS_CONTAINMENTS_TABLE}
                     SELECT * FROM orphan;
 
                 WITH orphan AS (
@@ -57,7 +68,7 @@ export class Db {
                     WHERE r.node_id IN ${sqlIds}
                     RETURNING *
                 )
-                INSERT INTO lionweb_references_orphans
+                INSERT INTO ${ORPHANS_REFERENCES_TABLE}
                     SELECT * FROM orphan;
                 `
     }
@@ -170,9 +181,8 @@ export class Db {
      */
     public updateReferenceTargetOrder(ordersChanged: TargetOrderChanged[]) {
         let queries = ""
-        ordersChanged
-            .forEach(orderChange => {
-                queries += `-- Reference has changed
+        ordersChanged.forEach(orderChange => {
+            queries += `-- Reference has changed
                 UPDATE ${REFERENCES_TABLE} r
                     SET targets = ${this.targetsAsPostgresArray(orderChange.afterReference.targets)}
                 WHERE
@@ -181,7 +191,7 @@ export class Db {
                     r.reference->>'version' = '${orderChange.afterReference.reference.version}'  AND
                     r.reference->>'language' = '${orderChange.afterReference.reference.language}' ;
                 `
-            })
+        })
         return queries
     }
 
@@ -349,7 +359,7 @@ export class Db {
         }
     }
 
-    public async selectNodesIdsWithoutParent(): Promise<{ id:string }[]> {
+    public async selectNodesIdsWithoutParent(): Promise<{ id: string }[]> {
         return (await dbConnection.query(`SELECT id FROM ${NODES_TABLE} WHERE parent is null`)) as { id: string }[]
     }
 }

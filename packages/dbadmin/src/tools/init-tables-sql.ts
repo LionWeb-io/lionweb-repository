@@ -1,4 +1,12 @@
-import { CONTAINMENTS_TABLE, NODES_TABLE, PROPERTIES_TABLE, REFERENCES_TABLE } from "./TableNames.js";
+import {
+    CONTAINMENTS_TABLE,
+    NODES_TABLE,
+    ORPHANS_CONTAINMENTS_TABLE,
+    ORPHANS_NODES_TABLE,
+    ORPHANS_PROPERTIES_TABLE, ORPHANS_REFERENCES_TABLE,
+    PROPERTIES_TABLE,
+    REFERENCES_TABLE
+} from "./TableNames.js";
 
 export const INIT_TABLES_SQL = `
 -- Drops nodes table
@@ -6,10 +14,10 @@ DROP TABLE IF EXISTS ${NODES_TABLE};
 DROP TABLE IF EXISTS ${CONTAINMENTS_TABLE};
 DROP TABLE IF EXISTS ${PROPERTIES_TABLE};
 DROP TABLE IF EXISTS ${REFERENCES_TABLE};
-DROP TABLE IF EXISTS lionweb_nodes_orphans;
-DROP TABLE IF EXISTS lionweb_containments_orphans;
-DROP TABLE IF EXISTS lionweb_properties_orphans;
-DROP TABLE IF EXISTS lionweb_references_orphans;
+DROP TABLE IF EXISTS ${ORPHANS_NODES_TABLE};
+DROP TABLE IF EXISTS ${ORPHANS_CONTAINMENTS_TABLE};
+DROP TABLE IF EXISTS ${ORPHANS_PROPERTIES_TABLE};
+DROP TABLE IF EXISTS ${ORPHANS_REFERENCES_TABLE};
 
 -- Creates nodes table
 CREATE TABLE IF NOT EXISTS ${NODES_TABLE} (
@@ -48,7 +56,7 @@ CREATE TABLE IF NOT EXISTS ${REFERENCES_TABLE} (
     PRIMARY KEY(reference, node_id)
 );
 
-CREATE TABLE IF NOT EXISTS lionweb_nodes_orphans (
+CREATE TABLE IF NOT EXISTS ${ORPHANS_NODES_TABLE} (
     id                  text, 
     classifier_language text   NOT NULL,
     classifier_version  text   NOT NULL,
@@ -56,19 +64,19 @@ CREATE TABLE IF NOT EXISTS lionweb_nodes_orphans (
     annotations         text[],
     parent              text
 );
-CREATE TABLE IF NOT EXISTS lionweb_containments_orphans (
+CREATE TABLE IF NOT EXISTS ${ORPHANS_CONTAINMENTS_TABLE} (
     c_id        integer,
     containment jsonb     NOT NULL,
     children    text[],
     node_id     text
 );
-CREATE TABLE IF NOT EXISTS lionweb_properties_orphans   (
+CREATE TABLE IF NOT EXISTS ${ORPHANS_PROPERTIES_TABLE}   (
     p_id     integer,
     property jsonb    NOT NULL,
     value    text,
     node_id  text
 );
-CREATE TABLE IF NOT EXISTS lionweb_references_orphans   (
+CREATE TABLE IF NOT EXISTS ${ORPHANS_REFERENCES_TABLE}   (
     r_id         integer, 
     reference jsonb     NOT NULL,
     targets      jsonb[],
