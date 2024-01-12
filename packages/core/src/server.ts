@@ -7,6 +7,7 @@ import { LIONWEB_BULK_API } from "./controllers/LionWebBulkApi.js"
 import cors from "cors"
 import { registerDBAdmin } from "@lionweb/repository-dbadmin"
 import { dbConnection } from "./database/DbConnection.js"
+import { registerInspection } from "@lionweb/repository-inspection"
 
 dotenv.config()
 
@@ -31,6 +32,7 @@ app.post("/bulk/retrieve", LIONWEB_BULK_API.retrieve)
 
 app.post("/getNodeTree", ADDITIONAL_API.getNodeTree)
 registerDBAdmin(app, dbConnection)
+registerInspection(app, dbConnection)
 
 const httpServer = http.createServer(app)
 

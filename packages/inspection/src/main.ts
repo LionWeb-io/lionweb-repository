@@ -8,6 +8,6 @@ export function registerInspection(app: Express, dbConnection: pgPromise.IDataba
     console.log("Registering DB Admin");
     createInspectionApiWorker(dbConnection)
     const inspectionApi: InspectionApi = createInspectionApi();
-    app.post("/inspection/nodesByClassifier", inspectionApi.nodesByClassifier)
-    app.post("/inspection/nodesByLanguage", inspectionApi.nodesByLanguage)
+    app.get("/inspection/nodesByClassifier", inspectionApi.nodesByClassifier)
+    app.get("/inspection/nodesByLanguage", inspectionApi.nodesByLanguage)
 }

@@ -70,6 +70,15 @@ export class RepositoryClient {
         return x
     }
 
+    async testNodesByLanguage() {
+        console.log(`test.testNodesByLanguage`)
+        const startTime = performance.now()
+        const x = await this.getWithTimeout(`inspections/nodesByLanguage`, { body: {  }, params: `` })
+        const endTime = performance.now()
+        console.log(`Call to query took ${endTime - startTime} milliseconds`)
+        return x
+    }
+
     async getWithTimeout<T>(method: string, parameters: { body: unknown; params: string }): Promise<T> {
         const params = this.findParams(parameters.params)
         // console.log("getWithTimeout Params = " + parameters.params);

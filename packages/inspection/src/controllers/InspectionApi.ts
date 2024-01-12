@@ -11,14 +11,14 @@ class InspectionApiImpl implements InspectionApi {
 
     async nodesByClassifier(req: e.Request, res: e.Response) {
         const sql = INSPECTION_QUERIES.nodesByClassifier();
-        await INSPECTION_WORKER.nodesByClassifier(sql)
-        throw new Error("Not implemented");
+        const queryResult = await INSPECTION_WORKER.nodesByClassifier(sql)
+        res.send(queryResult)
     }
 
     async nodesByLanguage(req: e.Request, res: e.Response) {
         const sql = INSPECTION_QUERIES.nodesByLanguage();
-        await INSPECTION_WORKER.nodesByLanguage(sql)
-        throw new Error("Not implemented");
+        const queryResult = await INSPECTION_WORKER.nodesByLanguage(sql)
+        res.send(queryResult)
     }
 }
 
