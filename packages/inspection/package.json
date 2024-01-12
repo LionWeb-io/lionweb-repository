@@ -19,6 +19,6 @@
     "build": "rm -rf dist/ && tsc",
     "cleanup": "rm -rf ./node_modules",
     "lint": "eslint src",
-    "test": "echo No tests in repository-dbadmin"
+    "test": "echo No tests in repository-inspection"
   }
 }
