@@ -10,7 +10,11 @@ export class InspectionApiWorker {
     constructor(private dbConnection: pgPromise.IDatabase<object, pg.IClient>) {
     }
 
-    async nodesByConcept(sql: string) {
+    async nodesByLanguage(sql: string) {
+        return await this.dbConnection.query(sql)
+    }
+
+    async nodesByClassifier(sql: string) {
         return await this.dbConnection.query(sql)
     }
 }

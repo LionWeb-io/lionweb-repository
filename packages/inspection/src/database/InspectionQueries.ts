@@ -5,8 +5,14 @@ class InspectionQueries {
     constructor() {
     }
 
-    nodesByConcept() : string {
-        throw new Error("Not implemented")
+    nodesByClassifier() : string {
+        return "select classifier_language, classifier_key, string_agg(id, ',') " +
+            "from lionweb_nodes group by classifier_language, classifier_key;"
+    }
+
+    nodesByLanguage() : string {
+        return "select classifier_language, string_agg(id, ',') " +
+            "from lionweb_nodes group by classifier_language;"
     }
 }
 

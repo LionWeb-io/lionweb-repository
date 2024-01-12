@@ -3,14 +3,21 @@ import { INSPECTION_WORKER } from "../database/InspectionApiWorker.js";
 import { INSPECTION_QUERIES } from "../database/InspectionQueries.js"
 
 export interface InspectionApi {
-    nodesByConcept(req: Request, res: Response): void
+    nodesByClassifier(req: Request, res: Response): void
+    nodesByLanguage(req: Request, res: Response): void
 }
 
 class InspectionApiImpl implements InspectionApi {
 
-    async nodesByConcept(req: e.Request, res: e.Response) {
-        const sql = INSPECTION_QUERIES.nodesByConcept();
-        await INSPECTION_WORKER.nodesByConcept(sql)
+    async nodesByClassifier(req: e.Request, res: e.Response) {
+        const sql = INSPECTION_QUERIES.nodesByClassifier();
+        await INSPECTION_WORKER.nodesByClassifier(sql)
+        throw new Error("Not implemented");
+    }
+
+    async nodesByLanguage(req: e.Request, res: e.Response) {
+        const sql = INSPECTION_QUERIES.nodesByLanguage();
+        await INSPECTION_WORKER.nodesByLanguage(sql)
         throw new Error("Not implemented");
     }
 }
