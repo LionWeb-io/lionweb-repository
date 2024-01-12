@@ -33,9 +33,9 @@ export const CONTAINMENTS_COLUMN_SET = new pgp.helpers.ColumnSet(
 // prettier-ignore
 export const PROPERTIES_COLUMN_SET = new pgp.helpers.ColumnSet(
     [
-        "property",
+        "?property",
         "value",
-        "node_id"
+        "?node_id"
     ],
     { table: PROPERTIES_TABLE }
 )

@@ -77,18 +77,17 @@ export class Db {
         let queries = ""
         propertyChanged.forEach(propertyChange => {
             // Using Postgres Upsert
-            queries += pgp.helpers.insert(
-                {
-                    node_id: propertyChange.nodeId,
-                    property: propertyChange.property,
-                    value: propertyChange.newValue
-                },
-                PROPERTIES_COLUMN_SET
-            )
+            const data = {
+                node_id: propertyChange.nodeId,
+                property: propertyChange.property,
+                value: propertyChange.newValue
+            }
+            queries += pgp.helpers.insert(data, PROPERTIES_COLUMN_SET)
+            const sets = pgp.helpers.sets(data, PROPERTIES_COLUMN_SET)
             queries += `
                 ON CONFLICT (node_id, property)
                 DO UPDATE 
-                    SET value = '${propertyChange.newValue}';
+                    SET ${sets};
                 `
         })
         return queries
