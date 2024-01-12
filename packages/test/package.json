@@ -20,7 +20,7 @@
     "cleanup": "rm -rf ./node_modules",
     "lint": "eslint src",
     "manualtest": "node dist/test/ManualTests.js",
-    "test": "mocha ./dist/test/tests.js"
+    "test": "mocha ./dist/test/tests.js ./dist/test/inspectionTests.js"
   },
   "devDependencies": {
     "prettier": "3.1.0",
@@ -31,7 +31,6 @@
     "eslint": "8.56.0",
     "chai": "4.3.10",
     "mocha": "10.2.0",
-    "prettier": "3.1.0",
     "ts-node": "10.9.2",
     "typescript": "5.2.2"
   },

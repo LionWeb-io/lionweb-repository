@@ -42,7 +42,7 @@ npm run dev
 ```
 
 ### How to test
-Ensure the Postgres server and the rspository server are both running.
+Ensure the Postgres server and the repository server are both running.
 Then do
 
 ```
@@ -68,6 +68,6 @@ The core repository
 Tests for the core package
 
 ## CI
-In GitHub actions a postgres server is started on a host named `postres`.
+In GitHub actions a postgres server is started on a host named `postgres`.
 In you local development environment this hostname is also being used.
 You need to ensure that this hostname points to the postgres server. 
