@@ -17,6 +17,6 @@ export const config = {
 
 console.log("POSTGRES CONFIG: " + JSON.stringify(config, null, 2))
 
-const pgp = pgPromise()
+export const pgp = pgPromise()
 export const dbConnection = pgp(config)
 console.log("next again")

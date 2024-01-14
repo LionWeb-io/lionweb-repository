@@ -12,9 +12,10 @@ import {
 
 import { NodeAdded, ChildAdded, ChildRemoved, LionWebJsonDiff, ParentChanged, AnnotationOrderChanged } from "@lionweb/validation"
 import { DB } from "./Db.js";
-import { dbConnection } from "./DbConnection.js"
+import { dbConnection, pgp } from "./DbConnection.js"
 import { LIONWEB_BULKAPI_WORKER } from "../controllers/LionWebBulkApiWorker.js"
-import { queryNodeTreeForIdList, QueryNodeForIdList, postgresArrayFromStringArray } from "./QueryNode.js"
+import { queryNodeTreeForIdList, QueryNodeForIdList } from "./QueryNode.js"
+import { CONTAINMENTS_COLUMN_SET } from "./TableDefinitions.js";
 import { collectUsedLanguages } from "./UsedLanguages.js"
 
 export type NodeTreeResultType = {
@@ -199,9 +200,10 @@ class LionWebQueries {
             const index = changedContainment.children.indexOf(child.id)
             const newChildren = [...changedContainment.children]
             newChildren.splice(index, 1)
+            const setChildren = pgp.helpers.sets({children: newChildren}, CONTAINMENTS_COLUMN_SET)
             queries += `-- Implicitly removed children
                 UPDATE ${CONTAINMENTS_TABLE} c 
-                    SET children = '${postgresArrayFromStringArray(newChildren)}'
+                    SET ${setChildren}
                 WHERE
                     c.node_id = '${previousParentNode.id}' AND
                     c.containment->>'key' = '${changedContainment.containment.key}' AND 
@@ -230,13 +232,7 @@ class LionWebQueries {
 
     private makeQueriesForAnnotationsChanged(annotationChanges: AnnotationChange[]) {
         let queries = ""
-        // annotationChanges
-        //     .filter((ch): ch is AnnotationRemoved => ch instanceof AnnotationRemoved)
-        //     .forEach(annotationChange => {
-        //         queries += DB.updateAnnotationsQuery(annotationChange.nodeBefore.id, annotationChange.nodeAfter.annotations)
-        //     })
         annotationChanges
-            // .filter((ch): ch is AnnotationAdded => ch instanceof AnnotationAdded)
             .forEach(annotationChange => {
                 queries += DB.updateAnnotationsQuery(annotationChange.nodeBefore.id, annotationChange.nodeAfter.annotations)
             })

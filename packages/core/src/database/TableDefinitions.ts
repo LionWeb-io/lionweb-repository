@@ -3,17 +3,20 @@
  * Need to be kept 
  */
 import { CONTAINMENTS_TABLE, NODES_TABLE, PROPERTIES_TABLE, REFERENCES_TABLE } from "@lionweb/repository-dbadmin";
-import pgPromise from "pg-promise"
+import { pgp } from "./DbConnection.js";
+// import pgPromise from "pg-promise"
 
-export const pgp = pgPromise()
+// export const pgp = pgPromise()
+
+// NOTE: '?' at front of column name means that this column will not be updated by an UPDATE
 
 // prettier-ignore
 export const NODES_COLUMN_SET = new pgp.helpers.ColumnSet(
     [
-        "id",                   // The node id
-        "classifier_language",  // The classifier of the node
-        "classifier_version",   // The classifier of the node
-        "classifier_key",       // The classifier of the node
+        "?id",                   // The node id // Don't update this column
+        "?classifier_language",  // The classifier of the node
+        "?classifier_version",   // The classifier of the node
+        "?classifier_key",       // The classifier of the node
         "annotations",          // The annotation(id)s
         "parent"                // The id of the parent node
     ],
@@ -23,9 +26,9 @@ export const NODES_COLUMN_SET = new pgp.helpers.ColumnSet(
 // prettier-ignore
 export const CONTAINMENTS_COLUMN_SET = new pgp.helpers.ColumnSet(
     [
-        "containment",
+        "?containment",         // Don't update this column
         "children",
-        "node_id"
+        "?node_id"              // Don't update this column
     ],
     { table: CONTAINMENTS_TABLE }
 )
@@ -33,9 +36,9 @@ export const CONTAINMENTS_COLUMN_SET = new pgp.helpers.ColumnSet(
 // prettier-ignore
 export const PROPERTIES_COLUMN_SET = new pgp.helpers.ColumnSet(
     [
-        "?property",
+        "?property",    // Don't update this column
         "value",
-        "?node_id"
+        "?node_id"      // Don't update this column
     ],
     { table: PROPERTIES_TABLE }
 )
@@ -43,12 +46,12 @@ export const PROPERTIES_COLUMN_SET = new pgp.helpers.ColumnSet(
 // prettier-ignore
 export const REFERENCES_COLUMN_SET = new pgp.helpers.ColumnSet(
     [
-        "reference",
+        "?reference",    // Don't update this column
         {
             name: "targets",
             cast: "jsonb[]"
         },
-        "node_id"
+        "?node_id"      // Don't update this column
     ],
     { table: REFERENCES_TABLE }
 )
