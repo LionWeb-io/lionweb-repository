@@ -1,4 +1,4 @@
-import { LanguageChange, LionWebJsonChunk, LionWebJsonChunkWrapper, LionWebJsonDiff } from "@lionweb/validation"
+import { LionWebJsonChunk } from "@lionweb/validation"
 import { assert } from "chai"
 import { RepositoryClient } from "./RepositoryClient.js"
 
@@ -27,7 +27,8 @@ describe("Repository tests for inspection APIs", () => {
                         'ID-8',  'ID-9',  'ID-10',
                         'ID-5',  'ID-11', 'ID-12',
                         'ID-13', 'ID-14', 'ID-15',
-                        'ID-6',  'ID-7',  'ANN-1'
+                        'ID-6',  'ID-7',  'ANN-1',
+                        "ANN-9", "ANN-10"
                     ]
                 }
             ]
@@ -61,7 +62,9 @@ describe("Repository tests for inspection APIs", () => {
                         "ID-15",
                         "ID-6",
                         "ID-7",
-                        "ANN-1"
+                        "ANN-1",
+                        "ANN-9",
+                        "ANN-10"
                     ]
                 }
             ]
