@@ -24,7 +24,7 @@ import {
     TargetRemoved
 } from "@lionweb/validation"
 import { dbConnection, pgp } from "./DbConnection.js"
-import { sqlArrayFromStringArray } from "./QueryNode.js"
+import { sqlArrayFromNodeIdArray } from "./QueryNode.js"
 import { CONTAINMENTS_COLUMN_SET, NODES_COLUMN_SET, PROPERTIES_COLUMN_SET, REFERENCES_COLUMN_SET } from "./TableDefinitions.js"
 
 /**
@@ -37,7 +37,7 @@ export class Db {
         if (orphanIds.length === 0) {
             return ""
         }
-        const sqlIds = sqlArrayFromStringArray(orphanIds)
+        const sqlIds = sqlArrayFromNodeIdArray(orphanIds)
         return `-- Remove orphans by moving them to the orphan tables
                 WITH orphan AS (
                     DELETE FROM ${NODES_TABLE} n
@@ -283,7 +283,7 @@ export class Db {
             const setChildren = pgp.helpers.sets({ children: afterContainment.children}, CONTAINMENTS_COLUMN_SET)
             query += `-- Update nodes that have children added
                 UPDATE ${CONTAINMENTS_TABLE} c
-                    SET children = ${setChildren}
+                    SET ${setChildren}
                 WHERE
                     c.node_id = '${afterNode.id}' AND
                     c.containment->>'key' = '${afterContainment.containment.key}' AND
@@ -328,7 +328,7 @@ export class Db {
                 await dbConnection.query(insertQuery)
             }
 
-            // INSERT REFERENCES
+            // INSERT References
             const insertReferences = tbsNodesToCreate.flatMap(node =>
                 node.references.map(reference => ({ node_id: node.id, reference: reference.reference, targets: reference.targets }))
             )

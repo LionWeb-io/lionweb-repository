@@ -1,6 +1,6 @@
 import { CONTAINMENTS_TABLE, NODES_TABLE, PROPERTIES_TABLE, REFERENCES_TABLE } from "@lionweb/repository-dbadmin";
 
-export function sqlArrayFromStringArray(strings: string[]): string {
+export function sqlArrayFromNodeIdArray(strings: string[]): string {
     return `(${strings.map(id => `'${id}'`).join(", ")})`
 }
 
@@ -14,7 +14,7 @@ export function postgresArrayFromStringArray(strings: string[]): string {
  * @constructor
  */
 export const QueryNodeForIdList = (nodeid: string[]): string => {
-    const sqlNodeCollection = sqlArrayFromStringArray(nodeid)
+    const sqlNodeCollection = sqlArrayFromNodeIdArray(nodeid)
     return `-- get full nodes from node id's
 WITH 
     node_properties AS ( 
@@ -95,7 +95,7 @@ group by lionweb_nodes.id, prop.id, con.id, prop.properties, containments, rrefe
  * @param depthLimit
  */
 export const queryNodeTreeForIdList = (nodeidlist: string[], depthLimit: number): string => {
-    const sqlArray = sqlArrayFromStringArray(nodeidlist)
+    const sqlArray = sqlArrayFromNodeIdArray(nodeidlist)
     return `-- Recursively retrieve node tree
             WITH RECURSIVE tmp AS (
                 SELECT id, parent, 0 as depth
