@@ -31,7 +31,8 @@ import { CONTAINMENTS_COLUMN_SET, NODES_COLUMN_SET, PROPERTIES_COLUMN_SET, REFER
  * Function that build SQL queries.
  */
 export class Db {
-    constructor() {}
+    constructor() {
+    }
 
     public makeQueriesForOrphans(orphanIds: string[]) {
         if (orphanIds.length === 0) {
@@ -99,10 +100,10 @@ export class Db {
             .filter(r => r instanceof TargetAdded)
             .forEach(referenceChange => {
                 const data = {
-                        node_id: referenceChange.node.id,
-                        reference: referenceChange.afterReference.reference,
-                        targets: referenceChange.afterReference.targets
-                    }
+                    node_id: referenceChange.node.id,
+                    reference: referenceChange.afterReference.reference,
+                    targets: referenceChange.afterReference.targets
+                }
                 const setColumns = pgp.helpers.sets(data, REFERENCES_COLUMN_SET)
                 queries += pgp.helpers.insert(data, REFERENCES_COLUMN_SET)
                 queries += `-- Update if not inserted
@@ -114,11 +115,11 @@ export class Db {
         referenceChanges
             .filter(r => r instanceof TargetRemoved)
             .forEach(referenceChange => {
-                const data =                     {
-                        node_id: referenceChange.node.id,
-                        reference: referenceChange.beforeReference?.reference || referenceChange?.afterReference.reference,
-                        targets: referenceChange.afterReference?.targets || []
-                    }
+                const data = {
+                    node_id: referenceChange.node.id,
+                    reference: referenceChange.beforeReference?.reference || referenceChange?.afterReference.reference,
+                    targets: referenceChange.afterReference?.targets || []
+                }
                 queries += pgp.helpers.insert(data, REFERENCES_COLUMN_SET)
                 queries += `-- Update if not inserted
                 ON CONFLICT (node_id, reference)
@@ -140,7 +141,7 @@ export class Db {
             .forEach(referenceChange => {
                 queries += `-- Reference has changed
                 UPDATE ${REFERENCES_TABLE} r
-                    SET ${pgp.helpers.sets({targets: referenceChange.afterReference.targets}, REFERENCES_COLUMN_SET)}
+                    SET ${pgp.helpers.sets({ targets: referenceChange.afterReference.targets }, REFERENCES_COLUMN_SET)}
                 WHERE
                     r.node_id = '${referenceChange.node.id}' AND
                     r.reference->>'key' = '${referenceChange.afterReference.reference.key}' AND
@@ -152,10 +153,10 @@ export class Db {
             .filter(r => r instanceof TargetRemoved)
             .forEach(referenceChange => {
                 const targets =
-                    referenceChange.afterReference === null ? null : referenceChange.afterReference.targets 
+                    referenceChange.afterReference === null ? null : referenceChange.afterReference.targets
                 queries += `-- Reference has changed
                 UPDATE ${REFERENCES_TABLE} r
-                    SET ${pgp.helpers.sets({targets: targets}, REFERENCES_COLUMN_SET)}
+                    SET ${pgp.helpers.sets({ targets: targets }, REFERENCES_COLUMN_SET)}
                 WHERE
                     r.node_id = '${referenceChange.node.id}' AND
                     r.reference->>'key' = '${referenceChange.beforeReference.reference.key}' AND
@@ -172,7 +173,7 @@ export class Db {
     public updateReferenceTargetOrder(ordersChanged: TargetOrderChanged[]) {
         let queries = ""
         ordersChanged.forEach(orderChange => {
-            const setColumns = pgp.helpers.sets({targets: orderChange.afterReference.targets}, REFERENCES_COLUMN_SET)
+            const setColumns = pgp.helpers.sets({ targets: orderChange.afterReference.targets }, REFERENCES_COLUMN_SET)
             queries += `-- Reference has changed
                 UPDATE ${REFERENCES_TABLE} r
                     SET ${setColumns}
@@ -195,7 +196,7 @@ export class Db {
     public updateParentQuery(nodeId: string, parent: string): string {
         return `-- Update of parent of children that have been moved
                 UPDATE ${NODES_TABLE} 
-                    SET ${pgp.helpers.sets({parent: parent}, ["parent"])}
+                    SET ${pgp.helpers.sets({ parent: parent }, ["parent"])}
                 WHERE
                     id = '${nodeId}';
                 `
@@ -204,7 +205,7 @@ export class Db {
     public updateAnnotationsQuery(nodeId: string, annotations: string[]): string {
         return `-- Update of annotations that have been moved
                 UPDATE ${NODES_TABLE}
-                    SET ${pgp.helpers.sets({annotations: annotations}, ["annotations"])}
+                    SET ${pgp.helpers.sets({ annotations: annotations }, ["annotations"])}
                 WHERE
                      id = '${nodeId}';
                 `
@@ -216,7 +217,7 @@ export class Db {
             const afterContainment = orderChanged.afterContainment
             queries += `-- Order of children has changed
                 UPDATE ${CONTAINMENTS_TABLE}
-                    SET ${pgp.helpers.sets({children: afterContainment?.children}, CONTAINMENTS_COLUMN_SET)}
+                    SET ${pgp.helpers.sets({ children: afterContainment?.children }, CONTAINMENTS_COLUMN_SET)}
                 WHERE
                     node_id = '${orderChanged.parentNode.id}' AND
                     containment->>'key' = '${afterContainment.containment.key}' AND
@@ -234,7 +235,7 @@ export class Db {
             const afterContainment = afterNode.containments.find(cont => isEqualMetaPointer(cont.containment, removed.containment))
             queries += `-- Update node that has children removed.
                 UPDATE ${CONTAINMENTS_TABLE} c 
-                    SET ${pgp.helpers.sets({children: afterContainment.children}, CONTAINMENTS_COLUMN_SET)}
+                    SET ${pgp.helpers.sets({ children: afterContainment.children }, CONTAINMENTS_COLUMN_SET)}
                 WHERE
                     c.node_id = '${afterNode.id}' AND
                     c.containment->>'key' = '${afterContainment.containment.key}' AND 
@@ -254,7 +255,7 @@ export class Db {
                 console.error("Undefined node for id " + added.parentNode.id)
             }
             const afterContainment = afterNode.containments.find(cont => isEqualMetaPointer(cont.containment, added.containment))
-            const setColumns = pgp.helpers.sets({ children: afterContainment.children}, CONTAINMENTS_COLUMN_SET)
+            const setColumns = pgp.helpers.sets({ children: afterContainment.children }, CONTAINMENTS_COLUMN_SET)
             // UPSERT Containments
             const insertRowData = [
                 { node_id: afterNode.id, containment: afterContainment.containment, children: afterContainment.children }
@@ -280,7 +281,7 @@ export class Db {
                 console.error("Undefined node for id " + added.parentNode.id)
             }
             const afterContainment = afterNode.containments.find(cont => isEqualMetaPointer(cont.containment, added.containment))
-            const setChildren = pgp.helpers.sets({ children: afterContainment.children}, CONTAINMENTS_COLUMN_SET)
+            const setChildren = pgp.helpers.sets({ children: afterContainment.children }, CONTAINMENTS_COLUMN_SET)
             query += `-- Update nodes that have children added
                 UPDATE ${CONTAINMENTS_TABLE} c
                     SET ${setChildren}

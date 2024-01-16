@@ -14,7 +14,7 @@ class DBAdminApiImpl implements DBAdminApi {
     }
 }
 
-export function createDBAdminApi() : DBAdminApi {
+export function createDBAdminApi(): DBAdminApi {
     return new DBAdminApiImpl();
 }
 

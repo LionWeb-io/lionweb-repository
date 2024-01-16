@@ -1,6 +1,6 @@
 /**
  * The table definitions for use with pg-promise helpers
- * Need to be kept 
+ * Need to be kept
  */
 import { CONTAINMENTS_TABLE, NODES_TABLE, PROPERTIES_TABLE, REFERENCES_TABLE } from "@lionweb/repository-dbadmin";
 import { pgp } from "./DbConnection.js";

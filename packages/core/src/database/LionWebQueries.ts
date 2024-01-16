@@ -7,7 +7,7 @@ import {
     PropertyValueChanged,
     ReferenceChange,
     TargetOrderChanged,
-    AnnotationAdded, AnnotationChange, AnnotationRemoved, ChildOrderChanged,         
+    AnnotationAdded, AnnotationChange, AnnotationRemoved, ChildOrderChanged,
 } from "@lionweb/validation"
 
 import { NodeAdded, ChildAdded, ChildRemoved, LionWebJsonDiff, ParentChanged, AnnotationOrderChanged } from "@lionweb/validation"
@@ -28,7 +28,8 @@ export type NodeTreeResultType = {
  * Database functions.
  */
 class LionWebQueries {
-    constructor() {}
+    constructor() {
+    }
 
     /**
      * Get recursively all children/annotations of _nodeIdList_ with depth _depthLimit_
@@ -179,7 +180,7 @@ class LionWebQueries {
         queries += DB.makeQueriesForOrphans(removedAndNotAddedAnnotations.map(oc => oc.annotationId))
         queries += DB.upsertQueriesForReferenceChanges(targetsChanged)
         queries += DB.updateReferenceTargetOrder(targetOrderChanged)
-        queries += this.makeQueriesForAnnotationsChanged([...addedAnnotations, ...removedAnnotations, ... annotationOrderChanged])
+        queries += this.makeQueriesForAnnotationsChanged([...addedAnnotations, ...removedAnnotations, ...annotationOrderChanged])
         // And run them on the database
         if (queries !== "") {
             console.log("QUERIES " + queries)
@@ -200,7 +201,7 @@ class LionWebQueries {
             const index = changedContainment.children.indexOf(child.id)
             const newChildren = [...changedContainment.children]
             newChildren.splice(index, 1)
-            const setChildren = pgp.helpers.sets({children: newChildren}, CONTAINMENTS_COLUMN_SET)
+            const setChildren = pgp.helpers.sets({ children: newChildren }, CONTAINMENTS_COLUMN_SET)
             queries += `-- Implicitly removed children
                 UPDATE ${CONTAINMENTS_TABLE} c 
                     SET ${setChildren}

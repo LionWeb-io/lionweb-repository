@@ -30,7 +30,7 @@ const init = async (config: PostgresConfig, sqlFile: string) => {
         console.log("config " + JSON.stringify(config, null, 2))
         const db = pgp(config)
 
-        const sql = sqlFile 
+        const sql = sqlFile
         console.log("FS: " + JSON.stringify(sql))
         // split the file into separate statements
         const statements = sql.split(/;\s*$/m)

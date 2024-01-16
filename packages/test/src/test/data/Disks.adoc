@@ -1,6 +1,7 @@
 = Testcase bulk store
 
 The model with which we start is as follows:
+
 ----
 {
 "key": "LionCore-builtins-INamed-name",
@@ -8,6 +9,7 @@ The model with which we start is as follows:
 "language": "LionCore-builtins"
 }
 ----
+
 .Disk_A initial model
 [subs="quotes"]
 ----
@@ -46,8 +48,8 @@ The model with which we start is as follows:
             *LionCore-builtins-INamed-name*: folder-4
 ----
 
-
 == Change B: move child (9) from (4) to (5)
+
 .Disk_B-1 store full partition
 [subs="quotes"]
 ----
@@ -72,18 +74,17 @@ The model with which we start is as follows:
         (ID-7) folder-4
 ----
 
-
 [cols="1,1a"]
 |===
 | Disk B-1 store full partition
 | - nothing
-| Disk_B-2 store (5) 
+| Disk_B-2 store (5)
 | - Change node (4) remove child (9)
-  - Change node (9) parent (5)
-| Disk_B-3 store (5, 4) 
+- Change node (9) parent (5)
+| Disk_B-3 store (5, 4)
 | - Change node (9) parent (5)
-| Disk_B-4 store (5, 9) 
-| - Change node (4) remove child (9) 
+| Disk_B-4 store (5, 9)
+| - Change node (4) remove child (9)
 | Disk B-5 store (5, 4, 9)
 | - nothing
 |===

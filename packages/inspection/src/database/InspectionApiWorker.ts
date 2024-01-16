@@ -40,7 +40,7 @@ export class InspectionApiWorker {
     }
 }
 
-export function createInspectionApiWorker(dbConnection: pgPromise.IDatabase<object , pg.IClient>) {
+export function createInspectionApiWorker(dbConnection: pgPromise.IDatabase<object, pg.IClient>) {
     INSPECTION_WORKER = new InspectionApiWorker(dbConnection);
 }
 

@@ -9,7 +9,7 @@ export function postgresArrayFromStringArray(strings: string[]): string {
 }
 
 /**
- * Query to retrieve the full LionWeb nodes from the database. 
+ * Query to retrieve the full LionWeb nodes from the database.
  * @param nodeid string[] The node ids for which the full node needs to be retrieved.
  * @constructor
  */

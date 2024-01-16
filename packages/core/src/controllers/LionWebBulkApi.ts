@@ -38,7 +38,7 @@ class LionWebBulkApiImpl implements LionWebBulkApi {
         if (validator.validationResult.hasErrors()) {
             // console.log("STORE VALIDATION ERROR " + validator.validationResult.issues.map(issue => issue.errorMsg()))
             res.status(400)
-            res.send({ issues: [validator.validationResult.issues.map(issue => issue.errorMsg())]} )
+            res.send({ issues: [validator.validationResult.issues.map(issue => issue.errorMsg())] })
         } else {
             const x = await LIONWEB_BULKAPI_WORKER.bulkStore(chunk)
             res.send(x)
@@ -60,10 +60,10 @@ class LionWebBulkApiImpl implements LionWebBulkApi {
         console.log("Api.getNodes: " + JSON.stringify(req.body) + " depth " + depthLimit)
         if (isNaN(depthLimit)) {
             res.status(400)
-            res.send({issues: [`parameter 'depthLimit' is not a number, but is '${req.query["depthLimit"]}' `]})
+            res.send({ issues: [`parameter 'depthLimit' is not a number, but is '${req.query["depthLimit"]}' `] })
         } else if (!Array.isArray(idList)) {
             res.status(400)
-            res.send({issues: [`parameter 'ids' is not an array`]})
+            res.send({ issues: [`parameter 'ids' is not an array`] })
         } else {
             const result = await LIONWEB_BULKAPI_WORKER.bulkRetrieve(idList, mode, depthLimit)
             res.send(result)
