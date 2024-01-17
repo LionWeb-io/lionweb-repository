@@ -127,7 +127,7 @@ class LionWebQueries {
                 databaseChildrenOfNewNodes.find(child => child.id === removed.childId) === undefined
             )
         })
-        // Orpaned annotations
+        // Orphaned annotations
         const removedAndNotAddedAnnotations = removedAnnotations.filter(removed => {
             return (
                 addedAnnotations.find(added => added.annotationId === removed.annotationId) === undefined &&
