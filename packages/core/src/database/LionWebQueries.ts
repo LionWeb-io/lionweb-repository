@@ -1,3 +1,4 @@
+import { CONTAINMENTS_TABLE, NODES_TABLE } from "@lionweb/repository-dbadmin";
 import {
     LionWebJsonChunk,
     LionWebJsonNode,
@@ -5,14 +6,16 @@ import {
     NodeUtils,
     PropertyValueChanged,
     ReferenceChange,
-    LionWebJsonReferenceTarget, AnnotationAdded, AnnotationChange, AnnotationRemoved
+    TargetOrderChanged,
+    AnnotationAdded, AnnotationChange, AnnotationRemoved, ChildOrderChanged,
 } from "@lionweb/validation"
 
-import { NodeAdded, ChildAdded, ChildRemoved, LionWebJsonDiff, ParentChanged } from "@lionweb/validation"
+import { NodeAdded, ChildAdded, ChildRemoved, LionWebJsonDiff, ParentChanged, AnnotationOrderChanged } from "@lionweb/validation"
 import { DB } from "./Db.js";
-import { dbConnection } from "./DbConnection.js"
+import { dbConnection, pgp } from "./DbConnection.js"
 import { LIONWEB_BULKAPI_WORKER } from "../controllers/LionWebBulkApiWorker.js"
-import { queryNodeTreeForIdList, QueryNodeForIdList, postgresArrayFromStringArray } from "./QueryNode.js"
+import { queryNodeTreeForIdList, QueryNodeForIdList } from "./QueryNode.js"
+import { CONTAINMENTS_COLUMN_SET } from "./TableDefinitions.js";
 import { collectUsedLanguages } from "./UsedLanguages.js"
 
 export type NodeTreeResultType = {
@@ -25,7 +28,8 @@ export type NodeTreeResultType = {
  * Database functions.
  */
 class LionWebQueries {
-    constructor() {}
+    constructor() {
+    }
 
     /**
      * Get recursively all children/annotations of _nodeIdList_ with depth _depthLimit_
@@ -38,9 +42,7 @@ class LionWebQueries {
             return []
         }
         // TODO Currently only gives the node id's, should give full node.
-        const result = await dbConnection.query(queryNodeTreeForIdList(nodeIdList, depthLimit))
-        // console.log("getNodeTree RESULT is " + JSON.stringify(result))
-        return result
+        return await dbConnection.query(queryNodeTreeForIdList(nodeIdList, depthLimit))
     }
 
     /**
@@ -48,7 +50,7 @@ class LionWebQueries {
      */
     getAllDbNodes = async (): Promise<LionWebJsonNode[]> => {
         console.log("LionWebQueries.getAllDbNodes")
-        const queryResult = (await dbConnection.query("SELECT id FROM lionweb_nodes")) as string[]
+        const queryResult = (await dbConnection.query(`SELECT id FROM ${NODES_TABLE}`)) as string[]
         return this.getNodesFromIdList(queryResult)
     }
 
@@ -59,8 +61,7 @@ class LionWebQueries {
         if (nodeIdList.length == 0) {
             return []
         }
-        const nodes = await dbConnection.query(QueryNodeForIdList(nodeIdList))
-        return nodes
+        return await dbConnection.query(QueryNodeForIdList(nodeIdList))
     }
 
     /**
@@ -83,7 +84,7 @@ class LionWebQueries {
     /**
      * Store all nodes in the `nodes` collection in the nodes table.
      *
-     * @param toBeStoredNodes
+     * @param toBeStoredChunk
      */
     store = async (toBeStoredChunk: LionWebJsonChunk) => {
         if (toBeStoredChunk === null || toBeStoredChunk === undefined) {
@@ -110,6 +111,9 @@ class LionWebQueries {
         const targetsChanged = diff.diffResult.changes.filter((ch): ch is ReferenceChange => ch instanceof ReferenceChange)
         const addedAnnotations = diff.diffResult.changes.filter((ch): ch is AnnotationAdded => ch instanceof AnnotationAdded)
         const removedAnnotations = diff.diffResult.changes.filter((ch): ch is AnnotationRemoved => ch instanceof AnnotationRemoved)
+        const childrenOrderChanged = diff.diffResult.changes.filter((ch): ch is ChildOrderChanged => ch instanceof ChildOrderChanged)
+        const annotationOrderChanged = diff.diffResult.changes.filter((ch): ch is AnnotationOrderChanged => ch instanceof AnnotationOrderChanged)
+        const targetOrderChanged = diff.diffResult.changes.filter((ch): ch is TargetOrderChanged => ch instanceof TargetOrderChanged)
 
         // Only children that already exist in the database
         const databaseChildrenOfNewNodes = this.getContainedIds(toBeStoredNewNodes.map(ch => ch.node))
@@ -123,7 +127,7 @@ class LionWebQueries {
                 databaseChildrenOfNewNodes.find(child => child.id === removed.childId) === undefined
             )
         })
-        // Orpjaned annotations
+        // Orphaned annotations
         const removedAndNotAddedAnnotations = removedAnnotations.filter(removed => {
             return (
                 addedAnnotations.find(added => added.annotationId === removed.annotationId) === undefined &&
@@ -167,6 +171,7 @@ class LionWebQueries {
         queries += DB.upsertQueriesForPropertyChanges(propertyChanged)
         queries += DB.upsertAddedChildrenQuery(addedChildren, toBeStoredChunkWrapper)
         queries += DB.updateQueriesForRemovedChildren(removedChildren, toBeStoredChunkWrapper)
+        queries += DB.updateQueriesForChildOrder(childrenOrderChanged)
         queries += this.makeQueriesForParentChanged(parentChanged)
         queries += this.updateQueriesForImplicitlyRemovedChildNodes(implicitlyRemovedChildNodes, parentsOfImplicitlyRemovedChildNodes)
         queries += this.makeQueriesForImplicitParentChanged(addedAndNotParentChangedChildren)
@@ -174,7 +179,8 @@ class LionWebQueries {
         queries += DB.makeQueriesForOrphans(orphansContainedChildrenOrphans.map(oc => oc.id))
         queries += DB.makeQueriesForOrphans(removedAndNotAddedAnnotations.map(oc => oc.annotationId))
         queries += DB.upsertQueriesForReferenceChanges(targetsChanged)
-        queries += this.makeQueriesForAnnotationsChanged([...addedAnnotations, ...removedAnnotations])
+        queries += DB.updateReferenceTargetOrder(targetOrderChanged)
+        queries += this.makeQueriesForAnnotationsChanged([...addedAnnotations, ...removedAnnotations, ...annotationOrderChanged])
         // And run them on the database
         if (queries !== "") {
             console.log("QUERIES " + queries)
@@ -182,12 +188,6 @@ class LionWebQueries {
         }
         await DB.dbInsertNodeArray(toBeStoredNewNodes.map(ch => (ch as NodeAdded).node))
         return [queries]
-    }
-
-    targetsAsPostgresArray(targets: LionWebJsonReferenceTarget[]): string {
-        let result = "ARRAY["
-        result += targets.map(target => "'" + JSON.stringify(target) + "'::jsonb").join(", ")
-        return result + "]"
     }
 
     private updateQueriesForImplicitlyRemovedChildNodes(
@@ -201,9 +201,10 @@ class LionWebQueries {
             const index = changedContainment.children.indexOf(child.id)
             const newChildren = [...changedContainment.children]
             newChildren.splice(index, 1)
+            const setChildren = pgp.helpers.sets({ children: newChildren }, CONTAINMENTS_COLUMN_SET)
             queries += `-- Implicitly removed children
-                UPDATE lionweb_containments c 
-                    SET children = '${postgresArrayFromStringArray(newChildren)}'
+                UPDATE ${CONTAINMENTS_TABLE} c 
+                    SET ${setChildren}
                 WHERE
                     c.node_id = '${previousParentNode.id}' AND
                     c.containment->>'key' = '${changedContainment.containment.key}' AND 
@@ -233,12 +234,6 @@ class LionWebQueries {
     private makeQueriesForAnnotationsChanged(annotationChanges: AnnotationChange[]) {
         let queries = ""
         annotationChanges
-            .filter((ch): ch is AnnotationRemoved => ch instanceof AnnotationRemoved)
-            .forEach(annotationChange => {
-                queries += DB.updateAnnotationsQuery(annotationChange.nodeBefore.id, annotationChange.nodeAfter.annotations)
-            })
-        annotationChanges
-            .filter((ch): ch is AnnotationAdded => ch instanceof AnnotationAdded)
             .forEach(annotationChange => {
                 queries += DB.updateAnnotationsQuery(annotationChange.nodeBefore.id, annotationChange.nodeAfter.annotations)
             })

@@ -12,7 +12,7 @@
   ],
   "nodes": [
     {
-      "id": "ID-5",
+      "id": "ID-7",
       "classifier": {
         "language": "-default-key-FileSystem",
         "version": "2023.1",
@@ -25,7 +25,7 @@
             "version": "2023.1",
             "key": "LionCore-builtins-INamed-name"
           },
-          "value": "folder-2"
+          "value": "folder-4"
         }
       ],
       "containments": [
@@ -35,15 +35,15 @@
             "version": "2023.1",
             "key": "Folder-listing-key"
           },
-          "children": [
-            "ID-9",
-            "ID-11",
-            "ID-12"
-          ]
+          "children": []
         }
       ],
       "references": [],
-      "annotations": [],
+      "annotations": [
+        "ANN-1",
+        "ANN-9",
+        "ANN-10"
+      ],
       "parent": "ID-3"
     }
   ]

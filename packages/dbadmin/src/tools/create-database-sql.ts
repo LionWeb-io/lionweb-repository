@@ -1,4 +1,4 @@
-export const CREATE_DATABASE_SQL: string =`
+export const CREATE_DATABASE_SQL: string = `
 CREATE DATABASE lionweb_test
     WITH
     OWNER = postgres

@@ -1,7 +1,9 @@
 {
   "compilerOptions": {
-    "target": "ES6",                                  /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
-    "module": "nodenext",                                /* Specify what module code is generated. */
+    "target": "ES6",
+    /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
+    "module": "nodenext",
+    /* Specify what module code is generated. */
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
@@ -9,6 +11,6 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": false,
-    "skipLibCheck": true,
+    "skipLibCheck": true
   }
 }

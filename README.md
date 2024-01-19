@@ -59,7 +59,7 @@ This repository is Work In Progress, currently:
 ##  Packages
 
 ### dbadmin
-Contain code to manipulate the postgres database (create, initialize)
+Contains code to manipulate the postgres database (create, initialize)
 
 ### core
 The core repository

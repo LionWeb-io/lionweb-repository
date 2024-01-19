@@ -1,4 +1,4 @@
-import { LanguageChange, LionWebJsonChunk, LionWebJsonChunkWrapper, LionWebJsonDiff } from "@lionweb/validation"
+import { LionWebJsonChunk } from "@lionweb/validation"
 import { assert } from "chai"
 import { RepositoryClient } from "./RepositoryClient.js"
 
@@ -19,15 +19,16 @@ describe("Repository tests for inspection APIs", () => {
 
     it("nodes by language", async () => {
         const result = (await t.testNodesByLanguage())
-        deepEqual(result,  [
+        deepEqual(result, [
                 {
                     language: '-default-key-FileSystem',
                     ids: [
-                        'ID-2',  'ID-3',  'ID-4',
-                        'ID-8',  'ID-9',  'ID-10',
-                        'ID-5',  'ID-11', 'ID-12',
+                        'ID-2', 'ID-3', 'ID-4',
+                        'ID-8', 'ID-9', 'ID-10',
+                        'ID-5', 'ID-11', 'ID-12',
                         'ID-13', 'ID-14', 'ID-15',
-                        'ID-6',  'ID-7',  'ANN-1'
+                        'ID-6', 'ID-7', 'ANN-1',
+                        "ANN-9", "ANN-10"
                     ]
                 }
             ]
@@ -36,7 +37,7 @@ describe("Repository tests for inspection APIs", () => {
 
     it("nodes by classifier", async () => {
         const result = (await t.testNodesByClassifier())
-        deepEqual(result,  [
+        deepEqual(result, [
                 {
                     "language": "-default-key-FileSystem",
                     "classifier": "Disk-key",
@@ -61,7 +62,9 @@ describe("Repository tests for inspection APIs", () => {
                         "ID-15",
                         "ID-6",
                         "ID-7",
-                        "ANN-1"
+                        "ANN-1",
+                        "ANN-9",
+                        "ANN-10"
                     ]
                 }
             ]

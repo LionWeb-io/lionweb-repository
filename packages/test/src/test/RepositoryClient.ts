@@ -2,7 +2,7 @@ import { LionWebJsonChunk } from "@lionweb/validation"
 import fs from "fs"
 
 export type Status = number
-export type ClientResponse = { 
+export type ClientResponse = {
     json: object,
     status: Status
 }
@@ -73,7 +73,7 @@ export class RepositoryClient {
     async testNodesByLanguage() {
         console.log(`test.testNodesByLanguage`)
         const startTime = performance.now()
-        const x = await this.getWithTimeout(`inspection/nodesByLanguage`, { body: {  }, params: `` })
+        const x = await this.getWithTimeout(`inspection/nodesByLanguage`, { body: {}, params: `` })
         const endTime = performance.now()
         console.log(`Call to query took ${endTime - startTime} milliseconds`)
         return x
@@ -82,7 +82,7 @@ export class RepositoryClient {
     async testNodesByClassifier() {
         console.log(`test.testNodesByClassifier`)
         const startTime = performance.now()
-        const x = await this.getWithTimeout(`inspection/nodesByClassifier`, { body: {  }, params: `` })
+        const x = await this.getWithTimeout(`inspection/nodesByClassifier`, { body: {}, params: `` })
         const endTime = performance.now()
         console.log(`Call to query took ${endTime - startTime} milliseconds`)
         return x

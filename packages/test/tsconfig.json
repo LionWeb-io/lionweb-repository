@@ -3,7 +3,8 @@
   "compilerOptions": {
     "rootDir": "src",
     "outDir": "dist",
-    "resolveJsonModule": true,                        /* Enable importing .json files */
+    "resolveJsonModule": true,
+    /* Enable importing .json files */
     "sourceRoot": "./src"
   }
 }

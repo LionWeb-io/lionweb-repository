@@ -70,9 +70,9 @@
           },
           "children": [
             "ID-4",
-            "ID-5",
             "ID-6",
-            "ID-7"
+            "ID-7",
+            "ID-5"
           ]
         }
       ],
@@ -486,28 +486,6 @@
       "parent": "ID-3"
     },
     {
-      "id": "ID-20",
-      "classifier": {
-        "language": "-default-key-FileSystem",
-        "version": "2023.1",
-        "key": "Folder-key"
-      },
-      "properties": [
-        {
-          "property": {
-            "language": "LionCore-builtins",
-            "version": "2023.1",
-            "key": "LionCore-builtins-INamed-name"
-          },
-          "value": "folder-20"
-        }
-      ],
-      "containments": [],
-      "references": [],
-      "annotations": [],
-      "parent": "ANN-1"
-    },
-    {
       "id": "ANN-1",
       "classifier": {
         "language": "-default-key-FileSystem",
@@ -516,16 +494,6 @@
       },
       "properties": [],
       "containments": [
-        {
-          "containment": {
-            "language": "-default-key-FileSystem",
-            "version": "2023.1",
-            "key": "Folder-listing-key"
-          },
-          "children": [
-            "ID-20"
-          ]
-        }
       ],
       "references": [],
       "annotations": [],

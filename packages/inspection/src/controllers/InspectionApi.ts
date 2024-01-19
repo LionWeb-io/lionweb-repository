@@ -4,6 +4,7 @@ import { INSPECTION_QUERIES } from "../database/InspectionQueries.js"
 
 export interface InspectionApi {
     nodesByClassifier(req: Request, res: Response): void
+
     nodesByLanguage(req: Request, res: Response): void
 }
 
@@ -22,7 +23,7 @@ class InspectionApiImpl implements InspectionApi {
     }
 }
 
-export function createInspectionApi() : InspectionApi {
+export function createInspectionApi(): InspectionApi {
     return new InspectionApiImpl();
 }
 

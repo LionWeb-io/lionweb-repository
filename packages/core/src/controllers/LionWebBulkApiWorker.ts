@@ -13,9 +13,7 @@ class LionWebBulkApiWorker {
     }
 
     async bulkPartitions(): Promise<LionWebJsonChunk> {
-        const result = await LIONWEB_QUERIES.getPartitions()
-        // console.log("LionWebBulkApiWorker.bulkPartitions.Result: " + JSON.stringify(result));
-        return result
+        return await LIONWEB_QUERIES.getPartitions()
     }
 
     async bulkStore(chunk: LionWebJsonChunk) {

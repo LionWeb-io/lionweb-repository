@@ -1,6 +1,6 @@
 // functions implementing the LionWeb bulk API
 // - unpack the request
-// - call conroller to do actual work
+// - call controller to do actual work
 // - pack response
 
 import { Request, Response } from "express"
@@ -15,7 +15,7 @@ export interface LionWebBulkApi {
 
 class LionWebBulkApiImpl implements LionWebBulkApi {
     /**
-     * Builk API: Get all partitions (nodes without parent) from the repo
+     * Bulk API: Get all partitions (nodes without parent) from the repo
      * @param req no `parameters` or `body`
      * @param res The list of all partition nodes, without children or annotations
      */
@@ -38,7 +38,7 @@ class LionWebBulkApiImpl implements LionWebBulkApi {
         if (validator.validationResult.hasErrors()) {
             // console.log("STORE VALIDATION ERROR " + validator.validationResult.issues.map(issue => issue.errorMsg()))
             res.status(400)
-            res.send({ issues: [validator.validationResult.issues.map(issue => issue.errorMsg())]} )
+            res.send({ issues: [validator.validationResult.issues.map(issue => issue.errorMsg())] })
         } else {
             const x = await LIONWEB_BULKAPI_WORKER.bulkStore(chunk)
             res.send(x)
@@ -46,7 +46,7 @@ class LionWebBulkApiImpl implements LionWebBulkApi {
     }
 
     /**
-     * Bulk API: Retrieve a set of nodes including its parts to a givel level
+     * Bulk API: Retrieve a set of nodes including its parts to a given level
      * @param req `body.ids` contains the list of nodes to be found.
      *            parameter `depthLimit` contains the depth to which the parts are also found.
      * @param res
@@ -60,10 +60,10 @@ class LionWebBulkApiImpl implements LionWebBulkApi {
         console.log("Api.getNodes: " + JSON.stringify(req.body) + " depth " + depthLimit)
         if (isNaN(depthLimit)) {
             res.status(400)
-            res.send({issues: [`parameter 'depthLimit' is not a number, but is '${req.query["depthLimit"]}' `]})
+            res.send({ issues: [`parameter 'depthLimit' is not a number, but is '${req.query["depthLimit"]}' `] })
         } else if (!Array.isArray(idList)) {
             res.status(400)
-            res.send({issues: [`parameter 'ids' is not an array`]})
+            res.send({ issues: [`parameter 'ids' is not an array`] })
         } else {
             const result = await LIONWEB_BULKAPI_WORKER.bulkRetrieve(idList, mode, depthLimit)
             res.send(result)

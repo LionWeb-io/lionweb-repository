@@ -16,7 +16,7 @@ const app: Express = express()
 // Allow access,
 // ERROR Access to XMLHttpRequest from origin has been blocked by CORS policy:
 // Response to preflight request doesn't pass access control check:
-// No 'Access-Control-Allow-Origin' header is present on the requ
+// No 'Access-Control-Allow-Origin' header is present on the request
 // const cors = require('cors');
 app.use(
     cors({
