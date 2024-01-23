@@ -39,7 +39,7 @@ export class RepositoryClient {
         console.log(`test.store`)
         if (data === null) {
             console.log("Cannot read json data")
-            return
+            return { status: "Repository.testClient: cannot read data to store"}
         }
         // console.log("STORING " + JSON.stringify(data));
         const startTime = performance.now()

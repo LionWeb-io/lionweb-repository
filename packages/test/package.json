@@ -20,7 +20,7 @@
     "cleanup": "rm -rf ./node_modules",
     "lint": "eslint src",
     "manualtest": "node dist/test/ManualTests.js",
-    "test": "mocha ./dist/test/tests.js ./dist/test/inspectionTests.js"
+    "test": "mocha ./dist/test/tests.js ./dist/test/inspectionTests.js ./dist/test/tests-issue19"
   },
   "devDependencies": {
     "prettier": "3.1.0",

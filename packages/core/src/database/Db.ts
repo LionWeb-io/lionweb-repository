@@ -233,14 +233,15 @@ export class Db {
         removedChildren.forEach(removed => {
             const afterNode = toBeStoredChunkWrapper.getNode(removed.parentNode.id)
             const afterContainment = afterNode.containments.find(cont => isEqualMetaPointer(cont.containment, removed.containment))
+            const afterChildren = afterContainment === undefined ? [] : afterContainment.children
             queries += `-- Update node that has children removed.
                 UPDATE ${CONTAINMENTS_TABLE} c 
-                    SET ${pgp.helpers.sets({ children: afterContainment.children }, CONTAINMENTS_COLUMN_SET)}
+                    SET ${pgp.helpers.sets({ children: afterChildren }, CONTAINMENTS_COLUMN_SET)}
                 WHERE
                     c.node_id = '${afterNode.id}' AND
-                    c.containment->>'key' = '${afterContainment.containment.key}' AND 
-                    c.containment->>'version' = '${afterContainment.containment.version}'  AND
-                    c.containment->>'language' = '${afterContainment.containment.language}' ;
+                    c.containment->>'key' = '${removed.containment.key}' AND 
+                    c.containment->>'version' = '${removed.containment.version}'  AND
+                    c.containment->>'language' = '${removed.containment.language}' ;
                     
                 `
         })
