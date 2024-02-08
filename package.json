@@ -11,9 +11,13 @@
     "url": "https://github.com/LionWeb-io/lionweb-repository/issues"
   },
   "scripts": {
-    "build": " npm run build -w packages",
-    "lint": "npm run lint -w packages",
+    "initialize": "npm run clean && npm install && npm run setup && npm run build",
+    "clean": "rm -rf node_modules/ && npm run clean -w packages --if-present",
+    "build": "npm run build -w packages --if-present",
+    "lint": "npm run lint -w packages --if-present",
+    "setup": "npm run setup -w packages --if-present",
     "test": "npm run test -w packages --if-present",
+    "release": "npm run release -w packages --if-present",
     "database": "node packages/database-mgt/dist/tools/database",
     "npm-install-local": "npm config set registry http://localhost:4873 && npm install",
     "npm-install": "npm config set registry https://registry.npmjs.com && npm install"
@@ -33,7 +37,9 @@
   "workspaces": [
     "./packages/dbadmin",
     "./packages/inspection",
-    "./packages/core",
+    "./packages/bulkapi",
+    "./packages/additionalapi",
+    "./packages/server",
     "./packages/test"
   ]
 }

@@ -3,7 +3,6 @@ import { assert } from "chai"
 import { RepositoryClient } from "./RepositoryClient.js"
 
 import sm from "source-map-support"
-
 sm.install()
 
 describe("Repository tests", () => {
@@ -16,12 +15,11 @@ describe("Repository tests", () => {
     })
     
     describe("Add new node", () => {
-        // TODO ANN-1 is still in the repo !!!
         it("test update single node", async () => {
             await storeFiles([
-                "./src/test/data/Disk_A.json",
-                "./src/test/data/add-new-nodes/Disk-add-new-nodes-single-node.json",
-                "./src/test/data/Disk_A.json",
+                "./data/Disk_A.json",
+                "./data/add-new-nodes/Disk-add-new-nodes-single-node.json",
+                "./data/Disk_A.json",
             ])
             // const afterRetrieve = await t.testRetrieve(["ID-2"])
             // printChunk(afterRetrieve.json as LionWebJsonChunk)
@@ -32,10 +30,10 @@ describe("Repository tests", () => {
         for(const file of files) {
             const changesChunk = t.readModel(file) as LionWebJsonChunk
             const result = await t.testStore(changesChunk)
-            console.log(`Store file ${file} `) //result: \n` + JSON.stringify(result))
-            assert(result?.status === 200)
+            console.log(`Store file ${file} ` + JSON.stringify(result, null, 2))
+            assert.isTrue(result.status === 200, "something wrong")
             const afterRetrieve = await t.testRetrieve(["ID-2"])
-            printChunk(afterRetrieve.json as LionWebJsonChunk)
+            printChunk(afterRetrieve.body as LionWebJsonChunk)
         }
     }
 })

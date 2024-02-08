@@ -1,5 +1,6 @@
 import pgPromise from "pg-promise"
 import pg from "pg-promise/typescript/pg-subset.js"
+import { InspectionContext } from "../main.js";
 
 export interface LanguageNodes {
     language: string,
@@ -17,11 +18,11 @@ export interface ClassifierNodes {
  */
 export class InspectionApiWorker {
 
-    constructor(private dbConnection: pgPromise.IDatabase<object, pg.IClient>) {
+    constructor(private context: InspectionContext) {
     }
 
     async nodesByLanguage(sql: string) {
-        return (await this.dbConnection.query(sql) as [object]).map(el => {
+        return (await this.context.dbConnection.query(sql) as [object]).map(el => {
             return {
                 "language": el["classifier_language"],
                 "ids": el["ids"].split(",")
@@ -30,7 +31,7 @@ export class InspectionApiWorker {
     }
 
     async nodesByClassifier(sql: string) {
-        return (await this.dbConnection.query(sql) as [object]).map(el => {
+        return (await this.context.dbConnection.query(sql) as [object]).map(el => {
             return {
                 "language": el["classifier_language"],
                 "classifier": el["classifier_key"],
@@ -40,8 +41,6 @@ export class InspectionApiWorker {
     }
 }
 
-export function createInspectionApiWorker(dbConnection: pgPromise.IDatabase<object, pg.IClient>) {
-    INSPECTION_WORKER = new InspectionApiWorker(dbConnection);
+export function createInspectionApiWorker(context: InspectionContext) {
+    return new InspectionApiWorker(context);
 }
-
-export let INSPECTION_WORKER: InspectionApiWorker
