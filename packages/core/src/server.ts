@@ -36,6 +36,7 @@ registerInspection(app, dbConnection)
 
 const httpServer = http.createServer(app)
 
-httpServer.listen(3005, () => {
-    console.log(`Server is running at port 3005 =========================================================`)
+const serverPort = parseInt(process.env.NODE_PORT || "3005")
+httpServer.listen(serverPort, () => {
+    console.log(`Server is running at port ${serverPort} =========================================================`)
 })
