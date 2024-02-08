@@ -24,7 +24,7 @@ app.use(
     }),
 )
 app.use(bodyParser.urlencoded({ extended: false }))
-app.use(bodyParser.json())
+app.use(bodyParser.json({limit: process.env.BODY_LIMIT || '50mb'}))
 
 app.get("/bulk/partitions", LIONWEB_BULK_API.partitions)
 app.post("/bulk/store", LIONWEB_BULK_API.store)
