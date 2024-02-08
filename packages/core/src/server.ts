@@ -24,7 +24,7 @@ app.use(
     }),
 )
 app.use(bodyParser.urlencoded({ extended: false }))
-app.use(bodyParser.json())
+app.use(bodyParser.json({limit: process.env.BODY_LIMIT || '50mb'}))
 
 app.get("/bulk/partitions", LIONWEB_BULK_API.partitions)
 app.post("/bulk/store", LIONWEB_BULK_API.store)
@@ -36,6 +36,7 @@ registerInspection(app, dbConnection)
 
 const httpServer = http.createServer(app)
 
-httpServer.listen(3005, () => {
-    console.log(`Server is running at port 3005 =========================================================`)
+const serverPort = parseInt(process.env.NODE_PORT || "3005")
+httpServer.listen(serverPort, () => {
+    console.log(`Server is running at port ${serverPort} =========================================================`)
 })
