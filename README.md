@@ -42,6 +42,8 @@ cd packages/core
 npm run dev
 ```
 
+For more information on how to configure the repository, please check [configuration.md](configuration.md).
+
 ### How to test
 Ensure the Postgres server and the repository server are both running.
 Then do
