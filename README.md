@@ -28,6 +28,7 @@ docker run -d --name lionwebrepodb -p 5432:5432 -e POSTGRES_PASSWORD=lionweb pos
 ### How to build
 
 ```
+npm install
 npm run build
 npm run lint
 ```
@@ -40,6 +41,8 @@ The repository server is started with `npm run dev` in  the `packages/core` fold
 cd packages/core
 npm run dev
 ```
+
+For more information on how to configure the repository, please check [configuration.md](configuration.md).
 
 ### How to test
 Ensure the Postgres server and the repository server are both running.
@@ -59,7 +62,7 @@ This repository is Work In Progress, currently:
 ##  Packages
 
 ### dbadmin
-Contains code to manipulate the postgres database (create, initialize)
+Contains code to manipulate the Postgres database (create, initialize)
 
 ### core
 The core repository
@@ -68,6 +71,6 @@ The core repository
 Tests for the core package
 
 ## CI
-In GitHub actions a postgres server is started on a host named `postgres`.
-In you local development environment this hostname is also being used.
-You need to ensure that this hostname points to the postgres server. 
+In GitHub actions a Postgres server is started on a host named `postgres`.
+In your local development environment, this hostname is also being used.
+You need to ensure that this hostname points to the Postgres server. 
