@@ -1,5 +1,3 @@
-import pgPromise from "pg-promise"
-import pg from "pg-promise/typescript/pg-subset.js"
 import { InspectionContext } from "../main.js";
 
 export interface LanguageNodes {

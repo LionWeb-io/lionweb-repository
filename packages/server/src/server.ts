@@ -8,6 +8,7 @@ import { registerDBAdmin } from "@lionweb/repository-dbadmin"
 import { registerInspection } from "@lionweb/repository-inspection"
 import { registerBulkApi } from "@lionweb/repository-bulkapi"
 import { registerAdditionalApi } from "@lionweb/repository-additionalapi"
+import { registerLanguagesApi } from "@lionweb/repository-languages"
 
 dotenv.config()
 
@@ -30,6 +31,7 @@ registerDBAdmin(app, dbConnection, pgp)
 registerBulkApi(app, dbConnection, pgp)
 registerInspection(app, dbConnection, pgp)
 registerAdditionalApi(app, dbConnection, pgp)
+registerLanguagesApi(app, dbConnection, pgp)
 
 const httpServer = http.createServer(app)
 

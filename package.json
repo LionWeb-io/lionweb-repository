@@ -36,6 +36,7 @@
   },
   "workspaces": [
     "./packages/dbadmin",
+    "./packages/languages",
     "./packages/inspection",
     "./packages/bulkapi",
     "./packages/additionalapi",

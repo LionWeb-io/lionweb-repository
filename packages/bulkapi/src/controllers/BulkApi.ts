@@ -2,7 +2,7 @@
 // - unpack the request
 // - call controller to do actual work
 // - pack response
-
+import { getLanguageRegistry } from "@lionweb/repository-languages";
 import { Request, Response } from "express"
 import { LionWebJsonChunk, LionWebValidator } from "@lionweb/validation"
 import { BulkApiContext } from "../BulkApiContext.js";
@@ -32,7 +32,7 @@ export class BulkApiImpl implements BulkApi {
 
     createPartitions = async (req: Request, res: Response): Promise<void> => {
         const chunk: LionWebJsonChunk = req.body
-        const validator = new LionWebValidator(chunk)
+        const validator = new LionWebValidator(chunk, getLanguageRegistry())
         validator.validateSyntax()
         validator.validateReferences()
         if (validator.validationResult.hasErrors()) {
@@ -67,7 +67,7 @@ export class BulkApiImpl implements BulkApi {
      */
     store = async (req: Request, res: Response): Promise<void> => {
         const chunk: LionWebJsonChunk = req.body
-        const validator = new LionWebValidator(chunk)
+        const validator = new LionWebValidator(chunk, getLanguageRegistry())
         validator.validateSyntax()
         validator.validateReferences()
         if (validator.validationResult.hasErrors()) {
