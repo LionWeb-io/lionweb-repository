@@ -23,7 +23,7 @@ import {
     TargetOrderChanged,
     TargetRemoved
 } from "@lionweb/validation"
-import { dbConnection, pgp } from "./DbConnection.js"
+import {dbConnection, dbVerbosity, pgp} from "./DbConnection.js"
 import { sqlArrayFromNodeIdArray } from "./QueryNode.js"
 import { CONTAINMENTS_COLUMN_SET, NODES_COLUMN_SET, PROPERTIES_COLUMN_SET, REFERENCES_COLUMN_SET } from "./TableDefinitions.js"
 
@@ -302,7 +302,9 @@ export class Db {
      * @param tbsNodesToCreate
      */
     public async dbInsertNodeArray(tbsNodesToCreate: LionWebJsonNode[]) {
-        console.log("Queries insert new nodes " + tbsNodesToCreate.map(n => n.id))
+        if (dbVerbosity) {
+            console.log("Queries insert new nodes " + tbsNodesToCreate.map(n => n.id))
+        }
         {
             if (tbsNodesToCreate.length === 0) {
                 return

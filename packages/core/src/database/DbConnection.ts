@@ -7,6 +7,8 @@ dotenv.config()
 
 const port = parseInt(process.env.PGPORT || "5432", 10)
 
+export const dbVerbosity : boolean = process.env.DB_VERBOSITY == 'true'
+
 export const config = {
     database: process.env.PGDATABASE || "lionweb_test",
     host: process.env.PGHOST || "postgres",
@@ -15,7 +17,9 @@ export const config = {
     password: process.env.PGPASSWORD || "lionweb",
 }
 
-console.log("POSTGRES CONFIG: " + JSON.stringify(config, null, 2))
+if (dbVerbosity) {
+    console.log("POSTGRES CONFIG: " + JSON.stringify(config, null, 2))
+}
 
 export const pgp = pgPromise()
 export const dbConnection = pgp(config)

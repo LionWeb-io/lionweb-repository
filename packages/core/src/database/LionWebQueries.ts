@@ -12,7 +12,7 @@ import {
 
 import { NodeAdded, ChildAdded, ChildRemoved, LionWebJsonDiff, ParentChanged, AnnotationOrderChanged } from "@lionweb/validation"
 import { DB } from "./Db.js";
-import { dbConnection, pgp } from "./DbConnection.js"
+import {dbConnection, dbVerbosity, pgp} from "./DbConnection.js"
 import { LIONWEB_BULKAPI_WORKER } from "../controllers/LionWebBulkApiWorker.js"
 import { queryNodeTreeForIdList, QueryNodeForIdList } from "./QueryNode.js"
 import { CONTAINMENTS_COLUMN_SET } from "./TableDefinitions.js";
@@ -37,7 +37,9 @@ class LionWebQueries {
      * @param depthLimit
      */
     getNodeTree = async (nodeIdList: string[], depthLimit: number): Promise<NodeTreeResultType[]> => {
-        console.log("LionWebQueries.getNodeTree for " + nodeIdList)
+        if (dbVerbosity) {
+            console.log("LionWebQueries.getNodeTree for " + nodeIdList)
+        }
         if (nodeIdList.length === 0) {
             return []
         }
@@ -49,13 +51,17 @@ class LionWebQueries {
      * TODO: Not tested yet
      */
     getAllDbNodes = async (): Promise<LionWebJsonNode[]> => {
-        console.log("LionWebQueries.getAllDbNodes")
+        if (dbVerbosity) {
+            console.log("LionWebQueries.getAllDbNodes")
+        }
         const queryResult = (await dbConnection.query(`SELECT id FROM ${NODES_TABLE}`)) as string[]
         return this.getNodesFromIdList(queryResult)
     }
 
     getNodesFromIdList = async (nodeIdList: string[]): Promise<LionWebJsonNode[]> => {
-        console.log("LionWebQueries.getNodesFromIdList: " + nodeIdList)
+        if (dbVerbosity) {
+            console.log("LionWebQueries.getNodesFromIdList: " + nodeIdList)
+        }
         // this is necessary as otherwise the query would crash as it is not intended to be run
         // on an empty set
         if (nodeIdList.length == 0) {
@@ -68,10 +74,14 @@ class LionWebQueries {
      * Get all partitions: this returns all nodes that have parent set to null or undefined
      */
     getPartitions = async (): Promise<LionWebJsonChunk> => {
-        console.log("LionWebQueries.getPartitions")
+        if (dbVerbosity) {
+            console.log("LionWebQueries.getPartitions")
+        }
         // TODO Optimization?: The following WHERE can also directly be includes in the getNodesFromIdList
         const result = await DB.selectNodesIdsWithoutParent()
-        console.log("LionWebQueries.getPartitions.Result: " + JSON.stringify(result))
+        if (dbVerbosity) {
+            console.log("LionWebQueries.getPartitions.Result: " + JSON.stringify(result))
+        }
         const nodes = await this.getNodesFromIdList(result.map(n => n.id))
         return {
             serializationFormatVersion: "2023.1",
@@ -100,8 +110,10 @@ class LionWebQueries {
 
         const diff = new LionWebJsonDiff()
         diff.diffLwChunk(databaseChunk, toBeStoredChunk)
-        console.log("STORE.CHANGES ")
-        console.log(diff.diffResult.changes.map(ch => "    " + ch.changeMsg()))
+        if (dbVerbosity) {
+            console.log("STORE.CHANGES ")
+            console.log(diff.diffResult.changes.map(ch => "    " + ch.changeMsg()))
+        }
 
         const toBeStoredNewNodes = diff.diffResult.changes.filter((ch): ch is NodeAdded => ch.changeType === "NodeAdded")
         const addedChildren: ChildAdded[] = diff.diffResult.changes.filter((ch): ch is ChildAdded => ch instanceof ChildAdded)
@@ -183,7 +195,9 @@ class LionWebQueries {
         queries += this.makeQueriesForAnnotationsChanged([...addedAnnotations, ...removedAnnotations, ...annotationOrderChanged])
         // And run them on the database
         if (queries !== "") {
-            console.log("QUERIES " + queries)
+            if (dbVerbosity) {
+                console.log("QUERIES " + queries)
+            }
             await dbConnection.query(queries)
         }
         await DB.dbInsertNodeArray(toBeStoredNewNodes.map(ch => (ch as NodeAdded).node))
