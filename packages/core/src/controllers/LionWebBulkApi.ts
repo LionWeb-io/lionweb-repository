@@ -6,6 +6,7 @@
 import { Request, Response } from "express"
 import { LionWebJsonChunk, LionWebValidator } from "@lionweb/validation"
 import { LIONWEB_BULKAPI_WORKER } from "./LionWebBulkApiWorker.js"
+import {requestsVerbosity} from "../server.js";
 
 export interface LionWebBulkApi {
     partitions: (req: Request, res: Response) => void
@@ -20,7 +21,9 @@ class LionWebBulkApiImpl implements LionWebBulkApi {
      * @param res The list of all partition nodes, without children or annotations
      */
     async partitions(req: Request, res: Response): Promise<void> {
-        // const result = [];
+        if (requestsVerbosity) {
+            console.log(` * partitions request received, with body of ${req.headers["content-length"]} bytes`)
+        }
         const result = await LIONWEB_BULKAPI_WORKER.bulkPartitions()
         res.send(result)
     }
@@ -31,14 +34,17 @@ class LionWebBulkApiImpl implements LionWebBulkApi {
      * @param res `ok`  if everything is correct
      */
     async store(req: Request, res: Response): Promise<void> {
-        console.log(` * store request received, with body of ${req.headers["content-length"]} bytes`)
+        if (requestsVerbosity) {
+            console.log(` * store request received, with body of ${req.headers["content-length"]} bytes`)
+        }
         const chunk: LionWebJsonChunk = req.body
-        // console.log("CHUNK", chunk)
         const validator = new LionWebValidator(chunk, null)
         validator.validateSyntax()
         validator.validateReferences()
         if (validator.validationResult.hasErrors()) {
-            // console.log("STORE VALIDATION ERROR " + validator.validationResult.issues.map(issue => issue.errorMsg()))
+            if (requestsVerbosity) {
+                console.log("STORE VALIDATION ERROR " + validator.validationResult.issues.map(issue => issue.errorMsg()))
+            }
             res.status(400)
             res.send({ issues: [validator.validationResult.issues.map(issue => issue.errorMsg())] })
         } else {
@@ -54,12 +60,16 @@ class LionWebBulkApiImpl implements LionWebBulkApi {
      * @param res
      */
     async retrieve(req: Request, res: Response): Promise<void> {
-        console.log("LionWebBulkApiImpl.retrieve: ")
+        if (requestsVerbosity) {
+            console.log(` * retrieve request received, with body of ${req.headers["content-length"]} bytes`)
+        }
         const mode = req.query["mode"] as string
         const depthParam = req.query["depthLimit"];
         const depthLimit = (typeof depthParam === "string") ? Number.parseInt(depthParam) : Number.MAX_SAFE_INTEGER
         const idList = req.body.ids
-        console.log("Api.getNodes: " + JSON.stringify(req.body) + " depth " + depthLimit)
+        if (requestsVerbosity) {
+            console.log("Api.getNodes: " + JSON.stringify(req.body) + " depth " + depthLimit)
+        }
         if (isNaN(depthLimit)) {
             res.status(400)
             res.send({ issues: [`parameter 'depthLimit' is not a number, but is '${req.query["depthLimit"]}' `] })

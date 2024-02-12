@@ -11,8 +11,9 @@ import { registerInspection } from "@lionweb/repository-inspection"
 
 dotenv.config()
 
-const app: Express = express()
+export const requestsVerbosity : boolean = process.env.REQUESTS_VERBOSITY == null || process.env.REQUESTS_VERBOSITY == 'true'
 
+const app: Express = express()
 
 // Allow access,
 // ERROR Access to XMLHttpRequest from origin has been blocked by CORS policy:
