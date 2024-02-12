@@ -33,6 +33,7 @@ class LionWebBulkApiImpl implements LionWebBulkApi {
     async store(req: Request, res: Response): Promise<void> {
         console.log(` * store request received, with body of ${req.headers["content-length"]} bytes`)
         const chunk: LionWebJsonChunk = req.body
+        // console.log("CHUNK", chunk)
         const validator = new LionWebValidator(chunk, null)
         validator.validateSyntax()
         validator.validateReferences()
