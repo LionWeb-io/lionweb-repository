@@ -1,5 +1,5 @@
 import { LionWebJsonChunk } from "@lionweb/validation"
-import { BulkApiContext } from "../BulkApiContext.js";
+import { BulkApiContext } from "../BulkApiContext.js"
 import { QueryReturnType } from "../database/LionWebQueries.js"
 import { collectUsedLanguages } from "../database/UsedLanguages.js"
 

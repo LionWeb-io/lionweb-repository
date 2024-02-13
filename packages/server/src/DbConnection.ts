@@ -1,6 +1,6 @@
+import { logger } from "@lionweb/repository-dbadmin"
 import pgPromise from "pg-promise"
 import dotenv from "dotenv"
-import {logger} from "../logging.js";
 
 // Initialize and export the database connection with configuration from _env_
 

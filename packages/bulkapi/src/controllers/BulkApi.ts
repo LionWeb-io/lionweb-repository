@@ -2,11 +2,11 @@
 // - unpack the request
 // - call controller to do actual work
 // - pack response
-import { getLanguageRegistry } from "@lionweb/repository-languages";
+import { getLanguageRegistry } from "@lionweb/repository-languages"
 import { Request, Response } from "express"
 import { LionWebJsonChunk, LionWebValidator } from "@lionweb/validation"
-import { BulkApiContext } from "../BulkApiContext.js";
-import { logger } from "../logging.js";
+import { BulkApiContext } from "../BulkApiContext.js"
+import { logger } from "@lionweb/repository-dbadmin"
 
 export interface BulkApi {
     partitions: (req: Request, res: Response) => void
@@ -93,7 +93,7 @@ export class BulkApiImpl implements BulkApi {
     retrieve = async (req: Request, res: Response): Promise<void> => {
         logger.requestLog(` * retrieve request received, with body of ${req.headers["content-length"]} bytes`)
         const mode = req.query["mode"] as string
-        const depthParam = req.query["depthLimit"];
+        const depthParam = req.query["depthLimit"]
         const depthLimit = (typeof depthParam === "string") ? Number.parseInt(depthParam) : Number.MAX_SAFE_INTEGER
         const idList = req.body.ids
         logger.requestLog("Api.getNodes: " + JSON.stringify(req.body) + " depth " + depthLimit)

@@ -1,4 +1,4 @@
-import { CONTAINMENTS_TABLE, NODES_TABLE } from "@lionweb/repository-dbadmin";
+import { CONTAINMENTS_TABLE, NODES_TABLE } from "@lionweb/repository-dbadmin"
 import {
     LionWebJsonChunk,
     LionWebJsonNode,
@@ -9,10 +9,10 @@ import {
     TargetOrderChanged,
     AnnotationAdded, AnnotationChange, AnnotationRemoved, ChildOrderChanged,
     NodeAdded, ChildAdded, ChildRemoved, LionWebJsonDiff, ParentChanged, AnnotationOrderChanged } from "@lionweb/validation"
-import { BulkApiContext } from "../BulkApiContext.js";
+import { BulkApiContext } from "../BulkApiContext.js"
 import { makeQueryNodeTreeForIdList, QueryNodeForIdList } from "./QueryNode.js"
 import { collectUsedLanguages } from "./UsedLanguages.js"
-import { logger } from "../logging.js";
+import { logger } from "@lionweb/repository-dbadmin"
 
 export type NodeTreeResultType = {
     id: string

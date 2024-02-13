@@ -23,9 +23,9 @@ import {
     TargetOrderChanged,
     TargetRemoved
 } from "@lionweb/validation"
-import { BulkApiContext } from "../BulkApiContext.js";
+import { BulkApiContext } from "../BulkApiContext.js"
 import { sqlArrayFromNodeIdArray } from "./QueryNode.js"
-import { logger } from "../logging.js";
+import { logger } from "@lionweb/repository-dbadmin"
 
 /**
  * Class that builds SQL queries.

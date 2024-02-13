@@ -1,4 +1,4 @@
-import dotenv from "dotenv";
+import dotenv from "dotenv"
 
 dotenv.config()
 
@@ -11,15 +11,15 @@ class Logger {
     }
     requestLog(message: string) {
         if (this.requestsVerbosity()) {
-            console.log(message);
+            console.log(message)
         }
     }
 
     dbLog(message: string) {
         if (this.dbVerbosity()) {
-            console.log(message);
+            console.log(message)
         }
     }
 }
 
-export const logger = new Logger();
+export const logger = new Logger()
