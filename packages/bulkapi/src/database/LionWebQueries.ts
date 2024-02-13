@@ -113,7 +113,8 @@ export class LionWebQueries {
 
         const diff = new LionWebJsonDiff()
         diff.diffLwChunk(databaseChunk, toBeStoredChunk)
-        logger.dbLog(`STORE.CHANGES ${diff.diffResult.changes.map(ch => `    " + ch.changeMsg())}`)}`)
+        logger.dbLog("STORE.CHANGES ")
+        logger.dbLog(diff.diffResult.changes.map(ch => "    " + ch.changeMsg()))
 
         const toBeStoredNewNodes = diff.diffResult.changes.filter((ch): ch is NodeAdded => ch.changeType === "NodeAdded")
         const addedChildren: ChildAdded[] = diff.diffResult.changes.filter((ch): ch is ChildAdded => ch instanceof ChildAdded)

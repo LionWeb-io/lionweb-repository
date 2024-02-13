@@ -9,13 +9,13 @@ class Logger {
     dbVerbosity() : boolean {
         return process.env.DB_VERBOSITY == 'true'
     }
-    requestLog(message: string) {
+    requestLog(message: string | string[]) {
         if (this.requestsVerbosity()) {
             console.log(message)
         }
     }
 
-    dbLog(message: string) {
+    dbLog(message: string | string[]) {
         if (this.dbVerbosity()) {
             console.log(message)
         }
