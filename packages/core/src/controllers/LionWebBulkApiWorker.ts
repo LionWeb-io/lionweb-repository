@@ -7,10 +7,8 @@ import {logger} from "../logging.js";
  * Implementations of the LionWebBulkApi methods.
  */
 class LionWebBulkApiWorker {
-    // private lionwebDb2: LionWebQueries ;
 
     constructor() {
-        // this.lionwebDb2 = LIONWEB_QUERIES ;
     }
 
     async bulkPartitions(): Promise<LionWebJsonChunk> {
@@ -18,7 +16,6 @@ class LionWebBulkApiWorker {
     }
 
     async bulkStore(chunk: LionWebJsonChunk) {
-        // return await LIONWEB_QUERIES.store(chunk.nodes);
         return await LIONWEB_QUERIES.store(chunk)
     }
 
