@@ -4,7 +4,7 @@ import pgPromise from "pg-promise"
 import { createDBAdminApiWorker } from "./database/DBAdminApiWorker.js"
 
 export function registerDBAdmin(app: Express, dbConnection: pgPromise.IDatabase<object>) {
-    console.log("Registering DB Admin");
+    console.log("Registering DB Admin Module");
     createDBAdminApiWorker(dbConnection)
     const dbAdminApi: DBAdminApi = createDBAdminApi();
     app.post("/init", dbAdminApi.init)

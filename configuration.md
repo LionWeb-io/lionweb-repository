@@ -14,3 +14,8 @@ Environment variables can be used to configure the project:
 
 * **NODE_PORT** (default `3005`): Port at which the lionweb repository can be reached
 * **BODY_LIMIT** (default `50mb`): Maximum size of the body requests accepted by the lionweb repository
+
+## Other configuration parameters
+
+* **DB_VERBOSITY** (default `false`): Print queries and other information related to the DB
+* **REQUESTS_VERBOSITY** (default `true`): Print logs about the requested received

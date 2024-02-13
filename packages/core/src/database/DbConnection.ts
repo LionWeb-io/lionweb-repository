@@ -1,5 +1,6 @@
 import pgPromise from "pg-promise"
 import dotenv from "dotenv"
+import {logger} from "../logging.js";
 
 // Initialize and export the database connection with configuration from _env_
 
@@ -15,7 +16,7 @@ export const config = {
     password: process.env.PGPASSWORD || "lionweb",
 }
 
-console.log("POSTGRES CONFIG: " + JSON.stringify(config, null, 2))
+logger.dbLog("POSTGRES CONFIG: " + JSON.stringify(config, null, 2))
 
 export const pgp = pgPromise()
 export const dbConnection = pgp(config)
