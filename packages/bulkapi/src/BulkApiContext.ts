@@ -27,7 +27,7 @@ export class BulkApiContext {
 }
 
 export function registerBulkApi(app: Express, dbConnection: pgPromise.IDatabase<object, pg.IClient>, pgp: pgPromise.IMain<object, pg.IClient>) {
-    console.log("Registering Bulk API");
+    console.log("Registering Bulk API Module");
     // Create all objects 
     const context = new BulkApiContext(dbConnection, pgp)
     

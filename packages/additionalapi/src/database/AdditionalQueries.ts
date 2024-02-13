@@ -1,3 +1,4 @@
+import { logger } from "@lionweb/repository-dbadmin";
 import { AdditionalApiContext } from "../main.js";
 import { makeQueryNodeTreeForIdList } from "./QueryNode.js"
 
@@ -26,7 +27,7 @@ export class AdditionalQueries {
      * @param depthLimit
      */
     getNodeTree = async (nodeIdList: string[], depthLimit: number): Promise<QueryReturnType<NodeTreeResultType[]>> => {
-        console.log("LionWebQueries.getNodeTree for " + nodeIdList)
+        logger.requestLog("LionWebQueries.getNodeTree for " + nodeIdList)
         let query = ""
         try {
             if (nodeIdList.length === 0) {

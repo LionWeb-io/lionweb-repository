@@ -23,7 +23,7 @@ export class AdditionalApiContext {
 }
 
 export function registerAdditionalApi(app: Express, dbConnection: pgPromise.IDatabase<object, pg.IClient>, pgp: pgPromise.IMain<object, pg.IClient>) {
-    console.log("Registering Additional API");
+    console.log("Registering Additional API Module");
     // Create all objects 
     const context = new AdditionalApiContext(dbConnection, pgp)
 

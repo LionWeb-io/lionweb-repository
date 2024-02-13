@@ -20,4 +20,3 @@ logger.dbLog("POSTGRES CONFIG: " + JSON.stringify(config, null, 2))
 
 export const pgp = pgPromise()
 export const dbConnection = pgp(config)
-console.log("next again")
