@@ -11,8 +11,6 @@ import { registerInspection } from "@lionweb/repository-inspection"
 
 dotenv.config()
 
-export const requestsVerbosity : boolean = process.env.REQUESTS_VERBOSITY == null || process.env.REQUESTS_VERBOSITY == 'true'
-
 const app: Express = express()
 
 // Allow access,

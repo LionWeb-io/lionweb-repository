@@ -1,6 +1,7 @@
 import { LionWebJsonChunk } from "@lionweb/validation"
 import { LIONWEB_QUERIES } from "../database/LionWebQueries.js"
 import { collectUsedLanguages } from "../database/UsedLanguages.js"
+import {logger} from "../logging.js";
 
 /**
  * Implementations of the LionWebBulkApi methods.
@@ -36,7 +37,7 @@ class LionWebBulkApiWorker {
             }
         }
         const allNodes = await LIONWEB_QUERIES.getNodeTree(nodeIdList, depthLimit)
-        // console.log("LionWebBulkApiWorker.bulkRetrieve: all " + allNodes.map(n => n.id))
+        logger.dbLog("LionWebBulkApiWorker.bulkRetrieve: all " + allNodes.map(n => n.id))
         if (allNodes.length === 0) {
             return {
                 serializationFormatVersion: "2023.1",

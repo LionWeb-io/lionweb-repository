@@ -1,13 +1,12 @@
 import pgPromise from "pg-promise"
 import dotenv from "dotenv"
+import {logger} from "../logging.js";
 
 // Initialize and export the database connection with configuration from _env_
 
 dotenv.config()
 
 const port = parseInt(process.env.PGPORT || "5432", 10)
-
-export const dbVerbosity : boolean = process.env.DB_VERBOSITY == 'true'
 
 export const config = {
     database: process.env.PGDATABASE || "lionweb_test",
@@ -17,9 +16,7 @@ export const config = {
     password: process.env.PGPASSWORD || "lionweb",
 }
 
-if (dbVerbosity) {
-    console.log("POSTGRES CONFIG: " + JSON.stringify(config, null, 2))
-}
+logger.dbLog("POSTGRES CONFIG: " + JSON.stringify(config, null, 2))
 
 export const pgp = pgPromise()
 export const dbConnection = pgp(config)
