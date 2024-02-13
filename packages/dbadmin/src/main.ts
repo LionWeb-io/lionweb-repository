@@ -1,11 +1,32 @@
 import { Express } from "express"
-import { createDBAdminApi, DBAdminApi } from "./controllers/DBAdminApi.js"
 import pgPromise from "pg-promise"
-import { createDBAdminApiWorker } from "./database/DBAdminApiWorker.js"
+import pg from "pg-promise/typescript/pg-subset.js"
+import { DBAdminApi, DBAdminApiImpl } from "./controllers/DBAdminApi.js"
+import { DBAdminApiWorker } from "./database/DBAdminApiWorker.js"
 
-export function registerDBAdmin(app: Express, dbConnection: pgPromise.IDatabase<object>) {
+export class DbAdminApiContext {
+    dbConnection: pgPromise.IDatabase<object, pg.IClient>
+    pgp: pgPromise.IMain<object, pg.IClient>
+    dbAdminApi: DBAdminApi
+    dbAdminApiWorker: DBAdminApiWorker
+
+    constructor(dbConnection: pgPromise.IDatabase<object, pg.IClient>, pgp: pgPromise.IMain<object, pg.IClient>) {
+        this.dbConnection = dbConnection
+        this.pgp = pgp
+        this.dbAdminApi = new DBAdminApiImpl(this)
+        this.dbAdminApiWorker = new DBAdminApiWorker(this)
+    }
+}
+
+export function registerDBAdmin(
+    app: Express, 
+    dbConnection: pgPromise.IDatabase<object, pg.IClient>, 
+    pgp: pgPromise.IMain<object, pg.IClient>) 
+{
     console.log("Registering DB Admin Module");
-    createDBAdminApiWorker(dbConnection)
-    const dbAdminApi: DBAdminApi = createDBAdminApi();
-    app.post("/init", dbAdminApi.init)
+    // Create all objects 
+    const dbAdminApiContext = new DbAdminApiContext(dbConnection, pgp)
+    
+    // Add routes to app
+    app.post("/init", dbAdminApiContext.dbAdminApi.init)
 }

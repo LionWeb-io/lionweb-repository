@@ -1,0 +1,51 @@
+{
+  "name": "@lionweb/repository-languages",
+  "version": "0.1.0",
+  "private": false,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "typings": "dist/index.d.ts",
+  "type": "module",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LionWeb-io/lionweb-repository.git"
+  },
+  "bugs": {
+    "url": "https://github.com/LionWeb-io/lionweb-repository/issues"
+  },
+  "scripts": {
+    "clean": "rm -rf dist/",
+    "dev": "nodemon dist/server.js",
+    "build": "tsc",
+    "alive": "echo I am alive",
+    "lint": "eslint src",
+    "manualtest": "node dist/test/ManualTests.js"
+  },
+  "devDependencies": {
+    "prettier": "3.1.0",
+    "@typescript-eslint/eslint-plugin": "6.13.2",
+    "@typescript-eslint/parser": "6.13.2",
+    "@types/chai": "4.3.11",
+    "@types/mocha": "10.0.1",
+    "eslint": "8.56.0",
+    "chai": "4.3.10",
+    "mocha": "10.2.0",
+    "ts-node": "10.9.2",
+    "typescript": "5.2.2"
+  },
+  "dependencies": {
+    "@lionweb/repository-dbadmin": "0.1.0",
+    "@lionweb/validation": "0.6.1-beta.1",
+    "@types/express": "4.17.21",
+    "body-parser": "1.20.2",
+    "cors": "2.8.5",
+    "dotenv": "16.3.1",
+    "express": "4.18.2",
+    "fs-extra": "11.1.1",
+    "nodemon": "3.0.1",
+    "pg": "8.11.3",
+    "pg-promise": "11.5.4",
+    "source-map-support": "0.5.21"
+  }
+}

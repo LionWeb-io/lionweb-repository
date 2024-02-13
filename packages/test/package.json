@@ -15,11 +15,12 @@
     "url": "https://github.com/LionWeb-io/lionweb-repository/issues"
   },
   "scripts": {
-    "build": "rm -rf dist/ && tsc",
+    "clean": "rm -rf dist/ && rm -rf data/",
+    "build": "tsc",
     "alive": "echo I am alive",
-    "cleanup": "rm -rf ./node_modules",
     "lint": "eslint src",
     "manualtest": "node dist/test/ManualTests.js",
+    "setup": "npx degit https://github.com/LionWeb-io/lionweb-integration-testing/testchanges/data/ data",
     "test": "mocha ./dist/test/tests.js ./dist/test/inspectionTests.js ./dist/test/tests-issue19"
   },
   "devDependencies": {
@@ -28,6 +29,7 @@
     "@typescript-eslint/parser": "6.13.2",
     "@types/chai": "4.3.11",
     "@types/mocha": "10.0.1",
+    "degit": "2.8.4",
     "eslint": "8.56.0",
     "chai": "4.3.10",
     "mocha": "10.2.0",
@@ -35,7 +37,7 @@
     "typescript": "5.2.2"
   },
   "dependencies": {
-    "@lionweb/validation": "0.6.1-beta.0",
+    "@lionweb/validation": "0.6.1-beta.1",
     "@types/express": "4.17.21",
     "body-parser": "1.20.2",
     "cors": "2.8.5",

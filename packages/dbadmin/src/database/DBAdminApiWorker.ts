@@ -1,20 +1,19 @@
-import pgPromise from "pg-promise"
+import { DbAdminApiContext } from "../main.js";
 
 /**
  * Implementations of the additional non-LionWeb methods for DB Administration.
  */
 export class DBAdminApiWorker {
 
-    constructor(private dbConnection: pgPromise.IDatabase<object>) {
+    constructor(private ctx: DbAdminApiContext) {
     }
 
-    async init(sql: string) {
-        return await this.dbConnection.query(sql)
+    async init(sql: string): Promise<unknown> {
+        const queryResult = await this.ctx.dbConnection.query(sql)
+        return { 
+            status: 200,
+            query: "",
+            queryResult: JSON.stringify(queryResult),
+        }
     }
 }
-
-export function createDBAdminApiWorker(dbConnection: pgPromise.IDatabase<object>) {
-    DB_ADMIN_WORKER = new DBAdminApiWorker(dbConnection);
-}
-
-export let DB_ADMIN_WORKER: DBAdminApiWorker

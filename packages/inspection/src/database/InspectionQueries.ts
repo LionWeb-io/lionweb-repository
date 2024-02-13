@@ -1,7 +1,7 @@
 /**
  * Database functions.
  */
-class InspectionQueries {
+export class InspectionQueries {
     constructor() {
     }
 
@@ -15,5 +15,3 @@ class InspectionQueries {
             "from lionweb_nodes group by classifier_language;"
     }
 }
-
-export const INSPECTION_QUERIES = new InspectionQueries()

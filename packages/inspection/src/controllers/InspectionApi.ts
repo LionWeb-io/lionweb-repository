@@ -1,6 +1,5 @@
 import e, { Request, Response } from "express"
-import { INSPECTION_WORKER } from "../database/InspectionApiWorker.js";
-import { INSPECTION_QUERIES } from "../database/InspectionQueries.js"
+import { InspectionContext } from "../main.js";
 
 export interface InspectionApi {
     nodesByClassifier(req: Request, res: Response): void
@@ -9,21 +8,23 @@ export interface InspectionApi {
 }
 
 class InspectionApiImpl implements InspectionApi {
+    constructor(private context: InspectionContext) {
+    }
 
-    async nodesByClassifier(req: e.Request, res: e.Response) {
-        const sql = INSPECTION_QUERIES.nodesByClassifier();
-        const queryResult = await INSPECTION_WORKER.nodesByClassifier(sql)
+    nodesByClassifier = async (req: e.Request, res: e.Response)=> {
+        const sql = this.context.inspectionQueries.nodesByClassifier();
+        const queryResult = await this.context.inspectionApiWorker.nodesByClassifier(sql)
         res.send(queryResult)
     }
 
-    async nodesByLanguage(req: e.Request, res: e.Response) {
-        const sql = INSPECTION_QUERIES.nodesByLanguage();
-        const queryResult = await INSPECTION_WORKER.nodesByLanguage(sql)
+    nodesByLanguage = async (req: e.Request, res: e.Response) => {
+        const sql = this.context.inspectionQueries.nodesByLanguage();
+        const queryResult = await this.context.inspectionApiWorker.nodesByLanguage(sql)
         res.send(queryResult)
     }
 }
 
-export function createInspectionApi(): InspectionApi {
-    return new InspectionApiImpl();
+export function createInspectionApi(context: InspectionContext): InspectionApi {
+    return new InspectionApiImpl(context);
 }
 

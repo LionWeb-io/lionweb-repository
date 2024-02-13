@@ -6,7 +6,7 @@ import {
     ORPHANS_PROPERTIES_TABLE, ORPHANS_REFERENCES_TABLE,
     PROPERTIES_TABLE,
     REFERENCES_TABLE
-} from "./TableNames.js";
+} from "../database/TableNames.js";
 
 export const INIT_TABLES_SQL = `
 -- Drops nodes table

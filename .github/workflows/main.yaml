@@ -41,6 +41,9 @@ jobs:
       - name: Install dependencies
         run: npm install
         
+      - name: setup
+        run: npm run setup
+
       - name: tsc
         run: npm run build
 
@@ -51,7 +54,7 @@ jobs:
       
       - name: start server and run tests (one step, else server will be down when tests start)
         run: |
-          npm run -w @lionweb/repository-core dev &
+          npm run -w @lionweb/repository-server dev &
           sleep 6
           npm run test
         # Environment variables used by the `client.js` script to create a new PostgreSQL table.
