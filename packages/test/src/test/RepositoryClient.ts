@@ -28,34 +28,28 @@ export class RepositoryClient {
         return x === null ? null : x.status
     }
 
-    async testPartitions() {
-        // console.log(`test.partitions`)
+    async testPartitions(): Promise<LionWebJsonChunk> {
         const modelUnits: LionWebJsonChunk = await this.getWithTimeout<LionWebJsonChunk>("bulk/partitions", { body: {}, params: "" })
-        // console.log("testPartitions: " + JSON.stringify(modelUnits))
         return modelUnits
     }
 
-    async testStore(data: LionWebJsonChunk) {
+    async testStore(data: LionWebJsonChunk): Promise<ClientResponse> {
         console.log(`test.store`)
         if (data === null) {
             console.log("Cannot read json data")
             return { status: 404, body: { result: "Repository.testClient: cannot read data to store"} }
         }
-        // console.log("STORING " + JSON.stringify(data));
-        // const startTime = performance.now()
         const result = await this.postWithTimeout(`bulk/store`, { body: data, params: "" })
-        // const endTime = performance.now()
-        // console.log(`Call to query took ${endTime - startTime} milliseconds`)
         return result
     }
 
-    async testGetNodeTree(nodeIds: string[]) {
+    async testGetNodeTree(nodeIds: string[]): Promise<ClientResponse> {
         console.log(`test.testGetNodeTree`)
         const x = await this.postWithTimeout(`getNodeTree`, { body: { ids: nodeIds }, params: "" })
         return x
     }
 
-    async testRetrieve(nodeIds: string[], depth?: number) {
+    async testRetrieve(nodeIds: string[], depth?: number): Promise<ClientResponse> {
         console.log(`test.testRetrieve ${nodeIds} with depth ${depth}`)
         const params = (depth === undefined) ? "" : `depthLimit=${depth}`
         const x = await this.postWithTimeout(`bulk/retrieve`, { body: { ids: nodeIds }, params: `${params}` })
@@ -76,7 +70,6 @@ export class RepositoryClient {
 
     async getWithTimeout<T>(method: string, parameters: { body: unknown; params: string }): Promise<T> {
         const params = this.findParams(parameters.params)
-        // console.log("getWithTimeout Params = " + parameters.params);
         try {
             const controller = new AbortController()
             const timeoutId = setTimeout(() => controller.abort(), 2000)
@@ -98,7 +91,6 @@ export class RepositoryClient {
 
     async postWithTimeout(method: string, parameters: { body: unknown; params: string }): Promise<ClientResponse | null> {
         const params = this.findParams(parameters.params)
-        // console.log("postWithTimeout Params = " + parameters.params);
         try {
             const controller = new AbortController()
             const timeoutId = setTimeout(() => controller.abort(), 2000)
@@ -126,7 +118,6 @@ export class RepositoryClient {
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), 2000)
         console.log("putWithTimeout: " + `${this._SERVER_URL}${method}${params}`)
-        // console.log("Body: " + JSON.stringify(data));
         let response
         try {
             response = await fetch(`${this._SERVER_URL}${method}${params}`, {
@@ -146,7 +137,7 @@ export class RepositoryClient {
         return response
     }
 
-    private findParams(params?: string) {
+    private findParams(params?: string): string {
         if (!!params && params.length > 0) {
             return "?" + params
         } else {
@@ -154,7 +145,7 @@ export class RepositoryClient {
         }
     }
 
-    private handleError(e: unknown) {
+    private handleError(e: unknown): void {
         if (e instanceof Error) {
             let errorMess: string = e.message
             if (e.message.includes("aborted")) {

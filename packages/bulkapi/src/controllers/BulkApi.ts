@@ -38,7 +38,6 @@ export class BulkApiImpl implements BulkApi {
         validator.validateSyntax()
         validator.validateReferences()
         if (validator.validationResult.hasErrors()) {
-            // console.log("STORE VALIDATION ERROR " + validator.validationResult.issues.map(issue => issue.errorMsg()))
             res.status(400)
             res.send({ issues: [validator.validationResult.issues.map(issue => issue.errorMsg())] })
         } else {

@@ -14,7 +14,7 @@ export class AdditionalApiImpl implements AdditionalApi {
      * @param req
      * @param res
      */
-    getNodeTree = async (req: Request, res: Response)=> {
+    getNodeTree = async (req: Request, res: Response): Promise<void> => {
         const idList = req.body.ids
         let depthLimit = Number.parseInt(req.query["depthLimit"] as string)
         if (isNaN(depthLimit)) {

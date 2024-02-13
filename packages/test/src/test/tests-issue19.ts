@@ -9,9 +9,7 @@ describe("Repository tests", () => {
     const t = new RepositoryClient()
 
     beforeEach("a", async function () {
-        // baseFullChunk = t.readModel("./src/test/data/Disk_A.json") as LionWebJsonChunk
         await t.init()
-        // await t.testStore(baseFullChunk)
     })
     
     describe("Add new node", () => {
@@ -21,8 +19,6 @@ describe("Repository tests", () => {
                 "./data/add-new-nodes/Disk-add-new-nodes-single-node.json",
                 "./data/Disk_A.json",
             ])
-            // const afterRetrieve = await t.testRetrieve(["ID-2"])
-            // printChunk(afterRetrieve.json as LionWebJsonChunk)
         })
     })
 
