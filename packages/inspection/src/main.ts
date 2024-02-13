@@ -24,7 +24,7 @@ export class InspectionContext {
 }
 
 export function registerInspection(app: Express, dbConnection: pgPromise.IDatabase<object, pg.IClient>, pgp: pgPromise.IMain<object, pg.IClient>) {
-    console.log("Registering Inspection");
+    console.log("Registering Inspection Module");
     // Create all objects 
     const context = new InspectionContext(dbConnection, pgp)
 

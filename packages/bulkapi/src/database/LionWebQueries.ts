@@ -12,6 +12,7 @@ import {
 import { BulkApiContext } from "../BulkApiContext.js";
 import { makeQueryNodeTreeForIdList, QueryNodeForIdList } from "./QueryNode.js"
 import { collectUsedLanguages } from "./UsedLanguages.js"
+import { logger } from "../logging.js";
 
 export type NodeTreeResultType = {
     id: string
@@ -38,7 +39,7 @@ export class LionWebQueries {
      * @param depthLimit
      */
     getNodeTree = async (nodeIdList: string[], depthLimit: number): Promise<QueryReturnType<NodeTreeResultType[]>> => {
-        console.log("LionWebQueries.getNodeTree for " + nodeIdList)
+        logger.dbLog("LionWebQueries.getNodeTree for " + nodeIdList)
         let query = ""
         try {
             if (nodeIdList.length === 0) {
@@ -57,13 +58,13 @@ export class LionWebQueries {
      * TODO: Not tested yet
      */
     getAllDbNodes = async (): Promise<LionWebJsonNode[]> => {
-        console.log("LionWebQueries.getAllDbNodes")
+        logger.dbLog("LionWebQueries.getAllDbNodes")
         const queryResult = (await this.context.dbConnection.query(`SELECT id FROM ${NODES_TABLE}`)) as string[]
         return this.getNodesFromIdList(queryResult)
     }
 
     getNodesFromIdList = async (nodeIdList: string[]): Promise<LionWebJsonNode[]> => {
-        console.log("LionWebQueries.getNodesFromIdList: " + nodeIdList)
+        logger.dbLog("LionWebQueries.getNodesFromIdList: " + nodeIdList)
         // this is necessary as otherwise the query would crash as it is not intended to be run
         // on an empty set
         if (nodeIdList.length == 0) {
@@ -76,9 +77,10 @@ export class LionWebQueries {
      * Get all partitions: this returns all nodes that have parent set to null or undefined
      */
     getPartitions = async (): Promise<QueryReturnType<LionWebJsonChunk>> => {
-        console.log("LionWebQueries.getPartitions")
+        logger.dbLog("LionWebQueries.getPartitions")
         // TODO Optimization?: The following WHERE can also directly be includes in the getNodesFromIdList
         const result = await this.selectNodesIdsWithoutParent()
+        logger.dbLog("LionWebQueries.getPartitions.Result: " + JSON.stringify(result))
         const nodes = await this.getNodesFromIdList(result.map(n => n.id))
         return {
             status: 400,
@@ -111,8 +113,7 @@ export class LionWebQueries {
 
         const diff = new LionWebJsonDiff()
         diff.diffLwChunk(databaseChunk, toBeStoredChunk)
-        console.log("STORE.CHANGES ")
-        console.log(diff.diffResult.changes.map(ch => "    " + ch.changeMsg()))
+        logger.dbLog(`STORE.CHANGES ${diff.diffResult.changes.map(ch => `    " + ch.changeMsg())}`)}`)
 
         const toBeStoredNewNodes = diff.diffResult.changes.filter((ch): ch is NodeAdded => ch.changeType === "NodeAdded")
         const addedChildren: ChildAdded[] = diff.diffResult.changes.filter((ch): ch is ChildAdded => ch instanceof ChildAdded)
@@ -195,7 +196,7 @@ export class LionWebQueries {
         queries += this.context.queryMaker.dbInsertNodeArray(toBeStoredNewNodes.map(ch => (ch as NodeAdded).node))
         // And run them on the database
         if (queries !== "") {
-            console.log("QUERIES " + queries)
+            logger.dbLog("QUERIES " + queries)
             await this.context.dbConnection.query(queries)
         }
         return { status: 200, query: queries, queryResult: queries }

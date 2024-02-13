@@ -1,5 +1,6 @@
 import { Request, Response } from "express"
 import { AdditionalApiContext } from "../main.js";
+import { logger } from "../logging.js";
 
 export interface AdditionalApi {
     getNodeTree(req: Request, res: Response): void
@@ -19,7 +20,7 @@ export class AdditionalApiImpl implements AdditionalApi {
         if (isNaN(depthLimit)) {
             depthLimit = 99
         }
-        console.log("API.getNodeTree is " + idList)
+        logger.dbLog("API.getNodeTree is " + idList)
         const result = await this.context.additionalApiWorker.getNodeTree(idList, depthLimit)
         res.send(result)
     }

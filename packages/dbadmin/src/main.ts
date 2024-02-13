@@ -23,7 +23,7 @@ export function registerDBAdmin(
     dbConnection: pgPromise.IDatabase<object, pg.IClient>, 
     pgp: pgPromise.IMain<object, pg.IClient>) 
 {
-    console.log("Registering DB Admin");
+    console.log("Registering DB Admin Module");
     // Create all objects 
     const dbAdminApiContext = new DbAdminApiContext(dbConnection, pgp)
     

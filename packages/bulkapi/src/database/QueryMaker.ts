@@ -25,6 +25,7 @@ import {
 } from "@lionweb/validation"
 import { BulkApiContext } from "../BulkApiContext.js";
 import { sqlArrayFromNodeIdArray } from "./QueryNode.js"
+import { logger } from "../logging.js";
 
 /**
  * Class that builds SQL queries.
@@ -301,7 +302,7 @@ export class QueryMaker {
      * @param tbsNodesToCreate
      */
     public dbInsertNodeArray(tbsNodesToCreate: LionWebJsonNode[]): string {
-        console.log("Queries insert new nodes " + tbsNodesToCreate.map(n => n.id))
+        logger.dbLog("Queries insert new nodes " + tbsNodesToCreate.map(n => n.id))
         {
             let query = "-- create new nodes\n"
             if (tbsNodesToCreate.length === 0) {
