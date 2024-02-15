@@ -13,9 +13,19 @@ describe("Repository tests", () => {
     let baseFullChunk: LionWebJsonChunk
 
     beforeEach("a", async function () {
+        const initialPartition = t.readModel(DATA + "Disk_A_partition.json") as LionWebJsonChunk
         baseFullChunk = t.readModel(DATA + "Disk_A.json") as LionWebJsonChunk
         await t.init()
-        await t.testStore(baseFullChunk)
+        const partResult = await t.testCreatePartitions(initialPartition)
+        if (partResult.status !== 200) {
+            console.log("Cannot create initial partition: " + JSON.stringify(partResult.body))
+            console.log(JSON.stringify(initialPartition))
+        }
+        console.log("CREATE PARTITIONS RESULT " + JSON.stringify(partResult))
+        const result = await t.testStore(baseFullChunk)
+        if (result.status !== 200) {
+            console.log("Cannot store initial chunk: " + JSON.stringify(result.body))
+        }
     })
 
     it("retrieve nodes", async () => {
@@ -35,6 +45,8 @@ describe("Repository tests", () => {
         const partitions = await t.testPartitions()
         const diff = new LionWebJsonDiff()
         diff.diffLwChunk(model, partitions)
+        console.log("MODEL " + JSON.stringify(model))
+        console.log("PARTITIONS " + JSON.stringify(partitions))
         deepEqual(diff.diffResult.changes, [])
     })
 

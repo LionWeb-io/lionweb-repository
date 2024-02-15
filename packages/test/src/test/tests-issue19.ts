@@ -4,12 +4,14 @@ import { RepositoryClient } from "./RepositoryClient.js"
 
 import sm from "source-map-support"
 sm.install()
+const DATA: string = "./data/"
 
 describe("Repository tests", () => {
     const t = new RepositoryClient()
 
     beforeEach("a", async function () {
         await t.init()
+        await t.testCreatePartitions(t.readModel(DATA + "Disk_A_partition.json") as LionWebJsonChunk)
     })
     
     describe("Add new node", () => {

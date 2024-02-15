@@ -33,6 +33,17 @@ export class RepositoryClient {
         return modelUnits
     }
 
+    async testCreatePartitions(data: LionWebJsonChunk): Promise<ClientResponse> {
+        console.log(`test.testCreatePartitions`)
+        if (data === null) {
+            console.log("Cannot read json data")
+            return { status: 404, body: { result: "Repository.testClient: cannot read partitions to create"} }
+        }
+        console.log("Create partition " + JSON.stringify(data))
+        const result = await this.postWithTimeout(`bulk/createPartitions`, { body: data, params: "" })
+        return result
+    }
+    
     async testStore(data: LionWebJsonChunk): Promise<ClientResponse> {
         console.log(`test.store`)
         if (data === null) {

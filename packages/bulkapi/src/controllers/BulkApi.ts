@@ -10,6 +10,7 @@ import { logger } from "@lionweb/repository-dbadmin"
 
 export interface BulkApi {
     partitions: (req: Request, res: Response) => void
+    
     createPartitions: (req: Request, res: Response) => void
     deletePartitions: (req: Request, res: Response) => void
     store: (req: Request, res: Response) => void
@@ -33,6 +34,7 @@ export class BulkApiImpl implements BulkApi {
     }
 
     createPartitions = async (req: Request, res: Response): Promise<void> => {
+        logger.requestLog(` * createPartitions request received, with body of ${req.headers["content-length"]} bytes`)
         const chunk: LionWebJsonChunk = req.body
         const validator = new LionWebValidator(chunk, getLanguageRegistry())
         validator.validateSyntax()
@@ -41,12 +43,30 @@ export class BulkApiImpl implements BulkApi {
             res.status(400)
             res.send({ issues: [validator.validationResult.issues.map(issue => issue.errorMsg())] })
         } else {
+            const issues: string[] = []
             for (const node of chunk.nodes) {
                 if (node.parent !== null && node.parent !== undefined) {
                     res.status(400)
-                    res.send({ issues: [`Node ${node} cannot be created as partition because it has a parent.`] })
-                    return
+                    issues.push(`Node ${node} cannot be created as partition because it has a parent.`)
                 }
+                for (const containment of node.containments) {
+                    if (containment.children.length !== 0) {
+                        issues.push(`Node ${node.id} cannot be created as a partition because it has children in containment ${containment.containment.key}`)
+                    }
+                }
+                if (node.annotations.length !== 0) {
+                    issues.push(`Node ${node.id} cannot be created as a partition because it has annotations`)
+                }
+            }
+            if (issues.length !== 0) {
+                res.status(400)
+                res.send({ issues: issues })
+                return
+            }
+            if (chunk.nodes.length === 0) {
+                // do nothing, noi new partitions
+                res.status(200)
+                res.send({ status: 200, query: "-- empty partitions list, no query", queryResult: [] })
             }
             const x = await this.ctx.bulkApiWorker.createPartitions(chunk)
             res.status(x.status)
@@ -77,6 +97,7 @@ export class BulkApiImpl implements BulkApi {
             res.status(400)
             res.send({ issues: [validator.validationResult.issues.map(issue => issue.errorMsg())] })
         } else {
+            logger.requestLog("Calling bulkstore")
             const x = await this.ctx.bulkApiWorker.bulkStore(chunk)
             res.status(x.status)
             res.send({ result: x.queryResult} )
