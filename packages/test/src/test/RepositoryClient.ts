@@ -43,7 +43,18 @@ export class RepositoryClient {
         const result = await this.postWithTimeout(`bulk/createPartitions`, { body: data, params: "" })
         return result
     }
-    
+
+    async testDeletePartitions(partitionIds: string[]): Promise<ClientResponse> {
+        console.log(`test.testDeletePartitions`)
+        if (partitionIds === null) {
+            console.log("Cannot read partitions")
+            return { status: 404, body: { result: "Repository.testClient: cannot read partitions to delete"} }
+        }
+        console.log("Delete partition " + partitionIds)
+        const result = await this.postWithTimeout(`bulk/deletePartitions`, { body: partitionIds, params: "" })
+        return result
+    }
+
     async testStore(data: LionWebJsonChunk): Promise<ClientResponse> {
         console.log(`test.store`)
         if (data === null) {

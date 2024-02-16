@@ -40,13 +40,17 @@ export class BulkApiWorker {
      */
     deletePartitions = async(idList: string[]): Promise<QueryReturnType<string[]>> => {
         const partitions = await this.context.queries.getNodesFromIdList(idList)
+        const issues: string[] = []
         partitions.forEach(part => {
             if (part.parent !== null) {
-                return { status: 200, query: "", result: `Node with id "${part.id}" cannot be deleted because it is not a partition, it has parent with id "${part.parent}"` }
+                issues.push(`Node with id "${part.id}" cannot be deleted because it is not a partition, it has parent with id "${part.parent}"`)
             }
         })
+        if (issues.length !== 0) {
+            return { status: 400, query: "", queryResult: issues }
+        }
         this.context.queries.deletePartitions(idList)
-        return { status: 402, query: "", queryResult: [] }
+        return { status: 200, query: "", queryResult: [] }
     }
 
     bulkStore = async (chunk: LionWebJsonChunk): Promise<QueryReturnType<string>> => {

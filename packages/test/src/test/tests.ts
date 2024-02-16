@@ -45,9 +45,15 @@ describe("Repository tests", () => {
         const partitions = await t.testPartitions()
         const diff = new LionWebJsonDiff()
         diff.diffLwChunk(model, partitions)
-        console.log("MODEL " + JSON.stringify(model))
-        console.log("PARTITIONS " + JSON.stringify(partitions))
         deepEqual(diff.diffResult.changes, [])
+    })
+
+    it("delete partitions", async () => {
+        const deleteResult = await t.testDeletePartitions(["ID-2"])
+        console.log("test Delete partitions: " + JSON.stringify(deleteResult))
+        const partitions = await t.testPartitions()
+        console.log("Test  partitions: " + JSON.stringify(partitions))
+        deepEqual(partitions, {"serializationFormatVersion":"2023.1","languages":[],"nodes":[]})
     })
 
     describe("Move node (9) to from parent (4) to (5)", () => {

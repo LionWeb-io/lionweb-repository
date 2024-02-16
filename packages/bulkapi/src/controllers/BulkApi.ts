@@ -76,6 +76,7 @@ export class BulkApiImpl implements BulkApi {
     }
 
     deletePartitions = async (req: Request, res: Response): Promise<void> => {
+        logger.requestLog(` * deletePartitions request received, with body of ${req.headers["content-length"]} bytes`)
         const idList = req.body
         const x = await this.ctx.bulkApiWorker.deletePartitions(idList)
         res.send(x)
@@ -97,7 +98,6 @@ export class BulkApiImpl implements BulkApi {
             res.status(400)
             res.send({ issues: [validator.validationResult.issues.map(issue => issue.errorMsg())] })
         } else {
-            logger.requestLog("Calling bulkstore")
             const x = await this.ctx.bulkApiWorker.bulkStore(chunk)
             res.status(x.status)
             res.send({ result: x.queryResult} )

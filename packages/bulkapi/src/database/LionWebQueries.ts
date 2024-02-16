@@ -275,6 +275,7 @@ export class LionWebQueries {
     }
     
     async deletePartitions(idList: string[]): Promise<void> {
+        logger.dbLog(("LionWebQueries.deletePartitions: " + idList))
         const partitions = await this.getNodesFromIdList(idList)
         // Validate that the nodes are partitions
         partitions.forEach(part => {

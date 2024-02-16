@@ -7,8 +7,7 @@ class Logger {
         return process.env.REQUESTS_VERBOSITY == null || process.env.REQUESTS_VERBOSITY == 'true'
     }
     dbVerbosity() : boolean {
-        return process.env.DB_VERBOSITY == null || process.env.DB_VERBOSITY == 'true'
-        // return process.env.DB_VERBOSITY == 'true'
+        return process.env.DB_VERBOSITY == 'true'
     }
     requestLog(message: string | string[]) {
         if (this.requestsVerbosity()) {
