@@ -13,9 +13,17 @@ describe("Repository tests for inspection APIs", () => {
     let jsonModel: LionWebJsonChunk
 
     beforeEach("a", async function () {
-        jsonModel = t.readModel(DATA + "Disk_A.json") as LionWebJsonChunk
         await t.init()
-        await t.testStore(jsonModel)
+        jsonModel = t.readModel(DATA + "Disk_A.json") as LionWebJsonChunk
+        const initialPartition = t.readModel(DATA + "Disk_A_partition.json") as LionWebJsonChunk
+        const partResult = await t.testCreatePartitions(initialPartition)
+        if (partResult.status !== 200) {
+            console.log("Cannot create initial partition: " + JSON.stringify(partResult.body))
+        }
+        const result = await t.testStore(jsonModel)
+        if (result.status !== 200) {
+            console.log("Cannot store initial chunk: " + JSON.stringify(result.body))
+        }
     })
 
     it("nodes by language", async () => {
@@ -24,10 +32,10 @@ describe("Repository tests for inspection APIs", () => {
                 {
                     language: '-default-key-FileSystem',
                     ids: [
-                        "ANN-1", "ANN-10", "ANN-9",
+                        "ID-2", "ANN-1", "ANN-10", "ANN-9",
                         "ID-10", "ID-11", "ID-12",
                         "ID-13", "ID-14", "ID-15",
-                        "ID-2", "ID-3", "ID-4",
+                        "ID-3", "ID-4",
                         "ID-5", "ID-6", "ID-7",
                         "ID-8", "ID-9"
                     ]

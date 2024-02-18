@@ -13,9 +13,19 @@ describe("Repository tests", () => {
     let baseFullChunk: LionWebJsonChunk
 
     beforeEach("a", async function () {
+        const initialPartition = t.readModel(DATA + "Disk_A_partition.json") as LionWebJsonChunk
         baseFullChunk = t.readModel(DATA + "Disk_A.json") as LionWebJsonChunk
         await t.init()
-        await t.testStore(baseFullChunk)
+        const partResult = await t.testCreatePartitions(initialPartition)
+        if (partResult.status !== 200) {
+            console.log("Cannot create initial partition: " + JSON.stringify(partResult.body))
+            console.log(JSON.stringify(initialPartition))
+        }
+        console.log("CREATE PARTITIONS RESULT " + JSON.stringify(partResult))
+        const result = await t.testStore(baseFullChunk)
+        if (result.status !== 200) {
+            console.log("Cannot store initial chunk: " + JSON.stringify(result.body))
+        }
     })
 
     it("retrieve nodes", async () => {
@@ -36,6 +46,14 @@ describe("Repository tests", () => {
         const diff = new LionWebJsonDiff()
         diff.diffLwChunk(model, partitions)
         deepEqual(diff.diffResult.changes, [])
+    })
+
+    it("delete partitions", async () => {
+        const deleteResult = await t.testDeletePartitions(["ID-2"])
+        console.log("test Delete partitions: " + JSON.stringify(deleteResult))
+        const partitions = await t.testPartitions()
+        console.log("Test  partitions: " + JSON.stringify(partitions))
+        deepEqual(partitions, {"serializationFormatVersion":"2023.1","languages":[],"nodes":[]})
     })
 
     describe("Move node (9) to from parent (4) to (5)", () => {

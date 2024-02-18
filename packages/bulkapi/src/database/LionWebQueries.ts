@@ -8,7 +8,8 @@ import {
     ReferenceChange,
     TargetOrderChanged,
     AnnotationAdded, AnnotationChange, AnnotationRemoved, ChildOrderChanged,
-    NodeAdded, ChildAdded, ChildRemoved, LionWebJsonDiff, ParentChanged, AnnotationOrderChanged } from "@lionweb/validation"
+    NodeAdded, ChildAdded, ChildRemoved, LionWebJsonDiff, ParentChanged, AnnotationOrderChanged
+} from "@lionweb/validation"
 import { BulkApiContext } from "../BulkApiContext.js"
 import { makeQueryNodeTreeForIdList, QueryNodeForIdList } from "./QueryNode.js"
 import { collectUsedLanguages } from "./UsedLanguages.js"
@@ -24,7 +25,7 @@ export type QueryReturnType<T> = {
     status: number
     query: string
     queryResult: T
-} 
+}
 
 /**
  * Database functions.
@@ -48,7 +49,7 @@ export class LionWebQueries {
             // TODO Currently only gives the node id's, should give full node.
             query = makeQueryNodeTreeForIdList(nodeIdList, depthLimit)
             return { status: 410, query: query, queryResult: await this.context.dbConnection.query(query) }
-        } catch(e) {
+        } catch (e) {
             console.log("Exception catched in getNodeTree(): " + e.message)
             return { status: 200, query: query, queryResult: e.message }
         }
@@ -83,7 +84,7 @@ export class LionWebQueries {
         logger.dbLog("LionWebQueries.getPartitions.Result: " + JSON.stringify(result))
         const nodes = await this.getNodesFromIdList(result.map(n => n.id))
         return {
-            status: 400,
+            status: 200,
             query: "query",
             queryResult: {
                 serializationFormatVersion: "2023.1",
@@ -93,6 +94,13 @@ export class LionWebQueries {
         }
     }
 
+    createPartitions = async (partitions: LionWebJsonChunk): Promise<QueryReturnType<string>> => {
+        logger.dbLog("LionWebQueries.createPartitions")
+        const query = this.context.queryMaker.dbInsertNodeArray(partitions.nodes)
+        const result = await this.context.dbConnection.query(query)
+        return { status: 200, query: query, queryResult: result }
+    }
+
     // TODO This function is way too complex, should be simplified.
     /**
      * Store all nodes in the `nodes` collection in the nodes table.
@@ -100,6 +108,7 @@ export class LionWebQueries {
      * @param toBeStoredChunk
      */
     store = async (toBeStoredChunk: LionWebJsonChunk): Promise<QueryReturnType<string>> => {
+        logger.dbLog("LionWebQueries.store")
         if (toBeStoredChunk === null || toBeStoredChunk === undefined) {
             return { status: 400, query: "", queryResult: "null chunk not stored" }
         }
@@ -110,6 +119,16 @@ export class LionWebQueries {
         // Retrieve nodes for all id's that exist
         const databaseChunk = await this.context.bulkApiWorker.bulkRetrieve(tbsNodeAndChildIds, "", 0)
         const databaseChunkWrapper = new LionWebJsonChunkWrapper(databaseChunk)
+        logger.dbLog("DBChunk " + JSON.stringify(databaseChunk))
+        
+        // Check whether there are new nodes without a parent
+        // TODO If node already exists as a partition this is ok
+        const newNodesWithoutParent = toBeStoredChunk.nodes
+            .filter(node => node.parent === null)
+            .filter(node => databaseChunkWrapper.getNode(node.id) === undefined)
+        if (newNodesWithoutParent.length !== 0) {
+            return { status: 400, query: "", queryResult: `Cannot create new nodes ${newNodesWithoutParent.map(n => n.id)} without parent` }
+        }
 
         const diff = new LionWebJsonDiff()
         diff.diffLwChunk(databaseChunk, toBeStoredChunk)
@@ -252,8 +271,9 @@ export class LionWebQueries {
             })
         return queries
     }
-    
+
     async deletePartitions(idList: string[]): Promise<void> {
+        logger.dbLog(("LionWebQueries.deletePartitions: " + idList))
         const partitions = await this.getNodesFromIdList(idList)
         // Validate that the nodes are partitions
         partitions.forEach(part => {
@@ -262,7 +282,7 @@ export class LionWebQueries {
             }
         })
         // Remove the partition nodes and all children/annotations
-        const removedNodes = (await this.getNodeTree(idList,   999)).queryResult.map(n => n.id)
+        const removedNodes = (await this.getNodeTree(idList, 999)).queryResult.map(n => n.id)
         const query = this.context.queryMaker.makeQueriesForOrphans(removedNodes)
         return await this.context.dbConnection.query(query)
     }
