@@ -19,7 +19,7 @@ export class BulkApiWorker {
     }
 
     /**
-     * @param chunk
+     * @param chunk A LionWeb chunk containing all nodes that are to be created as partitions.
      */
     createPartitions = async (chunk: LionWebJsonChunk): Promise<QueryReturnType<string>> => {
         logger.requestLog("BulkApiWorker.createPartitions")
@@ -36,7 +36,7 @@ export class BulkApiWorker {
 
     /**
      * Delete all partitions 
-     * @param idList
+     * @param idList The list iof node id's of partition nodes that are to be removed.
      */
     deletePartitions = async(idList: string[]): Promise<QueryReturnType<string[]>> => {
         const partitions = await this.context.queries.getNodesFromIdList(idList)

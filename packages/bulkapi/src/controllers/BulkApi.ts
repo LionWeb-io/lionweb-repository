@@ -64,7 +64,7 @@ export class BulkApiImpl implements BulkApi {
                 return
             }
             if (chunk.nodes.length === 0) {
-                // do nothing, noi new partitions
+                // do nothing, no new partitions
                 res.status(200)
                 res.send({ status: 200, query: "-- empty partitions list, no query", queryResult: [] })
             }
@@ -79,6 +79,7 @@ export class BulkApiImpl implements BulkApi {
         logger.requestLog(` * deletePartitions request received, with body of ${req.headers["content-length"]} bytes`)
         const idList = req.body
         const x = await this.ctx.bulkApiWorker.deletePartitions(idList)
+        res.status(404)
         res.send(x)
     }
 
