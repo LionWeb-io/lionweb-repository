@@ -1,5 +1,5 @@
 import pgPromise from "pg-promise"
-import {PGDATABASE, PGHOST, PGUSER} from "./configuration.js";
+import {PGDB, PGHOST, PGUSER} from "./configuration.js";
 import { CREATE_DATABASE_SQL } from "./create-database-sql.js"
 import { INIT_TABLES_SQL } from "./init-tables-sql.js"
 
@@ -19,7 +19,7 @@ const CREATE_CONFIG: PostgresConfig = {
 }
 const INIT_CONFIG: PostgresConfig = {
     host: PGHOST,
-    database: PGDATABASE,
+    database: PGDB,
     port: parseInt(process.env.PGPORT || "5432", 10),
     user: PGUSER,
     password: process.env.PGPASSWORD || "lionweb"

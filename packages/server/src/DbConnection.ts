@@ -9,7 +9,7 @@ dotenv.config()
 const port = parseInt(process.env.PGPORT || "5432", 10)
 
 export const config = {
-    database: process.env.PGDATABASE || "lionweb_test",
+    database: process.env.PGDB || "lionweb_test",
     host: process.env.PGHOST || "postgres",
     port: port,
     user: process.env.PGUSER || "postgres",
