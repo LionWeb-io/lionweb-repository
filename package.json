@@ -18,7 +18,7 @@
     "setup": "npm run setup -w packages --if-present",
     "test": "npm run test -w packages --if-present",
     "release": "npm run release -w packages --if-present",
-    "database": "node packages/database-mgt/dist/tools/database",
+    "database": "node packages/dbadmin/dist/tools/database",
     "npm-install-local": "npm config set registry http://localhost:4873 && npm install",
     "npm-install": "npm config set registry https://registry.npmjs.com && npm install"
   },
