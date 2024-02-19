@@ -1,7 +1,9 @@
+import {PGDATABASE, PGUSER} from "./configuration.js";
+
 export const CREATE_DATABASE_SQL: string = `
-CREATE DATABASE lionweb_test
+CREATE DATABASE ${PGDATABASE}
     WITH
-    OWNER = postgres
+    OWNER = '${PGUSER}'
     ENCODING = 'UTF8'
     LC_COLLATE = 'en_US.utf8'
     LC_CTYPE = 'en_US.utf8'
@@ -10,7 +12,7 @@ CREATE DATABASE lionweb_test
     CONNECTION LIMIT = -1
     IS_TEMPLATE = False;
 
-GRANT TEMPORARY, CONNECT ON DATABASE lionweb_test TO PUBLIC;
+GRANT TEMPORARY, CONNECT ON DATABASE ${PGDATABASE} TO PUBLIC;
 
-GRANT ALL ON DATABASE lionweb_test TO postgres;
+GRANT ALL ON DATABASE ${PGDATABASE} TO ${PGUSER};
 `
