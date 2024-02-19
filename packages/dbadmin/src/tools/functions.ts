@@ -5,7 +5,9 @@ export function runWithTry( func: (req: Request, res: Response) => void): (req: 
         try {
             await func(req, res)
         } catch(e) {
-            console.log("Exception " + e.message)
+            console.log(`Exception while serving request for ${req.url}: ${e.message}`)
+            res.status(500)
+            res.send(`Exception while serving request for ${req.url}: ${e.message}`)
         }
     }
 }
