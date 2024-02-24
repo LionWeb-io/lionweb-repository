@@ -1,7 +1,7 @@
-import { runWithTry, TableDefinitions } from "@lionweb/repository-dbadmin";
 import { Express } from "express"
 import pgPromise from "pg-promise"
 import pg from "pg-promise/typescript/pg-subset.js"
+import { TableDefinitions, runWithTry } from "@lionweb/repository-common";
 import { BulkApiWorker } from "./controllers/BulkApiWorker.js";
 import { BulkApi, BulkApiImpl } from "./controllers/index.js";
 import { LionWebQueries, QueryMaker } from "./database/index.js";

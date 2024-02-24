@@ -2,7 +2,7 @@ import { LanguageRegistry } from "@lionweb/validation";
 import { Express } from "express"
 import pgPromise from "pg-promise"
 import pg from "pg-promise/typescript/pg-subset.js"
-import { runWithTry } from "@lionweb/repository-dbadmin";
+import { runWithTry } from "@lionweb/repository-common";
 import { LanguageApiWorker } from "./controllers/LanguageApiWorker.js";
 import { LanguageApiImpl } from "./controllers/index.js";
 

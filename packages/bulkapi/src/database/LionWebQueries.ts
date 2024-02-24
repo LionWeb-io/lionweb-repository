@@ -1,4 +1,4 @@
-import { CONTAINMENTS_TABLE, NODES_TABLE } from "@lionweb/repository-dbadmin"
+import { CONTAINMENTS_TABLE, NODES_TABLE, logger } from "@lionweb/repository-common"
 import {
     LionWebJsonChunk,
     LionWebJsonNode,
@@ -13,7 +13,6 @@ import {
 import { BulkApiContext } from "../BulkApiContext.js"
 import { makeQueryNodeTreeForIdList, QueryNodeForIdList } from "./QueryNode.js"
 import { collectUsedLanguages } from "./UsedLanguages.js"
-import { logger } from "@lionweb/repository-dbadmin"
 
 export type NodeTreeResultType = {
     id: string

@@ -2,11 +2,11 @@
 // - unpack the request
 // - call controller to do actual work
 // - pack response
-import { getLanguageRegistry } from "@lionweb/repository-languages"
 import { Request, Response } from "express"
+import { getLanguageRegistry } from "@lionweb/repository-languages"
 import { LionWebJsonChunk, LionWebValidator } from "@lionweb/validation"
 import { BulkApiContext } from "../BulkApiContext.js"
-import { logger } from "@lionweb/repository-dbadmin"
+import { logger } from "@lionweb/repository-common"
 
 export interface BulkApi {
     partitions: (req: Request, res: Response) => void

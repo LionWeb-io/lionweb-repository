@@ -1,4 +1,4 @@
-import { logger } from "@lionweb/repository-dbadmin";
+import { logger } from "@lionweb/repository-common";
 import { LionWebJsonChunk } from "@lionweb/validation"
 import { BulkApiContext } from "../BulkApiContext.js"
 import { QueryReturnType } from "../database/LionWebQueries.js"
@@ -47,9 +47,9 @@ export class BulkApiWorker {
             }
         })
         if (issues.length !== 0) {
-            return { status: 400, query: "", queryResult: issues }
+            return { status: 400, query: "something wrong", queryResult: issues }
         }
-        this.context.queries.deletePartitions(idList)
+        await this.context.queries.deletePartitions(idList)
         return { status: 200, query: "", queryResult: [] }
     }
 

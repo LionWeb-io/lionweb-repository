@@ -1,4 +1,4 @@
-import { logger } from "@lionweb/repository-dbadmin";
+import { logger } from "@lionweb/repository-common";
 import { AdditionalApiContext } from "../main.js";
 import { makeQueryNodeTreeForIdList } from "./QueryNode.js"
 

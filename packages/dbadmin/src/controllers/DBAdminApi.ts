@@ -1,6 +1,7 @@
 import e, { Request, Response } from "express"
+import { logger } from "@lionweb/repository-common";
 import { DbAdminApiContext } from "../main.js";
-import { INIT_TABLES_SQL, logger } from "../tools/index.js";
+import { INIT_TABLES_SQL } from "../tools/index.js";
 
 export interface DBAdminApi {
     init(req: Request, res: Response): void

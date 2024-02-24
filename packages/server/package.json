@@ -35,6 +35,7 @@
     "typescript": "5.2.2"
   },
   "dependencies": {
+    "@lionweb/repository-common": "0.1.0",
     "@lionweb/repository-dbadmin": "0.1.0",
     "@lionweb/repository-inspection": "0.1.0",
     "@lionweb/repository-additionalapi": "0.1.0",

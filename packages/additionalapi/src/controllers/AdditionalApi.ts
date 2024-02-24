@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
 import { AdditionalApiContext } from "../main.js"
-import { logger } from "@lionweb/repository-dbadmin"
+import { logger } from "@lionweb/repository-common"
 
 export interface AdditionalApi {
     getNodeTree(req: Request, res: Response): void

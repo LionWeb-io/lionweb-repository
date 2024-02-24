@@ -7,8 +7,9 @@ import {
     ORPHANS_PROPERTIES_TABLE,
     ORPHANS_REFERENCES_TABLE,
     PROPERTIES_TABLE, 
-    REFERENCES_TABLE
-} from "@lionweb/repository-dbadmin"
+    REFERENCES_TABLE,
+    logger
+} from "@lionweb/repository-common"
 import {
     ChildAdded,
     ChildOrderChanged,
@@ -25,7 +26,6 @@ import {
 } from "@lionweb/validation"
 import { BulkApiContext } from "../BulkApiContext.js"
 import { sqlArrayFromNodeIdArray } from "./QueryNode.js"
-import { logger } from "@lionweb/repository-dbadmin"
 
 /**
  * Class that builds SQL queries.
