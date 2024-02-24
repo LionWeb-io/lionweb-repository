@@ -28,32 +28,36 @@ describe("Repository tests", () => {
         }
     })
 
-    it("retrieve nodes", async () => {
-        const retrieve = await t.testRetrieve(["ID-2"])
-        console.log("JSON MODEL ORIGINAL")
-        printChunk(baseFullChunk)
-        console.log("JSON MODEL RETRIEVED")
-        printChunk(retrieve.body as LionWebJsonChunk)
-        const diff = new LionWebJsonDiff()
-        diff.diffLwChunk(baseFullChunk, retrieve.body as LionWebJsonChunk)
-        deepEqual(diff.diffResult.changes, [])
-    })
+    describe("Partition tests", () => {
+        it("retrieve nodes", async () => {
+            const retrieve = await t.testRetrieve(["ID-2"])
+            console.log("JSON MODEL ORIGINAL")
+            printChunk(baseFullChunk)
+            console.log("JSON MODEL RETRIEVED")
+            printChunk(retrieve.body as LionWebJsonChunk)
+            const diff = new LionWebJsonDiff()
+            diff.diffLwChunk(baseFullChunk, retrieve.body as LionWebJsonChunk)
+            deepEqual(diff.diffResult.changes, [])
+        })
 
-    it("retrieve partitions", async () => {
-        const model = structuredClone(baseFullChunk)
-        model.nodes = model.nodes.filter(node => node.parent === null)
-        const partitions = await t.testPartitions()
-        const diff = new LionWebJsonDiff()
-        diff.diffLwChunk(model, partitions)
-        deepEqual(diff.diffResult.changes, [])
-    })
+        it("retrieve partitions", async () => {
+            const model = structuredClone(baseFullChunk)
+            model.nodes = model.nodes.filter(node => node.parent === null)
+            const partitions = await t.testPartitions()
+            const diff = new LionWebJsonDiff()
+            diff.diffLwChunk(model, partitions)
+            deepEqual(diff.diffResult.changes, [])
+        })
 
-    it("delete partitions", async () => {
-        const deleteResult = await t.testDeletePartitions(["ID-2"])
-        console.log("test Delete partitions: " + JSON.stringify(deleteResult))
-        const partitions = await t.testPartitions()
-        console.log("Test  partitions: " + JSON.stringify(partitions))
-        deepEqual(partitions, {"serializationFormatVersion":"2023.1","languages":[],"nodes":[]})
+        it("delete partitions", async () => {
+            const prePartitions = await t.testPartitions()
+            console.log("PRe partitions: " + JSON.stringify(prePartitions))
+            const deleteResult = await t.testDeletePartitions(["ID-2"])
+            console.log("test Delete partitions: " + JSON.stringify(deleteResult))
+            const partitions = await t.testPartitions()
+            console.log("Test  partitions: " + JSON.stringify(partitions))
+            deepEqual(partitions, { "serializationFormatVersion": "2023.1", "languages": [], "nodes": [] })
+        })
     })
 
     describe("Move node (9) to from parent (4) to (5)", () => {
