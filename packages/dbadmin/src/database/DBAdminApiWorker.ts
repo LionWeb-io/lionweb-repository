@@ -1,4 +1,4 @@
-import { QueryReturnType } from "@lionweb/repository-bulkapi";
+import { QueryReturnType } from "@lionweb/repository-common";
 import { DbAdminApiContext } from "../main.js";
 
 /**

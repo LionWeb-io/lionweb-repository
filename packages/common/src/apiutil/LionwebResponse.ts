@@ -43,3 +43,11 @@ export const EMPTY_FAIL_RESPONSE: LionwebResponse = {
     success: false,
     messages: []
 }
+
+
+export type QueryReturnType<T> = {
+    status: number
+    query: string
+    queryResult: T
+}
+

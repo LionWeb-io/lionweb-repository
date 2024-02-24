@@ -3,12 +3,11 @@ import {
     DeletePartitionsResponse,
     EMPTY_SUCCES_RESPONSE,
     logger,
-    PartitionsResponse,
+    PartitionsResponse, QueryReturnType,
     ResponseMessage, RetrieveResponse, StoreResponse
 } from "@lionweb/repository-common";
 import { LionWebJsonChunk } from "@lionweb/validation"
 import { BulkApiContext } from "../BulkApiContext.js"
-import { QueryReturnType } from "../database/LionWebQueries.js"
 import { collectUsedLanguages } from "../database/UsedLanguages.js"
 
 /**

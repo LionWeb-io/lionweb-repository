@@ -1,4 +1,13 @@
-import { CONTAINMENTS_TABLE, NODES_TABLE, logger, PartitionsResponse, CreatePartitionsResponse, StoreResponse, asError } from "@lionweb/repository-common"
+import {
+    CONTAINMENTS_TABLE,
+    NODES_TABLE,
+    logger,
+    PartitionsResponse,
+    CreatePartitionsResponse,
+    StoreResponse,
+    asError,
+    QueryReturnType
+} from "@lionweb/repository-common"
 import {
     LionWebJsonChunk,
     LionWebJsonNode,
@@ -18,12 +27,6 @@ export type NodeTreeResultType = {
     id: string
     parent: string
     depth: number
-}
-
-export type QueryReturnType<T> = {
-    status: number
-    query: string
-    queryResult: T
 }
 
 /**

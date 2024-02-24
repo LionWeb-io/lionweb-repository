@@ -1,4 +1,4 @@
-import { asError, logger } from "@lionweb/repository-common";
+import { asError, logger, QueryReturnType } from "@lionweb/repository-common";
 import { AdditionalApiContext } from "../main.js";
 import { makeQueryNodeTreeForIdList } from "./QueryNode.js"
 
@@ -7,12 +7,6 @@ export type NodeTreeResultType = {
     parent: string
     depth: number
 }
-
-export type QueryReturnType<T> = {
-    status: number
-    query: string
-    queryResult: T
-} 
 
 /**
  * Database functions.
