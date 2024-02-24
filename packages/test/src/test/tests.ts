@@ -1,3 +1,4 @@
+import { RetrieveResponse } from "@lionweb/repository-common";
 import { LanguageChange, LionWebJsonChunk, LionWebJsonChunkWrapper, LionWebJsonDiff, NodeRemoved } from "@lionweb/validation"
 import { assert } from "chai"
 import { RepositoryClient } from "./RepositoryClient.js"
@@ -15,7 +16,10 @@ describe("Repository tests", () => {
     beforeEach("a", async function () {
         const initialPartition = t.readModel(DATA + "Disk_A_partition.json") as LionWebJsonChunk
         baseFullChunk = t.readModel(DATA + "Disk_A.json") as LionWebJsonChunk
-        await t.init()
+        const initResponse = await t.init()
+        if (initResponse.status !== 200) {
+            console.log("Cannot initialize database: " + JSON.stringify(initResponse.body))
+        }
         const partResult = await t.testCreatePartitions(initialPartition)
         if (partResult.status !== 200) {
             console.log("Cannot create initial partition: " + JSON.stringify(partResult.body))
@@ -34,9 +38,10 @@ describe("Repository tests", () => {
             console.log("JSON MODEL ORIGINAL")
             printChunk(baseFullChunk)
             console.log("JSON MODEL RETRIEVED")
-            printChunk(retrieve.body as LionWebJsonChunk)
+            const retrieveResponse = retrieve.body as RetrieveResponse 
+            printChunk(retrieveResponse.chunk)
             const diff = new LionWebJsonDiff()
-            diff.diffLwChunk(baseFullChunk, retrieve.body as LionWebJsonChunk)
+            diff.diffLwChunk(baseFullChunk, retrieveResponse.chunk)
             deepEqual(diff.diffResult.changes, [])
         })
 
@@ -45,7 +50,7 @@ describe("Repository tests", () => {
             model.nodes = model.nodes.filter(node => node.parent === null)
             const partitions = await t.testPartitions()
             const diff = new LionWebJsonDiff()
-            diff.diffLwChunk(model, partitions)
+            diff.diffLwChunk(model, partitions.chunk)
             deepEqual(diff.diffResult.changes, [])
         })
 
@@ -56,7 +61,7 @@ describe("Repository tests", () => {
             console.log("test Delete partitions: " + JSON.stringify(deleteResult))
             const partitions = await t.testPartitions()
             console.log("Test  partitions: " + JSON.stringify(partitions))
-            deepEqual(partitions, { "serializationFormatVersion": "2023.1", "languages": [], "nodes": [] })
+            deepEqual(partitions.chunk, { "serializationFormatVersion": "2023.1", "languages": [], "nodes": [] })
         })
     })
 
@@ -258,7 +263,7 @@ describe("Repository tests", () => {
         diff.diffResult.changes.filter(change => !(change instanceof NodeRemoved)).forEach(change => console.log(change.changeMsg()))
 
         const result = await t.testStore(changesChunk)
-        console.log("Result: \n" + result.body["result"])
+        console.log("Result: \n" + JSON.stringify(result.body))
         assert(result.status === 200)
 
         const jsonModelFull = t.readModel(originalJsonFile) as LionWebJsonChunk
@@ -266,13 +271,14 @@ describe("Repository tests", () => {
         console.log("JSON MODEL ")
         printChunk(jsonModelFull)
         console.log("Retrieved with status " + afterRetrieve.status)
+        const retrieveResponse = afterRetrieve.body as RetrieveResponse
         if (afterRetrieve.status === 400) {
-            console.log(afterRetrieve.body["issues"])
+            console.log(retrieveResponse.messages)
             deepEqual(afterRetrieve.status, 200)
         } else {
-            printChunk(afterRetrieve.body as LionWebJsonChunk)
+            printChunk(retrieveResponse.chunk)
             const diff2 = new LionWebJsonDiff()
-            diff2.diffLwChunk(jsonModelFull, afterRetrieve.body as LionWebJsonChunk)
+            diff2.diffLwChunk(jsonModelFull, retrieveResponse.chunk)
             deepEqual(
                 diff2.diffResult.changes.filter(ch => !(ch instanceof LanguageChange)),
                 []

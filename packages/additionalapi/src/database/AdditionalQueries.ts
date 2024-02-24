@@ -1,4 +1,4 @@
-import { logger } from "@lionweb/repository-common";
+import { asError, logger } from "@lionweb/repository-common";
 import { AdditionalApiContext } from "../main.js";
 import { makeQueryNodeTreeForIdList } from "./QueryNode.js"
 
@@ -26,7 +26,7 @@ export class AdditionalQueries {
      * @param nodeIdList
      * @param depthLimit
      */
-    getNodeTree = async (nodeIdList: string[], depthLimit: number): Promise<QueryReturnType<NodeTreeResultType[]>> => {
+    getNodeTree = async (nodeIdList: string[], depthLimit: number): Promise<QueryReturnType<NodeTreeResultType[] | string>> => {
         logger.requestLog("LionWebQueries.getNodeTree for " + nodeIdList)
         let query = ""
         try {
@@ -37,8 +37,9 @@ export class AdditionalQueries {
             query = makeQueryNodeTreeForIdList(nodeIdList, depthLimit)
             return { status: 410, query: query, queryResult: await this.context.dbConnection.query(query) }
         } catch (e) {
-            console.log("Exception catched in getNodeTree(): " + e.message)
-            return { status: 200, query: query, queryResult: e.message }
+            const error = asError(e)
+            console.log("Exception catched in getNodeTree(): " + error.message)
+            return { status: 200, query: query, queryResult: error.message }
         }
     }
 }

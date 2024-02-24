@@ -1,3 +1,4 @@
+import { asError, PartitionsResponse } from "@lionweb/repository-common";
 import { LionWebJsonChunk } from "@lionweb/validation"
 import fs from "fs"
 
@@ -12,7 +13,7 @@ export class RepositoryClient {
     private _SERVER_IP = "http://127.0.0.1"
     private _SERVER_URL = `${this._SERVER_IP}:${this._nodePort}/`
 
-    readModel(filename: string): LionWebJsonChunk {
+    readModel(filename: string): LionWebJsonChunk | null {
         if (fs.existsSync(filename)) {
             const stats = fs.statSync(filename)
             if (stats.isFile()) {
@@ -23,14 +24,14 @@ export class RepositoryClient {
         return null
     }
 
-    async init(): Promise<Status> {
+    async init(): Promise<ClientResponse> {
         const x = await this.postWithTimeout("init", { body: {}, params: "" })
-        return x === null ? null : x.status
+        return x
     }
 
-    async testPartitions(): Promise<LionWebJsonChunk> {
-        const modelUnits: LionWebJsonChunk = await this.getWithTimeout<LionWebJsonChunk>("bulk/partitions", { body: {}, params: "" })
-        return modelUnits
+    async testPartitions(): Promise<PartitionsResponse> {
+        const partitionsResponse: PartitionsResponse = await this.getWithTimeout<PartitionsResponse>("bulk/partitions", { body: {}, params: "" })
+        return partitionsResponse
     }
 
     async testCreatePartitions(data: LionWebJsonChunk): Promise<ClientResponse> {
@@ -106,12 +107,13 @@ export class RepositoryClient {
             clearTimeout(timeoutId)
             return await promise.json()
         } catch (e) {
-            this.handleError(e)
+            const error = asError(e)
+            this.handleError(error)
         }
         return null
     }
 
-    async postWithTimeout(method: string, parameters: { body: unknown; params: string }): Promise<ClientResponse | null> {
+    async postWithTimeout(method: string, parameters: { body: unknown; params: string }): Promise<ClientResponse> {
         const params = this.findParams(parameters.params)
         try {
             const controller = new AbortController()
@@ -130,8 +132,9 @@ export class RepositoryClient {
             const result = await promise.json()
             return { body: result, status: status }
         } catch (e) {
-            this.handleError(e)
-            return { status: 403, body: { error: e.message } }
+            const error = asError(e)
+            this.handleError(error)
+            return { status: 403, body: { error: error.message } }
         }
     }
 
@@ -151,8 +154,9 @@ export class RepositoryClient {
                 body: JSON.stringify(data),
             })
         } catch (e) {
-            console.error("putWithTimeout.ERROR " + JSON.stringify(e))
-            this.handleError(e)
+            const error = asError(e)
+            console.error("putWithTimeout.ERROR " + error.message)
+            this.handleError(error)
         }
         console.log("fetching done ....")
         clearTimeout(timeoutId)
@@ -167,16 +171,12 @@ export class RepositoryClient {
         }
     }
 
-    private handleError(e: unknown): void {
-        if (e instanceof Error) {
-            let errorMess: string = e.message
-            if (e.message.includes("aborted")) {
-                errorMess = `Time out: no response from ${this._SERVER_URL}.`
-                console.error(errorMess)
-            }
-            console.error("handleError: " + JSON.stringify(e))
-        } else {
-            console.error("Exception handleError: " + JSON.stringify(e))
+    private handleError(e: Error): void {
+        let errorMess: string = e.message
+        if (e.message.includes("aborted")) {
+            errorMess = `Time out: no response from ${this._SERVER_URL}.`
+            console.error(errorMess)
         }
+        console.error("handleError: " + JSON.stringify(e))
     }
 }

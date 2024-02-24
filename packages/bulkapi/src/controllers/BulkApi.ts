@@ -6,7 +6,7 @@ import { Request, Response } from "express"
 import { getLanguageRegistry } from "@lionweb/repository-languages"
 import { LionWebJsonChunk, LionWebValidator } from "@lionweb/validation"
 import { BulkApiContext } from "../BulkApiContext.js"
-import { logger } from "@lionweb/repository-common"
+import { CreatePartitionsResponse, logger, PartitionsResponse, lionwebResponse, ResponseMessage } from "@lionweb/repository-common"
 
 export interface BulkApi {
     partitions: (req: Request, res: Response) => void
@@ -29,8 +29,7 @@ export class BulkApiImpl implements BulkApi {
     partitions = async (req: Request, res: Response): Promise<void> => {
         logger.requestLog(` * partitions request received, with body of ${req.headers["content-length"]} bytes`)
         const result = await this.ctx.bulkApiWorker.bulkPartitions()
-        res.status(result.status)
-        res.send(result.queryResult)
+        lionwebResponse<PartitionsResponse>(res, result.status, result.queryResult)
     }
 
     createPartitions = async (req: Request, res: Response): Promise<void> => {
@@ -40,47 +39,50 @@ export class BulkApiImpl implements BulkApi {
         validator.validateSyntax()
         validator.validateReferences()
         if (validator.validationResult.hasErrors()) {
-            res.status(400)
-            res.send({ issues: [validator.validationResult.issues.map(issue => issue.errorMsg())] })
+            lionwebResponse(res, 400, {
+                success: false,
+                messages: validator.validationResult.issues.map(issue => ({kind: issue.issueType, message: issue.errorMsg()}))
+            })
         } else {
-            const issues: string[] = []
+            const issues: ResponseMessage[] = []
             for (const node of chunk.nodes) {
                 if (node.parent !== null && node.parent !== undefined) {
-                    res.status(400)
-                    issues.push(`Node ${node} cannot be created as partition because it has a parent.`)
+                    issues.push({ kind: "PartitionHasParent", message: `Node ${node} cannot be created as partition because it has a parent.`})
                 }
                 for (const containment of node.containments) {
                     if (containment.children.length !== 0) {
-                        issues.push(`Node ${node.id} cannot be created as a partition because it has children in containment ${containment.containment.key}`)
+                        issues.push({ kind: "PartitionHasChildren", message: `Node ${node.id} cannot be created as a partition because it has children in containment ${containment.containment.key}` })
                     }
                 }
                 if (node.annotations.length !== 0) {
-                    issues.push(`Node ${node.id} cannot be created as a partition because it has annotations`)
+                    issues.push({ kind: "PartitionHasAnnotations", message: `Node ${node.id} cannot be created as a partition because it has annotations`} )
                 }
             }
             if (issues.length !== 0) {
-                res.status(400)
-                res.send({ issues: issues })
+                lionwebResponse<CreatePartitionsResponse>(res, 400, {
+                    success: false,
+                    messages: issues
+                })
                 return
             }
             if (chunk.nodes.length === 0) {
                 // do nothing, no new partitions
-                res.status(200)
-                res.send({ status: 200, query: "-- empty partitions list, no query", queryResult: [] })
+                lionwebResponse<CreatePartitionsResponse>(res, 200, {
+                    success: true,
+                    messages: [{ kind: "EmptyChunk", message: "-- empty partitions list, no query"}]
+                })
+                return
             }
             const x = await this.ctx.bulkApiWorker.createPartitions(chunk)
-            res.status(x.status)
-            res.send(x.queryResult)
+            lionwebResponse<CreatePartitionsResponse>(res, x.status, x.queryResult)
         }
-            
     }
 
     deletePartitions = async (req: Request, res: Response): Promise<void> => {
         logger.requestLog(` * deletePartitions request received, with body of ${req.headers["content-length"]} bytes`)
         const idList = req.body
         const x = await this.ctx.bulkApiWorker.deletePartitions(idList)
-        res.status(404)
-        res.send(x)
+        lionwebResponse(res, x.status, x.queryResult)
     }
 
     /**
@@ -96,12 +98,13 @@ export class BulkApiImpl implements BulkApi {
         validator.validateReferences()
         if (validator.validationResult.hasErrors()) {
             logger.requestLog("STORE VALIDATION ERROR " + validator.validationResult.issues.map(issue => issue.errorMsg()))
-            res.status(400)
-            res.send({ issues: [validator.validationResult.issues.map(issue => issue.errorMsg())] })
+            lionwebResponse(res, 400, {
+                success: false,
+                messages: validator.validationResult.issues.map(issue => ({ kind: issue.issueType, message: issue.errorMsg() }))
+            })
         } else {
-            const x = await this.ctx.bulkApiWorker.bulkStore(chunk)
-            res.status(x.status)
-            res.send({ result: x.queryResult} )
+            const result = await this.ctx.bulkApiWorker.bulkStore(chunk)
+            lionwebResponse(res, result.status, result.queryResult)
         }
     }
 
@@ -119,14 +122,18 @@ export class BulkApiImpl implements BulkApi {
         const idList = req.body.ids
         logger.requestLog("Api.getNodes: " + JSON.stringify(req.body) + " depth " + depthLimit)
         if (isNaN(depthLimit)) {
-            res.status(400)
-            res.send({ issues: [`parameter 'depthLimit' is not a number, but is '${req.query["depthLimit"]}' `] })
+            lionwebResponse(res, 400, {
+                success: false,
+                messages: [{ kind: "DepthLimitIncorrect", message: `parameter 'depthLimit' is not a number, but is '${req.query["depthLimit"]}' ` }]
+            })
         } else if (!Array.isArray(idList)) {
-            res.status(400)
-            res.send({ issues: [`parameter 'ids' is not an array`] })
+            lionwebResponse(res, 400, {
+                success: false,
+                messages: [{ kind: "IdsIncorrect", message: `parameter 'ids' is not an array` }]
+            })
         } else {
             const result = await this.ctx.bulkApiWorker.bulkRetrieve(idList, mode, depthLimit)
-            res.send(result)
+            lionwebResponse(res, result.status, result.queryResult)
         }
     }
 }

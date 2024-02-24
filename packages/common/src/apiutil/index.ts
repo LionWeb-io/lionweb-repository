@@ -1,2 +1,2 @@
-export * from "./Response.js"
+export * from "./LionwebResponse.js"
 export * from "./functions.js"

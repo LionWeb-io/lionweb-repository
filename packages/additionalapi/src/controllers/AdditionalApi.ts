@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
 import { AdditionalApiContext } from "../main.js"
-import { logger } from "@lionweb/repository-common"
+import { lionwebResponse, logger } from "@lionweb/repository-common"
 
 export interface AdditionalApi {
     getNodeTree(req: Request, res: Response): void
@@ -22,6 +22,11 @@ export class AdditionalApiImpl implements AdditionalApi {
         }
         logger.dbLog("API.getNodeTree is " + idList)
         const result = await this.context.additionalApiWorker.getNodeTree(idList, depthLimit)
+        lionwebResponse(res, 200, {
+            success: true,
+            messages: [],
+            
+        })
         res.send(result)
     }
 }

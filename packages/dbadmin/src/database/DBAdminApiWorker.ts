@@ -1,3 +1,4 @@
+import { QueryReturnType } from "@lionweb/repository-bulkapi";
 import { DbAdminApiContext } from "../main.js";
 
 /**
@@ -8,7 +9,7 @@ export class DBAdminApiWorker {
     constructor(private ctx: DbAdminApiContext) {
     }
 
-    async init(sql: string): Promise<unknown> {
+    async init(sql: string): Promise<QueryReturnType<string>> {
         const queryResult = await this.ctx.dbConnection.query(sql)
         return { 
             status: 200,

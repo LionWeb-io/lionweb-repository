@@ -10,7 +10,7 @@ export class AdditionalApiWorker {
     getNodeTree = async (nodeIds: string[], depthLimit: number)=> {
         
         logger.requestLog("AdditionalApiWorker.getNodeTree for " + nodeIds + " with depth " + depthLimit)
-        return await this.context.additionalApiWorker.getNodeTree(nodeIds, depthLimit)
+        return await this.context.queries.getNodeTree(nodeIds, depthLimit)
     }
 
 }
