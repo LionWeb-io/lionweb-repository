@@ -6,7 +6,7 @@ import {
     CreatePartitionsResponse,
     StoreResponse,
     asError,
-    QueryReturnType
+    QueryReturnType, nodesToChunk, HttpSuccessCodes, EMPTY_SUCCES_RESPONSE, HttpClientErrors
 } from "@lionweb/repository-common"
 import {
     LionWebJsonChunk,
@@ -21,7 +21,6 @@ import {
 } from "@lionweb/validation"
 import { BulkApiContext } from "../BulkApiContext.js"
 import { makeQueryNodeTreeForIdList, QueryNodeForIdList } from "./QueryNode.js"
-import { collectUsedLanguages } from "./UsedLanguages.js"
 
 export type NodeTreeResultType = {
     id: string
@@ -46,11 +45,11 @@ export class LionWebQueries {
         let query = ""
         try {
             if (nodeIdList.length === 0) {
-                return { status: 401, query: "query", queryResult: [] }
+                return { status: HttpClientErrors.PreconditionFailed, query: "query", queryResult: [] }
             }
             // TODO Currently only gives the node id's, should give full node.
             query = makeQueryNodeTreeForIdList(nodeIdList, depthLimit)
-            return { status: 410, query: query, queryResult: await this.context.dbConnection.query(query) }
+            return { status: HttpSuccessCodes.Ok, query: query, queryResult: await this.context.dbConnection.query(query) }
         } catch (e) {
             const error = asError(e)
             console.log("Exception catched in getNodeTree(): " + error.message)
@@ -87,14 +86,10 @@ export class LionWebQueries {
         logger.dbLog("LionWebQueries.getPartitions.Result: " + JSON.stringify(result))
         const nodes = await this.getNodesFromIdList(result.map(n => n.id))
         return {
-            status: 200,
+            status: HttpSuccessCodes.Ok,
             query: "query",
             queryResult:{ 
-                chunk: {
-                    serializationFormatVersion: "2023.1",
-                    languages: collectUsedLanguages(nodes),
-                    nodes: nodes
-                },
+                chunk: nodesToChunk(nodes),
                 success: true,
                 messages: []
             }
@@ -107,12 +102,9 @@ export class LionWebQueries {
         // eslint-disable-next-line
         const result = await this.context.dbConnection.query(query)
         return {
-            status: 200,
+            status: HttpSuccessCodes.Ok,
             query: query,
-            queryResult: {
-                success: true,
-                messages: []
-            }
+            queryResult:EMPTY_SUCCES_RESPONSE
         }
     }
 
@@ -126,7 +118,7 @@ export class LionWebQueries {
         logger.dbLog("LionWebQueries.store")
         if (toBeStoredChunk === null || toBeStoredChunk === undefined) {
             return {
-                status: 400, query: "", queryResult: {
+                status: HttpClientErrors.PreconditionFailed, query: "", queryResult: {
                     success: false,
                     messages: [{ kind: "NullChunk", message: "null chunk not stored" }]
                 }
@@ -148,7 +140,7 @@ export class LionWebQueries {
             .filter(node => databaseChunkWrapper.getNode(node.id) === undefined)
         if (newNodesWithoutParent.length !== 0) {
             return {
-                status: 400, query: "", queryResult: {
+                status: HttpClientErrors.PreconditionFailed, query: "", queryResult: {
                     success: false,
                     messages: [{ kind: "ParentMissing", message: `Cannot create new nodes ${newNodesWithoutParent.map(n => n.id)} without parent` }]
                 }
@@ -246,10 +238,7 @@ export class LionWebQueries {
             logger.dbLog("QUERIES " + queries)
             await this.context.dbConnection.query(queries)
         }
-        return { status: 200, query: queries, queryResult: {
-            success: true,
-            messages: []
-            }
+        return { status: HttpSuccessCodes.Ok, query: queries, queryResult: EMPTY_SUCCES_RESPONSE
         }
     }
 
@@ -309,7 +298,7 @@ export class LionWebQueries {
         // Validate that the nodes are partitions
         partitions.forEach(part => {
             if (part.parent !== null) {
-                return { status: 400, query: "", result: `Node with id "${part.id}" is not a partition, it has parent with id "${part.parent}"` }
+                return { status: HttpClientErrors.PreconditionFailed, query: "", result: `Node with id "${part.id}" is not a partition, it has parent with id "${part.parent}"` }
             }
         })
         // Remove the partition nodes and all children/annotations

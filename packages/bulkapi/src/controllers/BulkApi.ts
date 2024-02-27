@@ -6,7 +6,15 @@ import { Request, Response } from "express"
 import { getLanguageRegistry } from "@lionweb/repository-languages"
 import { LionWebJsonChunk, LionWebValidator } from "@lionweb/validation"
 import { BulkApiContext } from "../BulkApiContext.js"
-import { CreatePartitionsResponse, logger, PartitionsResponse, lionwebResponse, ResponseMessage } from "@lionweb/repository-common"
+import {
+    CreatePartitionsResponse,
+    logger,
+    PartitionsResponse,
+    lionwebResponse,
+    ResponseMessage,
+    DeletePartitionsResponse,
+    StoreResponse, HttpClientErrors, HttpSuccessCodes
+} from "@lionweb/repository-common"
 
 export interface BulkApi {
     partitions: (req: Request, res: Response) => void
@@ -39,7 +47,7 @@ export class BulkApiImpl implements BulkApi {
         validator.validateSyntax()
         validator.validateReferences()
         if (validator.validationResult.hasErrors()) {
-            lionwebResponse(res, 400, {
+            lionwebResponse(res, HttpClientErrors.PreconditionFailed, {
                 success: false,
                 messages: validator.validationResult.issues.map(issue => ({kind: issue.issueType, message: issue.errorMsg()}))
             })
@@ -59,7 +67,7 @@ export class BulkApiImpl implements BulkApi {
                 }
             }
             if (issues.length !== 0) {
-                lionwebResponse<CreatePartitionsResponse>(res, 400, {
+                lionwebResponse<CreatePartitionsResponse>(res, HttpClientErrors.PreconditionFailed, {
                     success: false,
                     messages: issues
                 })
@@ -67,7 +75,7 @@ export class BulkApiImpl implements BulkApi {
             }
             if (chunk.nodes.length === 0) {
                 // do nothing, no new partitions
-                lionwebResponse<CreatePartitionsResponse>(res, 200, {
+                lionwebResponse<CreatePartitionsResponse>(res, HttpSuccessCodes.Ok, {
                     success: true,
                     messages: [{ kind: "EmptyChunk", message: "-- empty partitions list, no query"}]
                 })
@@ -82,7 +90,7 @@ export class BulkApiImpl implements BulkApi {
         logger.requestLog(` * deletePartitions request received, with body of ${req.headers["content-length"]} bytes`)
         const idList = req.body
         const x = await this.ctx.bulkApiWorker.deletePartitions(idList)
-        lionwebResponse(res, x.status, x.queryResult)
+        lionwebResponse<DeletePartitionsResponse>(res, x.status, x.queryResult)
     }
 
     /**
@@ -98,13 +106,13 @@ export class BulkApiImpl implements BulkApi {
         validator.validateReferences()
         if (validator.validationResult.hasErrors()) {
             logger.requestLog("STORE VALIDATION ERROR " + validator.validationResult.issues.map(issue => issue.errorMsg()))
-            lionwebResponse(res, 400, {
+            lionwebResponse<StoreResponse>(res, HttpClientErrors.PreconditionFailed, {
                 success: false,
                 messages: validator.validationResult.issues.map(issue => ({ kind: issue.issueType, message: issue.errorMsg() }))
             })
         } else {
             const result = await this.ctx.bulkApiWorker.bulkStore(chunk)
-            lionwebResponse(res, result.status, result.queryResult)
+            lionwebResponse<StoreResponse>(res, result.status, result.queryResult)
         }
     }
 
@@ -122,12 +130,12 @@ export class BulkApiImpl implements BulkApi {
         const idList = req.body.ids
         logger.requestLog("Api.getNodes: " + JSON.stringify(req.body) + " depth " + depthLimit)
         if (isNaN(depthLimit)) {
-            lionwebResponse(res, 400, {
+            lionwebResponse(res, HttpClientErrors.PreconditionFailed, {
                 success: false,
                 messages: [{ kind: "DepthLimitIncorrect", message: `parameter 'depthLimit' is not a number, but is '${req.query["depthLimit"]}' ` }]
             })
         } else if (!Array.isArray(idList)) {
-            lionwebResponse(res, 400, {
+            lionwebResponse(res, HttpClientErrors.PreconditionFailed, {
                 success: false,
                 messages: [{ kind: "IdsIncorrect", message: `parameter 'ids' is not an array` }]
             })

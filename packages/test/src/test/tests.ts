@@ -1,4 +1,4 @@
-import { RetrieveResponse } from "@lionweb/repository-common";
+import { HttpSuccessCodes, RetrieveResponse } from "@lionweb/repository-common";
 import { LanguageChange, LionWebJsonChunk, LionWebJsonChunkWrapper, LionWebJsonDiff, NodeRemoved } from "@lionweb/validation"
 import { assert } from "chai"
 import { RepositoryClient } from "./RepositoryClient.js"
@@ -17,17 +17,17 @@ describe("Repository tests", () => {
         const initialPartition = t.readModel(DATA + "Disk_A_partition.json") as LionWebJsonChunk
         baseFullChunk = t.readModel(DATA + "Disk_A.json") as LionWebJsonChunk
         const initResponse = await t.init()
-        if (initResponse.status !== 200) {
+        if (initResponse.status !== HttpSuccessCodes.Ok) {
             console.log("Cannot initialize database: " + JSON.stringify(initResponse.body))
         }
         const partResult = await t.testCreatePartitions(initialPartition)
-        if (partResult.status !== 200) {
+        if (partResult.status !== HttpSuccessCodes.Ok) {
             console.log("Cannot create initial partition: " + JSON.stringify(partResult.body))
             console.log(JSON.stringify(initialPartition))
         }
         console.log("CREATE PARTITIONS RESULT " + JSON.stringify(partResult))
         const result = await t.testStore(baseFullChunk)
-        if (result.status !== 200) {
+        if (result.status !== HttpSuccessCodes.Ok) {
             console.log("Cannot store initial chunk: " + JSON.stringify(result.body))
         }
     })
@@ -264,7 +264,7 @@ describe("Repository tests", () => {
 
         const result = await t.testStore(changesChunk)
         console.log("Result: \n" + JSON.stringify(result.body))
-        assert(result.status === 200)
+        assert(result.status === HttpSuccessCodes.Ok)
 
         const jsonModelFull = t.readModel(originalJsonFile) as LionWebJsonChunk
         const afterRetrieve = await t.testRetrieve(["ID-2"])
@@ -272,9 +272,9 @@ describe("Repository tests", () => {
         printChunk(jsonModelFull)
         console.log("Retrieved with status " + afterRetrieve.status)
         const retrieveResponse = afterRetrieve.body as RetrieveResponse
-        if (afterRetrieve.status === 400) {
+        if (!retrieveResponse.success) {
             console.log(retrieveResponse.messages)
-            deepEqual(afterRetrieve.status, 200)
+            deepEqual(afterRetrieve.status, HttpSuccessCodes.Ok)
         } else {
             printChunk(retrieveResponse.chunk)
             const diff2 = new LionWebJsonDiff()

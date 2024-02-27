@@ -1,3 +1,6 @@
+import { HttpServerErrors } from "./httpcodes.js";
+import { collectUsedLanguages } from "./UsedLanguages.js";
+import { LionWebJsonChunk, LionWebJsonNode } from "@lionweb/validation";
 import { Request, Response } from "express"
 import { lionwebResponse } from "./LionwebResponse.js";
 
@@ -12,7 +15,7 @@ export function runWithTry( func: (req: Request, res: Response) => void): (req: 
         } catch(e) {
             const error = asError(e)
             console.log(`Exception while serving request for ${req.url}: ${error.message}`)
-            lionwebResponse(res, 500, {
+            lionwebResponse(res, HttpServerErrors.InternalServerError, {
                 success: false,
                 messages: [{ kind: error.name, message: `Exception while serving request for ${req.url}: ${error.message}` }]
             })
@@ -27,5 +30,27 @@ export function runWithTry( func: (req: Request, res: Response) => void): (req: 
 export function asError(error: unknown): Error {
     if (error instanceof Error) return error;
     return new Error(JSON.stringify(error));
+}
+
+/**
+ * Function that asserts a value is defined (not null or undefined) and throws an exception otherwise
+ * @param value
+ */
+export function assertIsDefined<T>(value: T): asserts value is NonNullable<T> {
+    if (value === undefined || value === null) {
+        throw new Error(`${value} is not defined`)
+    }
+}
+
+/**
+ * Create a chunk around _nodes_
+ * * @param nodes
+ */
+export function nodesToChunk(nodes: LionWebJsonNode[]): LionWebJsonChunk {
+    return {
+        serializationFormatVersion: "2023.1",
+        languages: collectUsedLanguages(nodes),
+        nodes: nodes,
+    }
 }
 

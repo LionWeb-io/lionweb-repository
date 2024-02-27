@@ -4,7 +4,7 @@ import { LionWebJsonChunk } from "@lionweb/validation";
 export type ResponseMessage = {
     kind   : string
     message: string
-    data?  : object[]
+    data?  : Record<string, string>
 }
 
 export interface LionwebResponse {

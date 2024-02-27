@@ -1,4 +1,4 @@
-import { asError, PartitionsResponse } from "@lionweb/repository-common";
+import { asError, HttpClientErrors, PartitionsResponse } from "@lionweb/repository-common";
 import { LionWebJsonChunk } from "@lionweb/validation"
 import fs from "fs"
 
@@ -38,7 +38,7 @@ export class RepositoryClient {
         console.log(`test.testCreatePartitions`)
         if (data === null) {
             console.log("Cannot read json data")
-            return { status: 404, body: { result: "Repository.testClient: cannot read partitions to create"} }
+            return { status: HttpClientErrors.PreconditionFailed, body: { result: "Repository.testClient: cannot read partitions to create"} }
         }
         console.log("Create partition " + JSON.stringify(data))
         const result = await this.postWithTimeout(`bulk/createPartitions`, { body: data, params: "" })
@@ -49,7 +49,7 @@ export class RepositoryClient {
         console.log(`test.testDeletePartitions`)
         if (partitionIds === null) {
             console.log("Cannot read partitions")
-            return { status: 404, body: { result: "Repository.testClient: cannot read partitions to delete"} }
+            return { status: HttpClientErrors.PreconditionFailed, body: { result: "Repository.testClient: cannot read partitions to delete"} }
         }
         console.log("Delete partition " + partitionIds)
         const result = await this.postWithTimeout(`bulk/deletePartitions`, { body: partitionIds, params: "" })
@@ -60,7 +60,7 @@ export class RepositoryClient {
         console.log(`test.store`)
         if (data === null) {
             console.log("Cannot read json data")
-            return { status: 404, body: { result: "Repository.testClient: cannot read data to store"} }
+            return { status: HttpClientErrors.PreconditionFailed, body: { result: "Repository.testClient: cannot read data to store"} }
         }
         const result = await this.postWithTimeout(`bulk/store`, { body: data, params: "" })
         return result
@@ -134,7 +134,7 @@ export class RepositoryClient {
         } catch (e) {
             const error = asError(e)
             this.handleError(error)
-            return { status: 403, body: { error: error.message } }
+            return { status: HttpClientErrors.PreconditionFailed, body: { error: error.message } }
         }
     }
 

@@ -1,3 +1,4 @@
+import { HttpSuccessCodes } from "@lionweb/repository-common";
 import { LionWebJsonChunk } from "@lionweb/validation"
 import { assert } from "chai"
 import { RepositoryClient } from "./RepositoryClient.js"
@@ -17,11 +18,11 @@ describe("Repository tests for inspection APIs", () => {
         jsonModel = t.readModel(DATA + "Disk_A.json") as LionWebJsonChunk
         const initialPartition = t.readModel(DATA + "Disk_A_partition.json") as LionWebJsonChunk
         const partResult = await t.testCreatePartitions(initialPartition)
-        if (partResult.status !== 200) {
+        if (partResult.status !== HttpSuccessCodes.Ok) {
             console.log("Cannot create initial partition: " + JSON.stringify(partResult.body))
         }
         const result = await t.testStore(jsonModel)
-        if (result.status !== 200) {
+        if (result.status !== HttpSuccessCodes.Ok) {
             console.log("Cannot store initial chunk: " + JSON.stringify(result.body))
         }
     })

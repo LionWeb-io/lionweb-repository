@@ -1,4 +1,4 @@
-import { RetrieveResponse } from "@lionweb/repository-common";
+import { HttpSuccessCodes, RetrieveResponse } from "@lionweb/repository-common";
 import { LionWebJsonChunk, LionWebJsonChunkWrapper } from "@lionweb/validation"
 import { assert } from "chai"
 import { RepositoryClient } from "./RepositoryClient.js"
@@ -30,7 +30,7 @@ describe("Repository tests", () => {
             const changesChunk = t.readModel(file) as LionWebJsonChunk
             const result = await t.testStore(changesChunk)
             console.log(`Store file ${file} ` + JSON.stringify(result, null, 2))
-            assert.isTrue(result.status === 200, "something wrong")
+            assert.isTrue(result.status === HttpSuccessCodes.Ok, "something wrong")
             const afterRetrieve = await t.testRetrieve(["ID-2"])
             printChunk((afterRetrieve.body as RetrieveResponse).chunk)
         }
