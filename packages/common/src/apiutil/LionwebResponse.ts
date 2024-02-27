@@ -1,8 +1,26 @@
 import { Response } from "express"
 import { LionWebJsonChunk } from "@lionweb/validation";
 
+// "string" is needed as MessageKind can also be any of the ValidationIssue kinds.
+export type MessageKind = 
+    "PartitionHasParent" 
+    | "Info"
+    | "PartitionHasChildren" 
+    | "PartitionHasAnnotations"
+    | "EmptyChunk"
+    | "NullChunk"
+    | "IdsIncorrect"
+    | "PartitionAlreadyExists"
+    | "NodeIsNotPartition"
+    | "EmptyIdList"
+    | "IdsNotFound"
+    | "ParentMissing"
+    | "NotImplemented"
+    | "DepthLimitIncorrect"
+    | string
+
 export type ResponseMessage = {
-    kind   : string
+    kind   : MessageKind
     message: string
     data?  : Record<string, string>
 }
@@ -29,9 +47,9 @@ export interface CreatePartitionsResponse extends LionwebResponse {
 export interface DeletePartitionsResponse extends LionwebResponse {
 }
 
-export function lionwebResponse<T extends LionwebResponse>(res: Response, status: number, body: T): void {
-    res.status(status)
-    res.send(body)
+export function lionwebResponse<T extends LionwebResponse>(response: Response, status: number, body: T): void {
+    response.status(status)
+    response.send(body)
 }
 
 export const EMPTY_SUCCES_RESPONSE: LionwebResponse = {

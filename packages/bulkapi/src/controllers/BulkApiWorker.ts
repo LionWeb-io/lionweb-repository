@@ -1,6 +1,6 @@
 import {
     CreatePartitionsResponse,
-    DeletePartitionsResponse,
+    DeletePartitionsResponse, EMPTY_CHUNK,
     EMPTY_SUCCES_RESPONSE, HttpClientErrors, HttpSuccessCodes,
     logger, nodesToChunk,
     PartitionsResponse, QueryReturnType,
@@ -89,7 +89,7 @@ export class BulkApiWorker {
                 queryResult: {
                     success: true,
                     messages: [{ kind: "EmptyIdList", message: "The list of ids is empty, empty chunk returned" }],
-                    chunk: nodesToChunk([])
+                    chunk: EMPTY_CHUNK
                 }
             }
         }
@@ -101,7 +101,7 @@ export class BulkApiWorker {
                 queryResult: {
                     success: true,
                     messages: [{ kind: "IdsNotFound", message: "None of the ids can be found, empty chunk returned" }],
-                    chunk: nodesToChunk([])
+                    chunk: EMPTY_CHUNK
                 }
             }
         }

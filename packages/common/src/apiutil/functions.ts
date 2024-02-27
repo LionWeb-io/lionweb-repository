@@ -8,14 +8,14 @@ import { lionwebResponse } from "./LionwebResponse.js";
  * Catch-all wrapper function to handle exceptions for any api call
  * @param func
  */
-export function runWithTry( func: (req: Request, res: Response) => void): (req: Request, res: Response) => void {
-    return async function(req: Request, res: Response): Promise<void> {
+export function runWithTry( func: (req: Request, response: Response) => void): (req: Request, response: Response) => void {
+    return async function(req: Request, response: Response): Promise<void> {
         try {
-            await func(req, res)
+            await func(req, response)
         } catch(e) {
             const error = asError(e)
             console.log(`Exception while serving request for ${req.url}: ${error.message}`)
-            lionwebResponse(res, HttpServerErrors.InternalServerError, {
+            lionwebResponse(response, HttpServerErrors.InternalServerError, {
                 success: false,
                 messages: [{ kind: error.name, message: `Exception while serving request for ${req.url}: ${error.message}` }]
             })
@@ -53,4 +53,6 @@ export function nodesToChunk(nodes: LionWebJsonNode[]): LionWebJsonChunk {
         nodes: nodes,
     }
 }
+
+export const EMPTY_CHUNK = nodesToChunk([])
 
