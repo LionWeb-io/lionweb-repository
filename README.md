@@ -58,14 +58,37 @@ This repository is Work In Progress, currently:
 - Changes of property values are supported
 - Changes of reference targets are supported
 - Changes of annotations are supported.
- 
-##  Packages
+- changes of order of containments, references and annotations are supported.  
+
+##  Main Packages
 
 ### dbadmin
 Contains code to manipulate the Postgres database (create, initialize)
 
-### core
-The core repository
+### server
+The main repository server.
+Manages the connections to the databes.
+Gets all apis from other packages.
+
+### common
+Utitilty classes and functions shared by all other packages.
+
+## API packages
+These packagesa all provide an API with one or more functions.
+
+### bulkapi
+The API's for the bulk protocol as specified in LionWeb.
+
+### additionalapi
+Some additiona API functions.
+
+### inspection
+API's to inspect the contents of the nodes table.
+
+### languages
+Thye API funxctions to add/remove LionWeb languages to the repository.
+NOTE: not implemented yet, ist is a placeholder.
+
 
 ### test
 Tests for the core package
