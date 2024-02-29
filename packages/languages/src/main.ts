@@ -6,6 +6,10 @@ import { runWithTry } from "@lionweb/repository-common";
 import { LanguageApiWorker } from "./controllers/LanguageApiWorker.js";
 import { LanguageApiImpl } from "./controllers/index.js";
 
+/**
+ * Object containing 'global' contextual objects for this API.
+ * Avoids using glocal variables, as they easily get mixed up between the various API packages.
+ */
 export class LanguageApiContext {
     dbConnection: pgPromise.IDatabase<object, pg.IClient>
     pgp: pgPromise.IMain<object, pg.IClient>
@@ -20,6 +24,12 @@ export class LanguageApiContext {
     }
 }
 
+/**
+ * Register all api methods with the _app_
+ * @param app           The app to which the api is registered
+ * @param dbConnection  The database connection to be used by this API
+ * @param pgp           The pg-promise object to gain access to the pg helpers
+ */
 export function registerLanguagesApi(app: Express, dbConnection: pgPromise.IDatabase<object, pg.IClient>, pgp: pgPromise.IMain<object, pg.IClient>) {
     console.log("Registering Additional API Module");
     // Create all objects 

@@ -7,7 +7,7 @@ import {
     ResponseMessage, RetrieveResponse, StoreResponse
 } from "@lionweb/repository-common";
 import { LionWebJsonChunk } from "@lionweb/validation"
-import { BulkApiContext } from "../BulkApiContext.js"
+import { BulkApiContext } from "../main.js"
 
 /**
  * Implementations of the LionWebBulkApi methods.
