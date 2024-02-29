@@ -53,7 +53,7 @@ const init = async (config: PostgresConfig, sqlFile: string) => {
 
 const command = process.argv[2]
 let sqlFile = ""
-let envFile: PostgresConfig = null
+let envFile: PostgresConfig | null = null
 if (command === "create") {
     sqlFile = CREATE_DATABASE_SQL
     // Environment without database name

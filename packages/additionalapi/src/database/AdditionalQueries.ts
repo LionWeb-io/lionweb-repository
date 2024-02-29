@@ -1,4 +1,4 @@
-import { logger } from "@lionweb/repository-dbadmin";
+import { HttpSuccessCodes, logger, QueryReturnType } from "@lionweb/repository-common";
 import { AdditionalApiContext } from "../main.js";
 import { makeQueryNodeTreeForIdList } from "./QueryNode.js"
 
@@ -7,12 +7,6 @@ export type NodeTreeResultType = {
     parent: string
     depth: number
 }
-
-export type QueryReturnType<T> = {
-    status: number
-    query: string
-    queryResult: T
-} 
 
 /**
  * Database functions.
@@ -29,16 +23,11 @@ export class AdditionalQueries {
     getNodeTree = async (nodeIdList: string[], depthLimit: number): Promise<QueryReturnType<NodeTreeResultType[]>> => {
         logger.requestLog("LionWebQueries.getNodeTree for " + nodeIdList)
         let query = ""
-        try {
-            if (nodeIdList.length === 0) {
-                return { status: 401, query: "query", queryResult: [] }
-            }
-            // TODO Currently only gives the node id's, should give full node.
-            query = makeQueryNodeTreeForIdList(nodeIdList, depthLimit)
-            return { status: 410, query: query, queryResult: await this.context.dbConnection.query(query) }
-        } catch (e) {
-            console.log("Exception catched in getNodeTree(): " + e.message)
-            return { status: 200, query: query, queryResult: e.message }
+        if (nodeIdList.length === 0) {
+            return { status: HttpSuccessCodes.NoContent, query: "query", queryResult: [] }
         }
+        // TODO Currently only gives the node id's, should give full node.
+        query = makeQueryNodeTreeForIdList(nodeIdList, depthLimit)
+        return { status: HttpSuccessCodes.Ok, query: query, queryResult: await this.context.dbConnection.query(query) }
     }
 }

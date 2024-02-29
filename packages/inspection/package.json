@@ -20,5 +20,8 @@
     "build": "tsc",
     "lint": "eslint src",
     "test": "echo No tests in repository-inspection"
+  },
+  "dependencies": {
+    "@lionweb/repository-dbadmin": "0.1.0"
   }
 }

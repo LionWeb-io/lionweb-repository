@@ -1,4 +1,4 @@
-import { NODES_TABLE } from "@lionweb/repository-dbadmin";
+import { NODES_TABLE } from "@lionweb/repository-common";
 
 function sqlArrayFromNodeIdArray(strings: string[]): string {
     return `(${strings.map(id => `'${id}'`).join(", ")})`

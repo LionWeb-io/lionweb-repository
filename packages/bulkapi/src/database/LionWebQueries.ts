@@ -1,4 +1,13 @@
-import { CONTAINMENTS_TABLE, NODES_TABLE } from "@lionweb/repository-dbadmin"
+import {
+    CONTAINMENTS_TABLE,
+    NODES_TABLE,
+    logger,
+    PartitionsResponse,
+    CreatePartitionsResponse,
+    StoreResponse,
+    asError,
+    QueryReturnType, nodesToChunk, HttpSuccessCodes, EMPTY_SUCCES_RESPONSE, HttpClientErrors
+} from "@lionweb/repository-common"
 import {
     LionWebJsonChunk,
     LionWebJsonNode,
@@ -12,19 +21,11 @@ import {
 } from "@lionweb/validation"
 import { BulkApiContext } from "../BulkApiContext.js"
 import { makeQueryNodeTreeForIdList, QueryNodeForIdList } from "./QueryNode.js"
-import { collectUsedLanguages } from "./UsedLanguages.js"
-import { logger } from "@lionweb/repository-dbadmin"
 
 export type NodeTreeResultType = {
     id: string
     parent: string
     depth: number
-}
-
-export type QueryReturnType<T> = {
-    status: number
-    query: string
-    queryResult: T
 }
 
 /**
@@ -44,14 +45,15 @@ export class LionWebQueries {
         let query = ""
         try {
             if (nodeIdList.length === 0) {
-                return { status: 401, query: "query", queryResult: [] }
+                return { status: HttpClientErrors.PreconditionFailed, query: "query", queryResult: [] }
             }
             // TODO Currently only gives the node id's, should give full node.
             query = makeQueryNodeTreeForIdList(nodeIdList, depthLimit)
-            return { status: 410, query: query, queryResult: await this.context.dbConnection.query(query) }
+            return { status: HttpSuccessCodes.Ok, query: query, queryResult: await this.context.dbConnection.query(query) }
         } catch (e) {
-            console.log("Exception catched in getNodeTree(): " + e.message)
-            return { status: 200, query: query, queryResult: e.message }
+            const error = asError(e)
+            console.log("Exception catched in getNodeTree(): " + error.message)
+            throw error
         }
     }
 
@@ -77,28 +79,33 @@ export class LionWebQueries {
     /**
      * Get all partitions: this returns all nodes that have parent set to null or undefined
      */
-    getPartitions = async (): Promise<QueryReturnType<LionWebJsonChunk>> => {
+    getPartitions = async (): Promise<QueryReturnType<PartitionsResponse>> => {
         logger.dbLog("LionWebQueries.getPartitions")
         // TODO Optimization?: The following WHERE can also directly be includes in the getNodesFromIdList
         const result = await this.selectNodesIdsWithoutParent()
         logger.dbLog("LionWebQueries.getPartitions.Result: " + JSON.stringify(result))
         const nodes = await this.getNodesFromIdList(result.map(n => n.id))
         return {
-            status: 200,
+            status: HttpSuccessCodes.Ok,
             query: "query",
-            queryResult: {
-                serializationFormatVersion: "2023.1",
-                languages: collectUsedLanguages(nodes),
-                nodes: nodes
+            queryResult:{ 
+                chunk: nodesToChunk(nodes),
+                success: true,
+                messages: []
             }
         }
     }
 
-    createPartitions = async (partitions: LionWebJsonChunk): Promise<QueryReturnType<string>> => {
+    createPartitions = async (partitions: LionWebJsonChunk): Promise<QueryReturnType<CreatePartitionsResponse>> => {
         logger.dbLog("LionWebQueries.createPartitions")
         const query = this.context.queryMaker.dbInsertNodeArray(partitions.nodes)
+        // eslint-disable-next-line
         const result = await this.context.dbConnection.query(query)
-        return { status: 200, query: query, queryResult: result }
+        return {
+            status: HttpSuccessCodes.Ok,
+            query: query,
+            queryResult:EMPTY_SUCCES_RESPONSE
+        }
     }
 
     // TODO This function is way too complex, should be simplified.
@@ -107,10 +114,15 @@ export class LionWebQueries {
      *
      * @param toBeStoredChunk
      */
-    store = async (toBeStoredChunk: LionWebJsonChunk): Promise<QueryReturnType<string>> => {
+    store = async (toBeStoredChunk: LionWebJsonChunk): Promise<QueryReturnType<StoreResponse>> => {
         logger.dbLog("LionWebQueries.store")
         if (toBeStoredChunk === null || toBeStoredChunk === undefined) {
-            return { status: 400, query: "", queryResult: "null chunk not stored" }
+            return {
+                status: HttpClientErrors.PreconditionFailed, query: "", queryResult: {
+                    success: false,
+                    messages: [{ kind: "NullChunk", message: "null chunk not stored" }]
+                }
+            }
         }
         const toBeStoredChunkWrapper = new LionWebJsonChunkWrapper(toBeStoredChunk)
         const tbsNodeIds = toBeStoredChunk.nodes.map(node => node.id)
@@ -118,8 +130,8 @@ export class LionWebQueries {
         const tbsNodeAndChildIds = [...tbsNodeIds, ...tbsContainedChildIds.filter(cid => !tbsNodeIds.includes(cid))]
         // Retrieve nodes for all id's that exist
         const databaseChunk = await this.context.bulkApiWorker.bulkRetrieve(tbsNodeAndChildIds, "", 0)
-        const databaseChunkWrapper = new LionWebJsonChunkWrapper(databaseChunk)
-        logger.dbLog("DBChunk " + JSON.stringify(databaseChunk))
+        const databaseChunkWrapper = new LionWebJsonChunkWrapper(databaseChunk.queryResult.chunk)
+        logger.dbLog("DBChunk " + JSON.stringify(databaseChunkWrapper.jsonChunk))
         
         // Check whether there are new nodes without a parent
         // TODO If node already exists as a partition this is ok
@@ -127,11 +139,16 @@ export class LionWebQueries {
             .filter(node => node.parent === null)
             .filter(node => databaseChunkWrapper.getNode(node.id) === undefined)
         if (newNodesWithoutParent.length !== 0) {
-            return { status: 400, query: "", queryResult: `Cannot create new nodes ${newNodesWithoutParent.map(n => n.id)} without parent` }
+            return {
+                status: HttpClientErrors.PreconditionFailed, query: "", queryResult: {
+                    success: false,
+                    messages: [{ kind: "ParentMissing", message: `Cannot create new nodes ${newNodesWithoutParent.map(n => n.id)} without parent` }]
+                }
+            }
         }
 
         const diff = new LionWebJsonDiff()
-        diff.diffLwChunk(databaseChunk, toBeStoredChunk)
+        diff.diffLwChunk(databaseChunkWrapper.jsonChunk, toBeStoredChunk)
         logger.dbLog("STORE.CHANGES ")
         logger.dbLog(diff.diffResult.changes.map(ch => "    " + ch.changeMsg()))
 
@@ -149,8 +166,10 @@ export class LionWebQueries {
 
         // Only children that already exist in the database
         const databaseChildrenOfNewNodes = this.getContainedIds(toBeStoredNewNodes.map(ch => ch.node))
-            .filter(id => databaseChunkWrapper.getNode(id) !== undefined)
-            .map(id => databaseChunkWrapper.getNode(id))
+            .flatMap(id => {
+                const node = databaseChunkWrapper.getNode(id)
+                return node !== undefined ? [node] : []
+            })
 
         // Orphans
         const removedAndNotAddedChildren = removedChildren.filter(removed => {
@@ -194,7 +213,7 @@ export class LionWebQueries {
             0
         )
         const parentsOfImplicitlyRemovedChildNodes = await this.context.bulkApiWorker.bulkRetrieve(
-            implicitlyRemovedChildNodes.nodes.map(node => node.parent),
+            implicitlyRemovedChildNodes.queryResult.chunk.nodes.map(node => node.parent),
             "",
             0
         )
@@ -205,7 +224,7 @@ export class LionWebQueries {
         queries += this.context.queryMaker.updateQueriesForRemovedChildren(removedChildren, toBeStoredChunkWrapper)
         queries += this.context.queryMaker.updateQueriesForChildOrder(childrenOrderChanged)
         queries += this.makeQueriesForParentChanged(parentChanged)
-        queries += this.updateQueriesForImplicitlyRemovedChildNodes(implicitlyRemovedChildNodes, parentsOfImplicitlyRemovedChildNodes)
+        queries += this.updateQueriesForImplicitlyRemovedChildNodes(implicitlyRemovedChildNodes.queryResult.chunk, parentsOfImplicitlyRemovedChildNodes.queryResult.chunk)
         queries += this.makeQueriesForImplicitParentChanged(addedAndNotParentChangedChildren)
         // queries += this.chro(removedAndNotAddedChildren.map(ra => ra.childId))
         queries += this.context.queryMaker.makeQueriesForOrphans(orphansContainedChildrenOrphans.map(oc => oc.id))
@@ -219,7 +238,8 @@ export class LionWebQueries {
             logger.dbLog("QUERIES " + queries)
             await this.context.dbConnection.query(queries)
         }
-        return { status: 200, query: queries, queryResult: queries }
+        return { status: HttpSuccessCodes.Ok, query: queries, queryResult: EMPTY_SUCCES_RESPONSE
+        }
     }
 
     private updateQueriesForImplicitlyRemovedChildNodes(
@@ -278,7 +298,7 @@ export class LionWebQueries {
         // Validate that the nodes are partitions
         partitions.forEach(part => {
             if (part.parent !== null) {
-                return { status: 200, query: "", result: `Node with id "${part.id}" is not a partition, it has parent with id "${part.parent}"` }
+                return { status: HttpClientErrors.PreconditionFailed, query: "", result: `Node with id "${part.id}" is not a partition, it has parent with id "${part.parent}"` }
             }
         })
         // Remove the partition nodes and all children/annotations

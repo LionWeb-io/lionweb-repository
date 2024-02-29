@@ -1,4 +1,4 @@
-import { logger } from "@lionweb/repository-dbadmin"
+import { logger } from "@lionweb/repository-common";
 import pgPromise from "pg-promise"
 import dotenv from "dotenv"
 

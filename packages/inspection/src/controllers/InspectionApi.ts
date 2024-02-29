@@ -2,25 +2,25 @@ import e, { Request, Response } from "express"
 import { InspectionContext } from "../main.js";
 
 export interface InspectionApi {
-    nodesByClassifier(req: Request, res: Response): void
+    nodesByClassifier(req: Request, response: Response): void
 
-    nodesByLanguage(req: Request, res: Response): void
+    nodesByLanguage(req: Request, response: Response): void
 }
 
 class InspectionApiImpl implements InspectionApi {
     constructor(private context: InspectionContext) {
     }
 
-    nodesByClassifier = async (req: e.Request, res: e.Response)=> {
+    nodesByClassifier = async (req: e.Request, response: e.Response)=> {
         const sql = this.context.inspectionQueries.nodesByClassifier();
         const queryResult = await this.context.inspectionApiWorker.nodesByClassifier(sql)
-        res.send(queryResult)
+        response.send(queryResult)
     }
 
-    nodesByLanguage = async (req: e.Request, res: e.Response) => {
+    nodesByLanguage = async (req: e.Request, response: e.Response) => {
         const sql = this.context.inspectionQueries.nodesByLanguage();
         const queryResult = await this.context.inspectionApiWorker.nodesByLanguage(sql)
-        res.send(queryResult)
+        response.send(queryResult)
     }
 }
 

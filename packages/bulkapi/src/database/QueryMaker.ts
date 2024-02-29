@@ -7,8 +7,9 @@ import {
     ORPHANS_PROPERTIES_TABLE,
     ORPHANS_REFERENCES_TABLE,
     PROPERTIES_TABLE, 
-    REFERENCES_TABLE
-} from "@lionweb/repository-dbadmin"
+    REFERENCES_TABLE,
+    logger
+} from "@lionweb/repository-common"
 import {
     ChildAdded,
     ChildOrderChanged,
@@ -25,7 +26,6 @@ import {
 } from "@lionweb/validation"
 import { BulkApiContext } from "../BulkApiContext.js"
 import { sqlArrayFromNodeIdArray } from "./QueryNode.js"
-import { logger } from "@lionweb/repository-dbadmin"
 
 /**
  * Class that builds SQL queries.
@@ -253,7 +253,7 @@ export class QueryMaker {
         addedChildren.forEach(added => {
             const afterNode = toBeStoredChunkWrapper.getNode(added.parentNode.id)
             if (afterNode === undefined) {
-                console.error("Undefined node for id " + added.parentNode.id)
+                throw new Error("upsertAddedChildrenQuery: Undefined node for id " + added.parentNode.id)
             }
             const afterContainment = afterNode.containments.find(cont => isEqualMetaPointer(cont.containment, added.containment))
             const setColumns = this.context.pgp.helpers.sets({ children: afterContainment.children }, this.context.tableDefinitions.CONTAINMENTS_COLUMN_SET)
@@ -280,8 +280,12 @@ export class QueryMaker {
             const afterNode = toBeStoredChunkWrapper.getNode(added.parentNode.id)
             if (afterNode === undefined) {
                 console.error("Undefined node for id " + added.parentNode.id)
+                return
             }
             const afterContainment = afterNode.containments.find(cont => isEqualMetaPointer(cont.containment, added.containment))
+            if (afterContainment === undefined) {
+                return
+            }
             const setChildren = this.context.pgp.helpers.sets({ children: afterContainment.children }, this.context.tableDefinitions.CONTAINMENTS_COLUMN_SET)
             query += `-- Update nodes that have children added
                 UPDATE ${CONTAINMENTS_TABLE} c

@@ -1,3 +1,4 @@
+import { runWithTry } from "@lionweb/repository-common";
 import { Express } from "express"
 import pgPromise from "pg-promise"
 import pg from "pg-promise/typescript/pg-subset.js"
@@ -28,5 +29,5 @@ export function registerDBAdmin(
     const dbAdminApiContext = new DbAdminApiContext(dbConnection, pgp)
     
     // Add routes to app
-    app.post("/init", dbAdminApiContext.dbAdminApi.init)
+    app.post("/init", runWithTry(dbAdminApiContext.dbAdminApi.init))
 }

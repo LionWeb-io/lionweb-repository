@@ -1,9 +1,9 @@
 import { Request, Response } from "express"
 import { AdditionalApiContext } from "../main.js"
-import { logger } from "@lionweb/repository-dbadmin"
+import { HttpSuccessCodes, lionwebResponse, logger } from "@lionweb/repository-common"
 
 export interface AdditionalApi {
-    getNodeTree(req: Request, res: Response): void
+    getNodeTree(req: Request, response: Response): void
 }
 
 export class AdditionalApiImpl implements AdditionalApi {
@@ -12,9 +12,9 @@ export class AdditionalApiImpl implements AdditionalApi {
     /**
      * Get the tree with root `id`, for one single node
      * @param req
-     * @param res
+     * @param response
      */
-    getNodeTree = async (req: Request, res: Response): Promise<void> => {
+    getNodeTree = async (req: Request, response: Response): Promise<void> => {
         const idList = req.body.ids
         let depthLimit = Number.parseInt(req.query["depthLimit"] as string)
         if (isNaN(depthLimit)) {
@@ -22,6 +22,10 @@ export class AdditionalApiImpl implements AdditionalApi {
         }
         logger.dbLog("API.getNodeTree is " + idList)
         const result = await this.context.additionalApiWorker.getNodeTree(idList, depthLimit)
-        res.send(result)
+        lionwebResponse(response, HttpSuccessCodes.Ok, {
+            success: true,
+            messages: [],
+        })
+        response.send(result)
     }
 }
