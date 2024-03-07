@@ -35,10 +35,10 @@ npm run lint
 
 ### How to start the repository server
 Ensure that Postgress is running.
-The repository server is started with `npm run dev` in  the `packages/core` folder:
+The repository server is started with `npm run dev` in  the `packages/server` folder:
 
 ```
-cd packages/core
+cd packages/server
 npm run dev
 ```
 
@@ -97,3 +97,10 @@ Tests for the core package
 In GitHub actions a Postgres server is started on a host named `postgres`.
 In your local development environment, this hostname is also being used.
 You need to ensure that this hostname points to the Postgres server. 
+
+## Authentication
+
+It is possible to specify a token to be expected by the server in each request (see [configuration.md](configuration.md)).
+This mechanism is intended to make possible to expose the LionWeb repository while providing a minimum level of 
+security. When the token is specified while launching the server, then each request to the server will be checked
+for the presence of the same token in the `Authorization` header.
