@@ -19,7 +19,7 @@ import {
     AnnotationAdded, AnnotationChange, AnnotationRemoved, ChildOrderChanged,
     NodeAdded, ChildAdded, ChildRemoved, LionWebJsonDiff, ParentChanged, AnnotationOrderChanged
 } from "@lionweb/validation"
-import { BulkApiContext } from "../BulkApiContext.js"
+import { BulkApiContext } from "../main.js"
 import { makeQueryNodeTreeForIdList, QueryNodeForIdList } from "./QueryNode.js"
 
 export type NodeTreeResultType = {

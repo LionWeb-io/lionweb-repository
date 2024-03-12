@@ -24,7 +24,7 @@ import {
     TargetOrderChanged,
     TargetRemoved
 } from "@lionweb/validation"
-import { BulkApiContext } from "../BulkApiContext.js"
+import { BulkApiContext } from "../main.js"
 import { sqlArrayFromNodeIdArray } from "./QueryNode.js"
 
 /**

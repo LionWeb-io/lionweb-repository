@@ -5,7 +5,7 @@
 import { Request, Response } from "express"
 import { getLanguageRegistry } from "@lionweb/repository-languages"
 import { LionWebJsonChunk, LionWebValidator } from "@lionweb/validation"
-import { BulkApiContext } from "../BulkApiContext.js"
+import { BulkApiContext } from "../main.js"
 import {
     CreatePartitionsResponse,
     logger,
