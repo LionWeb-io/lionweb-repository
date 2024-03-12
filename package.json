@@ -17,12 +17,13 @@
     "lint": "npm run lint -w packages --if-present",
     "setup": "npm run setup -w packages --if-present",
     "test": "npm run test -w packages --if-present",
-    "release": "release-it",
+    "release": "npm run release --workspaces && release-it",
     "database": "node packages/dbadmin/dist/tools/database",
     "npm-install-local": "npm config set registry http://localhost:4873 && npm install",
     "npm-install": "npm config set registry https://registry.npmjs.com && npm install"
   },
   "devDependencies": {
+    "@release-it/bumper": "^6.0.1",
     "@types/chai": "4.3.11",
     "@types/mocha": "10.0.1",
     "@typescript-eslint/eslint-plugin": "6.13.2",
@@ -44,5 +45,10 @@
     "./packages/additionalapi",
     "./packages/server",
     "./packages/test"
-  ]
+  ],
+  "release-it": {
+    "git": {
+      "requireCleanWorkingDir": false
+    }
+  }
 }

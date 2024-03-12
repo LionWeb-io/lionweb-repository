@@ -19,9 +19,21 @@
     "clean": "rm -rf dist/",
     "build": "tsc",
     "lint": "eslint src",
-    "test": "echo No tests in repository-inspection"
+    "test": "echo No tests in repository-inspection",
+    "release": "release-it"
   },
   "dependencies": {
     "@lionweb/repository-dbadmin": "0.1.0"
+  },
+  "release-it": {
+    "git": false,
+    "plugins": {
+      "@release-it/bumper": {
+        "out": {
+          "file": "package.json",
+          "path": ["@lionweb/repository-dbadmin"]
+        }
+      }
+    }
   }
 }
