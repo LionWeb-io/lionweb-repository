@@ -6,6 +6,7 @@ import {
     CreatePartitionsResponse,
     StoreResponse,
     asError,
+    TableHelpers,
     QueryReturnType, nodesToChunk, HttpSuccessCodes, EMPTY_SUCCES_RESPONSE, HttpClientErrors
 } from "@lionweb/repository-common"
 import {
@@ -253,7 +254,7 @@ export class LionWebQueries {
             const index = changedContainment.children.indexOf(child.id)
             const newChildren = [...changedContainment.children]
             newChildren.splice(index, 1)
-            const setChildren = this.context.pgp.helpers.sets({ children: newChildren }, this.context.tableDefinitions.CONTAINMENTS_COLUMN_SET)
+            const setChildren = this.context.pgp.helpers.sets({ children: newChildren }, TableHelpers.CONTAINMENTS_COLUMN_SET)
             queries += `-- Implicitly removed children
                 UPDATE ${CONTAINMENTS_TABLE} c 
                     SET ${setChildren}

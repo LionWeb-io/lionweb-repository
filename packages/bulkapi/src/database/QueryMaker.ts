@@ -6,9 +6,9 @@ import {
     ORPHANS_NODES_TABLE,
     ORPHANS_PROPERTIES_TABLE,
     ORPHANS_REFERENCES_TABLE,
-    PROPERTIES_TABLE, 
+    PROPERTIES_TABLE,
     REFERENCES_TABLE,
-    logger
+    logger, TableHelpers
 } from "@lionweb/repository-common"
 import {
     ChildAdded,
@@ -83,8 +83,8 @@ export class QueryMaker {
                 property: propertyChange.property,
                 value: propertyChange.newValue
             }
-            const setColumns = this.context.pgp.helpers.sets(data, this.context.tableDefinitions.PROPERTIES_COLUMN_SET)
-            queries += this.context.pgp.helpers.insert(data,  this.context.tableDefinitions.PROPERTIES_COLUMN_SET)
+            const setColumns = this.context.pgp.helpers.sets(data, TableHelpers.PROPERTIES_COLUMN_SET)
+            queries += this.context.pgp.helpers.insert(data,  TableHelpers.PROPERTIES_COLUMN_SET)
             queries += `
                 ON CONFLICT (node_id, property)
                 DO UPDATE 
@@ -104,8 +104,8 @@ export class QueryMaker {
                     reference: referenceChange.afterReference.reference,
                     targets: referenceChange.afterReference.targets
                 }
-                const setColumns = this.context.pgp.helpers.sets(data, this.context.tableDefinitions.REFERENCES_COLUMN_SET)
-                queries += this.context.pgp.helpers.insert(data, this.context.tableDefinitions.REFERENCES_COLUMN_SET)
+                const setColumns = this.context.pgp.helpers.sets(data, TableHelpers.REFERENCES_COLUMN_SET)
+                queries += this.context.pgp.helpers.insert(data, TableHelpers.REFERENCES_COLUMN_SET)
                 queries += `-- Update if not inserted
                 ON CONFLICT (node_id, reference)
                 DO UPDATE
@@ -120,11 +120,11 @@ export class QueryMaker {
                     reference: referenceChange.beforeReference?.reference || referenceChange?.afterReference.reference,
                     targets: referenceChange.afterReference?.targets || []
                 }
-                queries += this.context.pgp.helpers.insert(data, this.context.tableDefinitions.REFERENCES_COLUMN_SET)
+                queries += this.context.pgp.helpers.insert(data, TableHelpers.REFERENCES_COLUMN_SET)
                 queries += `-- Update if not inserted
                 ON CONFLICT (node_id, reference)
                 DO UPDATE 
-                    SET ${this.context.pgp.helpers.sets(data, this.context.tableDefinitions.REFERENCES_COLUMN_SET)};
+                    SET ${this.context.pgp.helpers.sets(data, TableHelpers.REFERENCES_COLUMN_SET)};
                 `
             })
         return queries
@@ -141,7 +141,7 @@ export class QueryMaker {
             .forEach(referenceChange => {
                 queries += `-- Reference has changed
                 UPDATE ${REFERENCES_TABLE} r
-                    SET ${this.context.pgp.helpers.sets({ targets: referenceChange.afterReference.targets }, this.context.tableDefinitions.REFERENCES_COLUMN_SET)}
+                    SET ${this.context.pgp.helpers.sets({ targets: referenceChange.afterReference.targets }, TableHelpers.REFERENCES_COLUMN_SET)}
                 WHERE
                     r.node_id = '${referenceChange.node.id}' AND
                     r.reference->>'key' = '${referenceChange.afterReference.reference.key}' AND
@@ -156,7 +156,7 @@ export class QueryMaker {
                     referenceChange.afterReference === null ? null : referenceChange.afterReference.targets
                 queries += `-- Reference has changed
                 UPDATE ${REFERENCES_TABLE} r
-                    SET ${this.context.pgp.helpers.sets({ targets: targets }, this.context.tableDefinitions.REFERENCES_COLUMN_SET)}
+                    SET ${this.context.pgp.helpers.sets({ targets: targets }, TableHelpers.REFERENCES_COLUMN_SET)}
                 WHERE
                     r.node_id = '${referenceChange.node.id}' AND
                     r.reference->>'key' = '${referenceChange.beforeReference.reference.key}' AND
@@ -173,7 +173,7 @@ export class QueryMaker {
     public updateReferenceTargetOrder(ordersChanged: TargetOrderChanged[]) {
         let queries = ""
         ordersChanged.forEach(orderChange => {
-            const setColumns = this.context.pgp.helpers.sets({ targets: orderChange.afterReference.targets }, this.context.tableDefinitions.REFERENCES_COLUMN_SET)
+            const setColumns = this.context.pgp.helpers.sets({ targets: orderChange.afterReference.targets }, TableHelpers.REFERENCES_COLUMN_SET)
             queries += `-- Reference has changed
                 UPDATE ${REFERENCES_TABLE} r
                     SET ${setColumns}
@@ -217,7 +217,7 @@ export class QueryMaker {
             const afterContainment = orderChanged.afterContainment
             queries += `-- Order of children has changed
                 UPDATE ${CONTAINMENTS_TABLE}
-                    SET ${this.context.pgp.helpers.sets({ children: afterContainment?.children }, this.context.tableDefinitions.CONTAINMENTS_COLUMN_SET)}
+                    SET ${this.context.pgp.helpers.sets({ children: afterContainment?.children }, TableHelpers.CONTAINMENTS_COLUMN_SET)}
                 WHERE
                     node_id = '${orderChanged.parentNode.id}' AND
                     containment->>'key' = '${afterContainment.containment.key}' AND
@@ -236,7 +236,7 @@ export class QueryMaker {
             const afterChildren = afterContainment === undefined ? [] : afterContainment.children
             queries += `-- Update node that has children removed.
                 UPDATE ${CONTAINMENTS_TABLE} c 
-                    SET ${this.context.pgp.helpers.sets({ children: afterChildren }, this.context.tableDefinitions.CONTAINMENTS_COLUMN_SET)}
+                    SET ${this.context.pgp.helpers.sets({ children: afterChildren }, TableHelpers.CONTAINMENTS_COLUMN_SET)}
                 WHERE
                     c.node_id = '${afterNode.id}' AND
                     c.containment->>'key' = '${removed.containment.key}' AND 
@@ -256,13 +256,13 @@ export class QueryMaker {
                 throw new Error("upsertAddedChildrenQuery: Undefined node for id " + added.parentNode.id)
             }
             const afterContainment = afterNode.containments.find(cont => isEqualMetaPointer(cont.containment, added.containment))
-            const setColumns = this.context.pgp.helpers.sets({ children: afterContainment.children }, this.context.tableDefinitions.CONTAINMENTS_COLUMN_SET)
+            const setColumns = this.context.pgp.helpers.sets({ children: afterContainment.children }, TableHelpers.CONTAINMENTS_COLUMN_SET)
             // UPSERT Containments
             const insertRowData = [
                 { node_id: afterNode.id, containment: afterContainment.containment, children: afterContainment.children }
             ]
             if (insertRowData.length > 0) {
-                const insertContainments = this.context.pgp.helpers.insert(insertRowData, this.context.tableDefinitions.CONTAINMENTS_COLUMN_SET)
+                const insertContainments = this.context.pgp.helpers.insert(insertRowData, TableHelpers.CONTAINMENTS_COLUMN_SET)
                 queries += insertContainments
                 queries += `\n-- Up date if not inserted
                 ON CONFLICT (node_id, containment)
@@ -286,7 +286,7 @@ export class QueryMaker {
             if (afterContainment === undefined) {
                 return
             }
-            const setChildren = this.context.pgp.helpers.sets({ children: afterContainment.children }, this.context.tableDefinitions.CONTAINMENTS_COLUMN_SET)
+            const setChildren = this.context.pgp.helpers.sets({ children: afterContainment.children }, TableHelpers.CONTAINMENTS_COLUMN_SET)
             query += `-- Update nodes that have children added
                 UPDATE ${CONTAINMENTS_TABLE} c
                     SET ${setChildren}
@@ -322,7 +322,7 @@ export class QueryMaker {
                     parent: node.parent
                 }
             })
-            query += this.context.pgp.helpers.insert(node_rows, this.context.tableDefinitions.NODES_COLUMN_SET) + ";\n"
+            query += this.context.pgp.helpers.insert(node_rows, TableHelpers.NODES_COLUMN_SET) + ";\n"
             query += this.insertContainments(tbsNodesToCreate)
 
             // INSERT Properties
@@ -330,7 +330,7 @@ export class QueryMaker {
                 node.properties.map(prop => ({ node_id: node.id, property: prop.property, value: prop.value }))
             )
             if (insertProperties.length !== 0) {
-                query += this.context.pgp.helpers.insert(insertProperties, this.context.tableDefinitions.PROPERTIES_COLUMN_SET) + ";\n"
+                query += this.context.pgp.helpers.insert(insertProperties, TableHelpers.PROPERTIES_COLUMN_SET) + ";\n"
             }
 
             // INSERT References
@@ -338,7 +338,7 @@ export class QueryMaker {
                 node.references.map(reference => ({ node_id: node.id, reference: reference.reference, targets: reference.targets }))
             )
             if (insertReferences.length !== 0) {
-                query += this.context.pgp.helpers.insert(insertReferences, this.context.tableDefinitions.REFERENCES_COLUMN_SET) + ";\n"
+                query += this.context.pgp.helpers.insert(insertReferences, TableHelpers.REFERENCES_COLUMN_SET) + ";\n"
             }
             return query
         }
@@ -351,7 +351,7 @@ export class QueryMaker {
             node.containments.map(c => ({ node_id: node.id, containment: c.containment, children: c.children }))
         )
         if (insertRowData.length > 0) {
-            query += this.context.pgp.helpers.insert(insertRowData, this.context.tableDefinitions.CONTAINMENTS_COLUMN_SET) + ";\n"
+            query += this.context.pgp.helpers.insert(insertRowData, TableHelpers.CONTAINMENTS_COLUMN_SET) + ";\n"
         }
         return query
     }

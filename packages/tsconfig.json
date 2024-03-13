@@ -1,9 +1,10 @@
 {
   "compilerOptions": {
-    "target": "ES6",
+    "target": "ES2022",
     /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
-    "module": "nodenext",
+    "module": "ES2022",
     /* Specify what module code is generated. */
+    "moduleResolution": "Node",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,

@@ -4,6 +4,7 @@ import express, { Express } from "express"
 import bodyParser from "body-parser"
 import cors from "cors"
 import { dbConnection, pgp } from "./DbConnection.js"
+import { initializeCommons } from "@lionweb/repository-common"
 import { registerDBAdmin } from "@lionweb/repository-dbadmin"
 import { registerInspection } from "@lionweb/repository-inspection"
 import { registerBulkApi } from "@lionweb/repository-bulkapi"
@@ -12,7 +13,7 @@ import { registerLanguagesApi } from "@lionweb/repository-languages"
 
 dotenv.config()
 
-const app: Express = express()
+export const app: Express = express()
 
 // Allow access,
 // ERROR Access to XMLHttpRequest from origin has been blocked by CORS policy:
@@ -27,6 +28,8 @@ app.use(
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json({limit: process.env.BODY_LIMIT || '50mb'}))
 
+// Must be first to initialize
+initializeCommons(pgp)
 registerDBAdmin(app, dbConnection, pgp)
 registerBulkApi(app, dbConnection, pgp)
 registerInspection(app, dbConnection, pgp)
