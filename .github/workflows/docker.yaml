@@ -2,7 +2,7 @@ name: Testing building and releasing docker image on new tag creation
 on:
   push:
     tags:
-      - '*'
+      - release.*
     branches:
       - "test-docker-packages"
 jobs:
