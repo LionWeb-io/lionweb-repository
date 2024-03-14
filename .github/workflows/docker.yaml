@@ -3,8 +3,7 @@ on:
   push:
     tags:
       - release.*
-    branches:
-      - "test-docker-packages"
+
 jobs:
   echoit:
     runs-on: ubuntu-latest
