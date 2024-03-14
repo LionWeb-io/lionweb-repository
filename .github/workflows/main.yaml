@@ -70,32 +70,3 @@ jobs:
           PGPORT: 5432
           PGUSER: postgres
           PGPASSWORD: lionweb
-
-#  on:
-#    push:
-#      tags:
-#        - release.*
-#  env:
-#    REGISTRY: ghcr.io
-#    IMAGE_NAME: ${{ github.repository }}
-#
-#  jobs:
-#    success:
-#      runs-on: ubuntu-latest
-#      if: ${{ github.event.workflow_run.conclusion == 'success' }}
-#      steps:
-#        - name: Runs only if Git tag exists
-#          run: echo "Success"
-#    failure:
-#      runs-on: ubuntu-latest
-#      if: ${{ github.event.workflow_run.conclusion == 'failure' }}
-#      steps:
-#        - name: Was a failure
-#          run: echo "Failure"
-#    do:
-#      runs-on: ubuntu-latest
-#      needs: success
-#      steps:
-#        - name: do success
-#          run: echo "Do success"
-      
