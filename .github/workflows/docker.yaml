@@ -5,7 +5,7 @@ on:
       - release.*
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: whatever
+  IMAGE_NAME: ${{ github.repository }}
   
 jobs:
   success:
