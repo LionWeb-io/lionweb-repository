@@ -6,6 +6,10 @@ on:
     branches:
       - "test-docker-packages"
 jobs:
-  steps:
-    -name: Runs only if Git tag exists
-    run: echo "This runs because Git tag points at HEAD ..."
+  echoit:
+    runs-on: ubuntu-latest
+    steps:
+      -name: Runs only if Git tag exists
+      run: echo "This runs because Git tag points at HEAD ..."
+      -name: Runs only if Git tag exists
+      run: printenv
