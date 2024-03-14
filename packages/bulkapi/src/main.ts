@@ -1,7 +1,7 @@
 import { Express } from "express"
 import pgPromise from "pg-promise"
 import pg from "pg-promise/typescript/pg-subset.js"
-import { TableDefinitions, runWithTry } from "@lionweb/repository-common";
+import { runWithTry } from "@lionweb/repository-common";
 import { BulkApiWorker } from "./controllers/BulkApiWorker.js";
 import { BulkApi, BulkApiImpl } from "./controllers/index.js";
 import { LionWebQueries, QueryMaker } from "./database/index.js";
@@ -17,12 +17,11 @@ export class BulkApiContext {
     bulkApi: BulkApi
     queries: LionWebQueries
     queryMaker: QueryMaker
-    tableDefinitions: TableDefinitions
 
     /**
      * Create the object and initialize all its members.
-     * @param dbConnection
-     * @param pgp
+     * @param dbConnection  The database connection to be used by this API
+     * @param pgp           The pg-promise object to gain access to the pg helpers
      */
     constructor(dbConnection: pgPromise.IDatabase<object, pg.IClient>, pgp: pgPromise.IMain<object, pg.IClient>) {
         this.dbConnection = dbConnection
@@ -31,7 +30,6 @@ export class BulkApiContext {
         this.bulkApiWorker = new BulkApiWorker(this)
         this.queries = new LionWebQueries(this)
         this.queryMaker = new QueryMaker(this)
-        this.tableDefinitions = new TableDefinitions(pgp)
     }
 }
 
