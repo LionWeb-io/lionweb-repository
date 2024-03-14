@@ -31,8 +31,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: dist
-          path: /packages/*/dist/*
+          path: path/packages/**/dist/
           if-no-files-found: error
+          overwrite: true
 #          retention-days: 1
   docker:
     needs: build
@@ -41,11 +42,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Download digests
+      - name: Download dist
         uses: actions/download-artifact@v4
         with:
-          path: /packages/*/dist/*
-          pattern: *
+          name: dist
+          path: path/packages/**/dist/
+          pattern: '*'
           merge-multiple: true
 
       - name: Log into the Container registry
