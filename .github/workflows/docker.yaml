@@ -14,6 +14,10 @@ jobs:
     steps:
       - name: Runs only if Git tag exists
         run: echo "This runs because Git tag points at HEAD ..."
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
       - name: Log into the Container registry
         uses: docker/login-action@v3.1.0
         with:
