@@ -3,6 +3,8 @@ on:
   push:
     tags:
       - release.*
+    branches:
+      - "test-docker-packages"
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
