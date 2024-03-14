@@ -10,7 +10,7 @@ env:
 jobs:
   success:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+#   if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: Runs only if Git tag exists
         run: echo "This runs because Git tag points at HEAD ..."
