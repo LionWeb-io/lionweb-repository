@@ -1,0 +1,11 @@
+name: Testing building and releasing docker image on new tag creation 
+on:
+  push:
+    tags:
+      - '*'
+    branches:
+      - "test-docker-packages"
+jobs:
+  steps:
+    -name: Runs only if Git tag exists
+    run: echo "This runs because Git tag points at HEAD ..."
