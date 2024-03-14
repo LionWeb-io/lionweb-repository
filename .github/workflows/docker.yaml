@@ -8,8 +8,9 @@ env:
   IMAGE_NAME: ${{ github.repository }}
   
 jobs:
-  echoit:
+  success:
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: Runs only if Git tag exists
         run: echo "This runs because Git tag points at HEAD ..."
@@ -19,6 +20,7 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+          
       - name: Extract metadata for the Docker image
         id: meta
         uses: docker/metadata-action@v5.5.1
@@ -28,7 +30,15 @@ jobs:
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
         run: echo "$GITHUB_CONTEXT"
-  
+        
+      - name: Build and push the Docker image
+        uses: docker/build-push-action@v5.3.0
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
 #      - name: Show default environment variables
 #        run: |
 #          echo "The job_id is: $GITHUB_JOB"   # reference the default environment variables
