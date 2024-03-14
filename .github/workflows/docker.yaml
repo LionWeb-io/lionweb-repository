@@ -7,7 +7,7 @@ on:
       - "test-docker-packages"
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: whatever
+  IMAGE_NAME: ${{ github.repository }}
   
 jobs:
   # Label of the build job
