@@ -9,9 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Runs only if Git tag exists
-        env: 
-          TAG: ${{ env.}}
-        run: echoß "This runs because Git tag points at HEAD ..."
+        run: echo "This runs because Git tag points at HEAD ..."
       - name: Dump GitHub context
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
