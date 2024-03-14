@@ -1,9 +1,12 @@
 name: PostgreSQL service example
-on: release
+on: 
+  push:
+    branches:
+      - test-docker-packages
 
 jobs:
   # Label of the container job
-  container-job:
+  build-and-test:
     # Containers must run in Linux based operating systems
     runs-on: ubuntu-22.04
     # Docker Hub image that `container-job` executes in
@@ -65,3 +68,5 @@ jobs:
           PGPORT: 5432
           PGUSER: postgres
           PGPASSWORD: lionweb
+
+    
