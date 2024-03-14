@@ -18,7 +18,9 @@ jobs:
       - name: install node v18
         uses: actions/setup-node@v1
         with:
-          node-version: 18
+          node-version: 20
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: Install dependencies
         run: npm install
       - name: setup
