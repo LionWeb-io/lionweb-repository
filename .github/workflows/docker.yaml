@@ -48,6 +48,9 @@ jobs:
           name: node_modules
           path: |
             node_modules
+#            package.json
+#            package-lock.json
+#            LICENSE
           if-no-files-found: error
           overwrite: true
 #          retention-days: 1
