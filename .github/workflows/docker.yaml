@@ -27,7 +27,7 @@ jobs:
         run: npm run setup
       - name: tsc
         run: npm run build
-      - name: Upload digest
+      - name: Upload dist
         uses: actions/upload-artifact@v4
         with:
           name: dist
@@ -38,6 +38,14 @@ jobs:
             packages/inspection/dist/
             packages/languages/dist/
             packages/server/dist/
+          if-no-files-found: error
+          overwrite: true
+      - name: Upload node modules
+        uses: actions/upload-artifact@v4
+        with:
+          name: node_modules
+          path: |
+            node_modules
           if-no-files-found: error
           overwrite: true
 #          retention-days: 1
@@ -54,6 +62,13 @@ jobs:
         with:
           name: dist
           path: packages
+          merge-multiple: true
+
+      - name: Download node_modules
+        uses: actions/download-artifact@v4
+        with:
+          name: node_modules
+          path: .
           merge-multiple: true
 
       - name: Log into the Container registry
