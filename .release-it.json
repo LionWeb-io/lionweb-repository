@@ -4,5 +4,8 @@
   },
   "git": {
     "requireUpstream": false
+  },
+  "npm": {
+    "publish": false
   }
 }
