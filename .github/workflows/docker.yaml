@@ -16,7 +16,7 @@ jobs:
     container: node:20.10
     steps:
       - name: install node v18
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v4.0.2
         with:
           node-version: 20
       - name: Checkout
@@ -46,6 +46,9 @@ jobs:
           name: node_modules
           path: |
             node_modules
+#            package.json
+#            package-lock.json
+#            LICENSE
           if-no-files-found: error
           overwrite: true
 #          retention-days: 1
@@ -68,7 +71,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: node_modules
-          path: .
+          path: node_modules
           merge-multiple: true
 
       - name: Log into the Container registry
