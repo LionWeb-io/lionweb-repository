@@ -1,6 +1,8 @@
 name: PostgreSQL service example
 on: 
   push:
+    branches:
+      - '*'
     tags-ignore:
       - '*'
 
