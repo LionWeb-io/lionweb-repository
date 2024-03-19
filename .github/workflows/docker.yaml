@@ -48,9 +48,6 @@ jobs:
           name: node_modules
           path: |
             node_modules
-#            package.json
-#            package-lock.json
-#            LICENSE
           if-no-files-found: error
           overwrite: true
 #          retention-days: 1
@@ -83,6 +80,7 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+          
       - name: Extract metadata for the Docker image
         id: meta
         uses: docker/metadata-action@v5.5.1
@@ -101,20 +99,3 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-
-#      - name: Show default environment variables
-#        run: |
-#          echo "The job_id is: $GITHUB_JOB"   # reference the default environment variables
-#          echo "The id of this action is: $GITHUB_ACTION"   # reference the default environment variables
-#          echo "The run id is: $GITHUB_RUN_ID"
-#          echo "The tag is $GITHUB_REF_NAME" 
-#          echo "The GitHub Actor's username is: $GITHUB_ACTOR"
-#          echo "GitHub SHA: $GITHUB_SHA"
