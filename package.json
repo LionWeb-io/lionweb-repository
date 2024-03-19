@@ -42,7 +42,6 @@
     "./packages/bulkapi",
     "./packages/additionalapi",
     "./packages/server",
-    "./packages/standalone",
     "./packages/test"
   ],
   "dependencies": {
