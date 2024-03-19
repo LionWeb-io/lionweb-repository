@@ -3,6 +3,8 @@ on:
   push:
     tags:
       - release.*
+    branches:
+      - "publish-package-on-tag"
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}

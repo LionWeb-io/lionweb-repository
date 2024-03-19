@@ -43,8 +43,5 @@
     "./packages/additionalapi",
     "./packages/server",
     "./packages/test"
-  ],
-  "dependencies": {
-    "nexe": "^4.0.0-rc.4"
-  }
+  ]
 }
