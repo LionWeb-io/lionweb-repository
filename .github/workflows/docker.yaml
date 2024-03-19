@@ -3,8 +3,7 @@ on:
   push:
     tags:
       - release.*
-#    branches:
-#      - "publish-package-on-tag"
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
@@ -56,7 +55,7 @@ jobs:
             node_modules
           if-no-files-found: error
           overwrite: true
-  #          retention-days: 1
+
   docker:
     needs: build
     runs-on: ubuntu-latest
