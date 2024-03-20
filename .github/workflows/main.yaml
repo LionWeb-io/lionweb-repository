@@ -1,4 +1,4 @@
-name: PostgreSQL service example
+name: Build and test lioweb-repository
 on: 
   push:
     branches:

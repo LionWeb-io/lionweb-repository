@@ -16,8 +16,8 @@ jobs:
     # Docker Hub image that `container-job` executes in
     container: node:20.10
     steps:
-      - name: install node v18
-        uses: actions/setup-node@v4.0.2
+      - name: install node
+        uses: actions/setu  p-node@v4.0.2
         with:
           node-version: 20
 
