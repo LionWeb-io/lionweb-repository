@@ -1,6 +1,6 @@
 {
   "name": "@lionweb/repository-bulkapi",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "private": false,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -35,8 +35,8 @@
     "typescript": "5.2.2"
   },
   "dependencies": {
-    "@lionweb/repository-common": "2.0.0",
-    "@lionweb/repository-dbadmin": "2.0.0",
+    "@lionweb/repository-common": "3.0.0",
+    "@lionweb/repository-dbadmin": "3.0.0",
     "@lionweb/validation": "0.6.2",
     "@types/express": "4.17.21",
     "@types/source-map-support": "0.5.10",
