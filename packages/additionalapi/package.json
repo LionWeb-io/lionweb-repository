@@ -1,6 +1,6 @@
 {
   "name": "@lionweb/repository-additionalapi",
-  "version": "11.0.0",
+  "version": "12.0.0",
   "private": false,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -35,8 +35,8 @@
     "typescript": "5.2.2"
   },
   "dependencies": {
-    "@lionweb/repository-common": "11.0.0",
-    "@lionweb/repository-dbadmin": "11.0.0",
+    "@lionweb/repository-common": "12.0.0",
+    "@lionweb/repository-dbadmin": "12.0.0",
     "@lionweb/validation": "0.6.2",
     "@types/express": "4.17.21",
     "body-parser": "1.20.2",
