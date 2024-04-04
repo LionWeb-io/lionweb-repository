@@ -104,3 +104,22 @@ It is possible to specify a token to be expected by the server in each request (
 This mechanism is intended to make possible to expose the LionWeb repository while providing a minimum level of 
 security. When the token is specified while launching the server, then each request to the server will be checked
 for the presence of the same token in the `Authorization` header.
+
+## How to perform a release
+
+In the future we will adopt a specific npm package to help. Currently:
+
+- we add a git tag `release.<version number>` (e.g., `release.0.1.0`)
+- this cause a GitHub action to publish a docker image, which can be found in the GitHub repository, not in the 
+  official docker registry (this is due to the difficulty of creating an organization on the Docker registry)
+- we then update the version number of the main package.json and in all the packages
+
+## How to use the Docker image
+
+You can get the docker image from the Docker repository hosted by GitHub:
+
+```
+docker pull ghcr.io/lionweb-io/lionweb-repository:latest 
+# alternatively you can specify a specific version
+docker pull ghcr.io/lionweb-io/lionweb-repository:release.0.1.0
+```
