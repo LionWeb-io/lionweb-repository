@@ -1,6 +1,6 @@
 {
   "name": "@lionweb/repository",
-  "version": "6.0.0",
+  "version": "7.0.0",
   "private": false,
   "license": "Apache-2.0",
   "repository": {
@@ -22,7 +22,7 @@
     "npm-install-local": "npm config set registry http://localhost:4873 && npm install",
     "npm-install": "npm config set registry https://registry.npmjs.com && npm install",
     "prepare-publish-docker": "npx changeset add && npx changeset version && npx changeset tag",
-    "findtag-publish-docker": "export TAG=`git tag -l \"@lionweb/repository@*\" | tail -1`",
+    "findtag-publish-docker": "setenv TAG=`git tag -l \"@lionweb/repository@*\" | tail -1`",
     "commit-publish-docker": "git commit -m 'update version to $TAG' -- '*package.json'",
     "push-publish-docker": "echo $TAG ",
     "publish-docker": "npm run prepare-publish-docker && npm run commit-publish-docker && npm run push-publish-docker"
