@@ -91,6 +91,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
+            type=raw,value=foo
             type=ref,event=tag
       - name: Echo
         run: |
