@@ -1,6 +1,6 @@
 {
   "name": "@lionweb/repository-languages",
-  "version": "17.0.0",
+  "version": "18.0.0",
   "private": false,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -35,7 +35,7 @@
     "typescript": "5.2.2"
   },
   "dependencies": {
-    "@lionweb/repository-dbadmin": "17.0.0",
+    "@lionweb/repository-dbadmin": "18.0.0",
     "@lionweb/validation": "0.6.2",
     "@types/express": "4.17.21",
     "body-parser": "1.20.2",
