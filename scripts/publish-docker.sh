@@ -14,4 +14,5 @@ TAG=`git tag -l "@lionweb/repository@*"  --sort=v:refname | tail -1`
 git commit -m "update version to $TAG" -- '*package.json'
 
 # push tag (and therefore all the committed files)
+git push origin
 git push origin $TAG
