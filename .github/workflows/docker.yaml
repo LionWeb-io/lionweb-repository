@@ -77,13 +77,13 @@ jobs:
           path: node_modules
           merge-multiple: true
 
-      - name: npm install
-        run: |
-          if [ -e package-lock.json ]; then
-          npm ci
-          else
-          npm i
-          fi
+#      - name: npm install
+#        run: |
+#          if [ -e package-lock.json ]; then
+#          npm ci
+#          else
+#          npm i
+#          fi
    
       - name: Log into the Container registry
         uses: docker/login-action@v3.1.0
