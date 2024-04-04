@@ -1,0 +1,21 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@3.0.0/schema.json",
+  "changelog": "@changesets/cli/changelog",
+  "commit": false,
+  "fixed": [ [ 
+    "@lionweb/repository-common",
+    "@lionweb/repository-dbadmin",
+    "@lionweb/repository-languages",
+    "@lionweb/repository-inspection",
+    "@lionweb/repository-bulkapi",
+    "@lionweb/repository-additionalapi",
+    "@lionweb/repository-server",
+    "@lionweb/repository-test",
+    "@lionweb/repository"
+  ] ],
+  "linked": [],
+  "access": "restricted",
+  "baseBranch": "main",
+  "updateInternalDependencies": "patch",
+  "ignore": []
+}
