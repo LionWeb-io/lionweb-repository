@@ -2,7 +2,7 @@ name: Build and publish docker image on new tag creation
 on:
   push:
     tags:
-      - "@lionweb/repository@*"
+      - *lionweb/repository@*
 
 env:
   REGISTRY: ghcr.io
