@@ -81,7 +81,7 @@ export class BulkApiWorker {
      * @param mode
      * @param depthLimit
      */
-    bulkRetrieve = async (nodeIdList: string[], mode: string, depthLimit: number): Promise<QueryReturnType<RetrieveResponse>> => {
+    bulkRetrieve = async (nodeIdList: string[], depthLimit: number): Promise<QueryReturnType<RetrieveResponse>> => {
         if (nodeIdList.length === 0) {
             return {
                 status: HttpSuccessCodes.Ok,

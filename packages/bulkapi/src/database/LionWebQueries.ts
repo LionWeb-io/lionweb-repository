@@ -130,7 +130,7 @@ export class LionWebQueries {
         const tbsContainedChildIds = this.getContainedIds(toBeStoredChunk.nodes)
         const tbsNodeAndChildIds = [...tbsNodeIds, ...tbsContainedChildIds.filter(cid => !tbsNodeIds.includes(cid))]
         // Retrieve nodes for all id's that exist
-        const databaseChunk = await this.context.bulkApiWorker.bulkRetrieve(tbsNodeAndChildIds, "", 0)
+        const databaseChunk = await this.context.bulkApiWorker.bulkRetrieve(tbsNodeAndChildIds, 0)
         const databaseChunkWrapper = new LionWebJsonChunkWrapper(databaseChunk.queryResult.chunk)
         logger.dbLog("DBChunk " + JSON.stringify(databaseChunkWrapper.jsonChunk))
         
@@ -210,12 +210,10 @@ export class LionWebQueries {
         // implicit child remove, find all parents
         const implicitlyRemovedChildNodes = await this.context.bulkApiWorker.bulkRetrieve(
             addedAndNotRemovedChildren.map(ch => ch.childId),
-            "",
             0
         )
         const parentsOfImplicitlyRemovedChildNodes = await this.context.bulkApiWorker.bulkRetrieve(
             implicitlyRemovedChildNodes.queryResult.chunk.nodes.map(node => node.parent),
-            "",
             0
         )
         // Now all changes are turned into queries.

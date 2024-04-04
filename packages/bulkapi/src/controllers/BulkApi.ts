@@ -17,12 +17,13 @@ import {
 } from "@lionweb/repository-common"
 
 export interface BulkApi {
-    partitions: (req: Request, response: Response) => void
-    
+    listPartitions: (req: Request, response: Response) => void
     createPartitions: (req: Request, response: Response) => void
     deletePartitions: (req: Request, response: Response) => void
+
     store: (req: Request, response: Response) => void
     retrieve: (req: Request, response: Response) => void
+    ids: (req: Request, response: Response) => void
 }
 
 export class BulkApiImpl implements BulkApi {
@@ -34,7 +35,7 @@ export class BulkApiImpl implements BulkApi {
      * @param req no `parameters` or `body`
      * @param response The list of all partition nodes, without children or annotations
      */
-    partitions = async (req: Request, response: Response): Promise<void> => {
+    listPartitions = async (req: Request, response: Response): Promise<void> => {
         logger.requestLog(` * partitions request received, with body of ${req.headers["content-length"]} bytes`)
         const result = await this.ctx.bulkApiWorker.bulkPartitions()
         lionwebResponse<PartitionsResponse>(response, result.status, result.queryResult)
@@ -124,7 +125,6 @@ export class BulkApiImpl implements BulkApi {
      */
     retrieve = async (req: Request, response: Response): Promise<void> => {
         logger.requestLog(` * retrieve request received, with body of ${req.headers["content-length"]} bytes`)
-        const mode = req.query["mode"] as string
         const depthParam = req.query["depthLimit"]
         const depthLimit = (typeof depthParam === "string") ? Number.parseInt(depthParam) : Number.MAX_SAFE_INTEGER
         const idList = req.body.ids
@@ -140,8 +140,23 @@ export class BulkApiImpl implements BulkApi {
                 messages: [{ kind: "IdsIncorrect", message: `parameter 'ids' is not an array` }]
             })
         } else {
-            const result = await this.ctx.bulkApiWorker.bulkRetrieve(idList, mode, depthLimit)
+            const result = await this.ctx.bulkApiWorker.bulkRetrieve(idList, depthLimit)
             lionwebResponse(response, result.status, result.queryResult)
         }
     }
+
+    /**
+     * TODO Implement this properly.
+     * @param req
+     * @param response
+     */
+    ids = async (req: Request, response: Response): Promise<void> => {
+        logger.requestLog(` * ids request received, with body of ${req.headers["content-length"]} bytes`)
+        lionwebResponse(response, HttpSuccessCodes.Ok, {
+            success: true,
+            messages: [],
+            ids: ["1", "2", "3"]
+        })        
+    }
+
 }
