@@ -91,12 +91,14 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=schedule
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
             type=ref,event=tag
             type=sha          
+      - name: Echo
+        run: |
+          echo "Output [${{steps.meta.outputs.tags}}]"
 
       - name: Build and push the Docker image
         uses: docker/build-push-action@v5.3.0
