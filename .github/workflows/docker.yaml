@@ -95,7 +95,7 @@ jobs:
           flavor: |
             latest=true
             prefix=publish,onlatest=true
-            suffix=suf,onlatest=true
+            suffix=,onlatest=true
           tags: |
             type=raw,value=lionweb-repository-docker,suffix={{version}}
             type=pep440,pattern={{version}}
