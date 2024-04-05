@@ -94,7 +94,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=lionweb-repository-docker
-            type=ref,event=tag
+            type=pep440,pattern={{version}}
       - name: Echo
         run: |
           echo "Tags [${{steps.meta.outputs.tags}}]"
