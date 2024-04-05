@@ -92,9 +92,14 @@ jobs:
         uses: docker/metadata-action@v5.5.1
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          flavor: |
+            latest=true
+            prefix=publish,onlatest=true
           tags: |
-            type=raw,value=lionweb-repository-docker
+            type=raw,value=lionweb-repository-docker,suffix={{version}}
             type=pep440,pattern={{version}}
+            type=semver,pattern={{version}}
+            type=ref,event=tag
       - name: Echo
         run: |
           echo "Tags [${{steps.meta.outputs.tags}}]"
