@@ -94,11 +94,9 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           flavor: |
             latest=true
-            prefix=publish,onlatest=true
-            suffix=,onlatest=true
+            prefix=publish,onlatest=false
+            suffix=,onlatest=false
           tags: |
-            type=raw,value=lionweb-repository-docker,suffix={{version}}
-            type=pep440,pattern={{version}}
             type=semver,pattern={{version}}
             type=ref,event=tag
       - name: Echo
