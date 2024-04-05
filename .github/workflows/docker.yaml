@@ -94,7 +94,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           flavor: |
             latest=true
-            prefix=publish,onlatest=false
+            prefix=image,onlatest=false
             suffix=,onlatest=false
           tags: |
             type=semver,pattern={{version}}
