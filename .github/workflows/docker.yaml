@@ -28,7 +28,7 @@ jobs:
         run: npm install
 
       - name: Remove @lionweb/repository link
-        run: rm -rf node_modules/@lionweb-repository
+        run: rm -rf node_modules/@lionweb/repository
 
       - name: setup
         run: npm run setup
