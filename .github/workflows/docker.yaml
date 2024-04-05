@@ -80,18 +80,9 @@ jobs:
           path: node_modules
           merge-multiple: true
 
-#      - name: npm install
-#        run: |
-#          if [ -e package-lock.json ]; then
-#          npm ci
-#          else
-#          npm i
-#          fi
-   
       - name: Log into the Container registry
         uses: docker/login-action@v3.1.0
-        with:
-          
+        with:          
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
@@ -103,6 +94,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=lionweb-repository-docker
+            type=ref,event=tag
       - name: Echo
         run: |
           echo "Tags [${{steps.meta.outputs.tags}}]"
