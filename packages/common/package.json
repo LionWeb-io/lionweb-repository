@@ -1,6 +1,6 @@
 {
   "name": "@lionweb/repository-common",
-  "version": "17.0.0",
+  "version": "18.0.0",
   "private": false,
   "description": "Common code for the lionweb repository",
   "main": "dist/index.js",
