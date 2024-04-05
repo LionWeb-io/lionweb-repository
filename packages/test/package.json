@@ -1,6 +1,6 @@
 {
   "name": "@lionweb/repository-test",
-  "version": "19.0.0",
+  "version": "20.0.0",
   "private": true,
   "main": "src/server.ts",
   "types": "dist/index.d.ts",
