@@ -8,7 +8,7 @@ import {
     ORPHANS_REFERENCES_TABLE,
     PROPERTIES_TABLE,
     REFERENCES_TABLE,
-    logger, TableHelpers
+    logger, TableHelpers, RESERVED_IDS_TABLE
 } from "@lionweb/repository-common"
 import {
     ChildAdded,
@@ -300,6 +300,11 @@ export class QueryMaker {
         return query
     }
 
+    // public dbCheckReservedIds(clientId: string, tbsNodesToCreate: LionWebJsonNode[]): string[] {
+    //     logger.dbLog("Queries check reserved ids for " + clientId + " with nodes: " + tbsNodesToCreate.map(n => n.id))
+    //    
+    // }
+
     /**
      * Insert _tbsNodesToCreate in the lionweb_nodes table
      * These nodes are all new nodes.
@@ -359,6 +364,15 @@ export class QueryMaker {
     public makeSelectNodesIdsWithoutParent(): string {
         return `SELECT id FROM ${NODES_TABLE} WHERE parent is null`
     }
-    
+
+    public findReservedNodesFromIdList(clientId: string, nodeIdList: string[]): string {
+        const sqlArray = sqlArrayFromNodeIdArray(nodeIdList)
+        return `-- Retrieve node tree
+            SELECT node_id, client_id
+            FROM ${RESERVED_IDS_TABLE}
+            WHERE node_id IN ${sqlArray}  AND client_id != '${clientId}'   
+    `
+    }
+
     public async deleteNodesFromIdList(idList: string[]){ return idList }
 }

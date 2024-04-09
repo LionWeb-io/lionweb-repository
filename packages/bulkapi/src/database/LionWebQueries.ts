@@ -233,6 +233,8 @@ export class LionWebQueries {
         queries += this.context.queryMaker.upsertQueriesForReferenceChanges(targetsChanged)
         queries += this.context.queryMaker.updateReferenceTargetOrder(targetOrderChanged)
         queries += this.makeQueriesForAnnotationsChanged([...addedAnnotations, ...removedAnnotations, ...annotationOrderChanged])
+        // Check whether new node ids are not reserved for another client
+        await this.reservedNodeIds(clientId, toBeStoredNewNodes)
         queries += this.context.queryMaker.dbInsertNodeArray(toBeStoredNewNodes.map(ch => (ch as NodeAdded).node))
         // And run them on the database
         if (queries !== "") {
@@ -240,6 +242,15 @@ export class LionWebQueries {
             await this.context.dbConnection.query(queries)
         }
         return { status: HttpSuccessCodes.Ok, query: queries, queryResult: EMPTY_SUCCES_RESPONSE
+        }
+    }
+    
+    async reservedNodeIds(clientId: string, addedNodes: NodeAdded[]) {
+        if (addedNodes.length > 0) {
+            const query = this.context.queryMaker.findReservedNodesFromIdList(clientId, addedNodes.map(ch => ch.node.id))
+            console.log("RESERVED IDS QUERY " + query);
+            const result = await this.context.dbConnection.query(query)
+            console.log("RESERVED IDS " + JSON.stringify(result, null, 2))
         }
     }
 
