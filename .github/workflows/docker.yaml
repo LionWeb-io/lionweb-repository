@@ -2,7 +2,7 @@ name: Build and publish docker image on new tag creation
 on:
   push:
     tags:
-      - release.*
+      - '@lionweb/repository@*'
 
 env:
   REGISTRY: ghcr.io
@@ -26,6 +26,9 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+
+      - name: Remove @lionweb/repository link
+        run: rm -rf node_modules/@lionweb/repository
 
       - name: setup
         run: npm run setup
@@ -79,8 +82,7 @@ jobs:
 
       - name: Log into the Container registry
         uses: docker/login-action@v3.1.0
-        with:
-          
+        with:          
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
@@ -90,6 +92,18 @@ jobs:
         uses: docker/metadata-action@v5.5.1
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          flavor: |
+            latest=true
+            prefix=release,onlatest=false
+            suffix=,onlatest=false
+          tags: |
+            type=semver,pattern={{version}}
+            type=ref,event=tag
+      - name: Echo
+        run: |
+          echo "Tags [${{steps.meta.outputs.tags}}]"
+          echo "env.REGISTRY [${{env.REGISTRY}}]"
+          echo "env.IMAGE_NAME [${{env.IMAGE_NAME}}]"
 
       - name: Build and push the Docker image
         uses: docker/build-push-action@v5.3.0

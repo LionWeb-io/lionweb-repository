@@ -104,3 +104,20 @@ It is possible to specify a token to be expected by the server in each request (
 This mechanism is intended to make possible to expose the LionWeb repository while providing a minimum level of 
 security. When the token is specified while launching the server, then each request to the server will be checked
 for the presence of the same token in the `Authorization` header.
+
+## How to perform a release
+
+To release the lionweb server run the script `scripts/tag-and-release-docker-image.sh` from the root of the project. 
+ 
+The details of how this works and how to answer the questions being asked
+are described in the [README.md](scripts/README.md) in the scripts folder.
+
+## How to use the Docker image
+
+You can get the docker image from the Docker repository hosted by GitHub:
+
+```
+docker pull ghcr.io/lionweb-io/lionweb-repository:latest 
+# alternatively you can specify a specific version
+docker pull ghcr.io/lionweb-io/lionweb-repository:release-lionweb-repository-0.1.1
+```

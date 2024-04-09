@@ -1,6 +1,6 @@
 {
-  "name": "@lionweb/repository-packages",
-  "version": "0.1.0",
+  "name": "@lionweb/repository",
+  "version": "0.1.1",
   "private": true,
   "license": "Apache-2.0",
   "repository": {
@@ -20,7 +20,8 @@
     "release": "npm run release -w packages --if-present",
     "database": "node packages/dbadmin/dist/tools/database",
     "npm-install-local": "npm config set registry http://localhost:4873 && npm install",
-    "npm-install": "npm config set registry https://registry.npmjs.com && npm install"
+    "npm-install": "npm config set registry https://registry.npmjs.com && npm install",
+    "publish-docker": "bash scripts/tag-and-release-docker-image.sh"
   },
   "devDependencies": {
     "@types/chai": "4.3.11",
@@ -28,6 +29,9 @@
     "@typescript-eslint/eslint-plugin": "6.13.2",
     "@typescript-eslint/parser": "6.13.2",
     "chai": "4.3.10",
+    "changesets": "1.0.2",
+    "@changesets/cli": "2.27.1",
+    "@changesets/config": "3.0.0",
     "eslint": "8.56.0",
     "mocha": "10.2.0",
     "prettier": "3.1.0",
@@ -42,6 +46,7 @@
     "./packages/bulkapi",
     "./packages/additionalapi",
     "./packages/server",
-    "./packages/test"
+    "./packages/test",
+    "."
   ]
 }
