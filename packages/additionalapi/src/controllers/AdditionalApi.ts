@@ -1,9 +1,17 @@
 import { Request, Response } from "express"
 import { AdditionalApiContext } from "../main.js"
-import { HttpSuccessCodes, lionwebResponse, logger } from "@lionweb/repository-common"
+import {
+    EMPTY_SUCCES_RESPONSE,
+    getIntegerParam,
+    HttpClientErrors,
+    HttpSuccessCodes,
+    isResponseMessage,
+    lionwebResponse,
+    logger
+} from "@lionweb/repository-common"
 
 export interface AdditionalApi {
-    getNodeTree(req: Request, response: Response): void
+    getNodeTree(request: Request, response: Response): void
 }
 
 export class AdditionalApiImpl implements AdditionalApi {
@@ -11,21 +19,22 @@ export class AdditionalApiImpl implements AdditionalApi {
     }
     /**
      * Get the tree with root `id`, for one single node
-     * @param req
+     * @param request
      * @param response
      */
-    getNodeTree = async (req: Request, response: Response): Promise<void> => {
-        const idList = req.body.ids
-        let depthLimit = Number.parseInt(req.query["depthLimit"] as string)
-        if (isNaN(depthLimit)) {
-            depthLimit = 99
+    getNodeTree = async (request: Request, response: Response): Promise<void> => {
+        const idList = request.body.ids
+        const depthLimit = getIntegerParam(request, "depthLimit", Number.MAX_SAFE_INTEGER)
+        if (isResponseMessage(depthLimit)) {
+            lionwebResponse(response, HttpClientErrors.PreconditionFailed, {
+                success: false,
+                messages: [depthLimit]
+            })
+        } else {
+            logger.dbLog("API.getNodeTree is " + idList)
+            const result = await this.context.additionalApiWorker.getNodeTree(idList, depthLimit)
+            lionwebResponse(response, HttpSuccessCodes.Ok, EMPTY_SUCCES_RESPONSE)
+            response.send(result)
         }
-        logger.dbLog("API.getNodeTree is " + idList)
-        const result = await this.context.additionalApiWorker.getNodeTree(idList, depthLimit)
-        lionwebResponse(response, HttpSuccessCodes.Ok, {
-            success: true,
-            messages: [],
-        })
-        response.send(result)
     }
 }

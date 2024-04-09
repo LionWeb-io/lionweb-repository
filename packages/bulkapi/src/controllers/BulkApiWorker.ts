@@ -19,14 +19,15 @@ export class BulkApiWorker {
         this.context = context
     }
 
-    async bulkPartitions(): Promise<QueryReturnType<PartitionsResponse>> {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async bulkPartitions(clientId: string): Promise<QueryReturnType<PartitionsResponse>> {
         return await this.context.queries.getPartitions()
     }
 
     /**
      * @param chunk A LionWeb chunk containing all nodes that are to be created as partitions.
      */
-    createPartitions = async (chunk: LionWebJsonChunk): Promise<QueryReturnType<CreatePartitionsResponse>> => {
+    createPartitions = async (clientId: string, chunk: LionWebJsonChunk): Promise<QueryReturnType<CreatePartitionsResponse>> => {
         logger.requestLog("BulkApiWorker.createPartitions")
         const existingNodes = await this.context.queries.getNodesFromIdList(chunk.nodes.map(n => n.id))
         if (existingNodes.length > 0) {
@@ -49,7 +50,7 @@ export class BulkApiWorker {
      * Delete all partitions 
      * @param idList The list of node id's of partition nodes that are to be removed.
      */
-    deletePartitions = async(idList: string[]): Promise<QueryReturnType<DeletePartitionsResponse>> => {
+    deletePartitions = async(clientId: string, idList: string[]): Promise<QueryReturnType<DeletePartitionsResponse>> => {
         const partitions = await this.context.queries.getNodesFromIdList(idList)
         const issues: ResponseMessage[] = []
         partitions.forEach(part => {
@@ -71,17 +72,16 @@ export class BulkApiWorker {
         return { status: HttpSuccessCodes.Ok, query: "", queryResult: EMPTY_SUCCES_RESPONSE }
     }
 
-    bulkStore = async (chunk: LionWebJsonChunk): Promise<QueryReturnType<StoreResponse>> => {
-        return await this.context.queries.store(chunk)
+    bulkStore = async (clientId: string, chunk: LionWebJsonChunk): Promise<QueryReturnType<StoreResponse>> => {
+        return await this.context.queries.store(clientId, chunk)
     }
 
     /**
      * This implementation uses Postgres for querying
      * @param nodeIdList
-     * @param mode
      * @param depthLimit
      */
-    bulkRetrieve = async (nodeIdList: string[], depthLimit: number): Promise<QueryReturnType<RetrieveResponse>> => {
+    bulkRetrieve = async (clientId: string, nodeIdList: string[], depthLimit: number): Promise<QueryReturnType<RetrieveResponse>> => {
         if (nodeIdList.length === 0) {
             return {
                 status: HttpSuccessCodes.Ok,

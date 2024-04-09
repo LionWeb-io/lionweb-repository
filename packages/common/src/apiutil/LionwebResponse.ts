@@ -25,6 +25,13 @@ export type ResponseMessage = {
     data?  : Record<string, string>
 }
 
+export function isResponseMessage(object: unknown): object is ResponseMessage {
+    return object["kind"] !== undefined &&
+        typeof object["kind"] === "string"
+        object["message"] !== undefined &&
+        typeof object["message"] === "string"
+}
+
 export interface LionwebResponse {
     success: boolean
     messages: ResponseMessage[]

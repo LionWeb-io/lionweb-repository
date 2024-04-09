@@ -30,7 +30,7 @@ export class RepositoryClient {
     }
 
     async testPartitions(): Promise<PartitionsResponse> {
-        const partitionsResponse: PartitionsResponse = await this.getWithTimeout<PartitionsResponse>("bulk/partitions", { body: {}, params: "" })
+        const partitionsResponse: PartitionsResponse = await this.getWithTimeout<PartitionsResponse>("bulk/listPartitions", { body: {}, params: "" })
         return partitionsResponse
     }
 
@@ -165,9 +165,9 @@ export class RepositoryClient {
 
     private findParams(params?: string): string {
         if (!!params && params.length > 0) {
-            return "?" + params
+            return "?" + params + ";clientId=TestClient"
         } else {
-            return ""
+            return "?clientId=TestClient"
         }
     }
 
