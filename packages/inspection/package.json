@@ -1,6 +1,6 @@
 {
   "name": "@lionweb/repository-inspection",
-  "version": "0.1.1",
+  "version": "0.1.0",
   "private": false,
   "description": "Inspection routes for the lionweb repository",
   "main": "dist/index.js",
@@ -22,6 +22,6 @@
     "test": "echo No tests in repository-inspection"
   },
   "dependencies": {
-    "@lionweb/repository-dbadmin": "0.1.1"
+    "@lionweb/repository-dbadmin": "0.1.0"
   }
 }
