@@ -119,5 +119,5 @@ You can get the docker image from the Docker repository hosted by GitHub:
 ```
 docker pull ghcr.io/lionweb-io/lionweb-repository:latest 
 # alternatively you can specify a specific version
-docker pull ghcr.io/lionweb-io/lionweb-repository:release.0.1.0
+docker pull ghcr.io/lionweb-io/lionweb-repository:release-lionweb-repository-0.1.1
 ```
