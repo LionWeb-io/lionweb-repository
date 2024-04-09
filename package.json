@@ -21,7 +21,7 @@
     "database": "node packages/dbadmin/dist/tools/database",
     "npm-install-local": "npm config set registry http://localhost:4873 && npm install",
     "npm-install": "npm config set registry https://registry.npmjs.com && npm install",
-    "publish-docker": "bash ./scripts/publish-docker.sh"
+    "publish-docker": "bash scripts/tag-and-release-docker-image.sh"
   },
   "devDependencies": {
     "@types/chai": "4.3.11",

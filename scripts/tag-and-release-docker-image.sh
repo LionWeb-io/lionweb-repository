@@ -17,7 +17,4 @@ git tag -d $(git tag | grep -E "common|bulkapi|additionalapi|dbadmin|inspection|
 git commit -m "update version to $TAG" -- '*package.json'
 
 # push tag (and therefore all the committed files)
-#git push origin
-#git push origin $TAG
-
 git push --atomic origin  $TAG
