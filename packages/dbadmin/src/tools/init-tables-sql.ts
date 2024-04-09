@@ -5,7 +5,8 @@ import {
     ORPHANS_NODES_TABLE,
     ORPHANS_PROPERTIES_TABLE, ORPHANS_REFERENCES_TABLE,
     PROPERTIES_TABLE,
-    REFERENCES_TABLE
+    REFERENCES_TABLE, 
+    RESERVED_IDS_TABLE
 } from "@lionweb/repository-common";
 
 export const INIT_TABLES_SQL = `
@@ -18,6 +19,7 @@ DROP TABLE IF EXISTS ${ORPHANS_NODES_TABLE};
 DROP TABLE IF EXISTS ${ORPHANS_CONTAINMENTS_TABLE};
 DROP TABLE IF EXISTS ${ORPHANS_PROPERTIES_TABLE};
 DROP TABLE IF EXISTS ${ORPHANS_REFERENCES_TABLE};
+DROP TABLE IF EXISTS ${RESERVED_IDS_TABLE};
 
 -- Drop indices
 -- DROP INDEX IF EXISTS ContainmentsNodesIndex;
@@ -61,11 +63,20 @@ CREATE TABLE IF NOT EXISTS ${REFERENCES_TABLE} (
     PRIMARY KEY(reference, node_id)
 );
 
--- Create indices to enable finding features for nodes quickly
+-- Creates reserved_ids table
+CREATE TABLE IF NOT EXISTS ${RESERVED_IDS_TABLE} (
+--  r_id         SERIAL  NOT NULL, 
+    node_id      text,
+    client_id    text,
+    PRIMARY KEY(node_id)
+);
+
+-- TODO: Create indices to enable finding features for nodes quickly
 
 -- CREATE INDEX ContainmentsNodesIndex ON ${CONTAINMENTS_TABLE} (node_id)
 -- CREATE INDEX PropertiesNodesIndex   ON ${PROPERTIES_TABLE}   (node_id)
 -- CREATE INDEX ReferencesNodesIndex   ON ${REFERENCES_TABLE}   (node_id)
+-- CREATE INDEX ReservedIdsIndex       ON ${RESERVED_IDS_TABLE} (node_id)
 
 CREATE TABLE IF NOT EXISTS ${ORPHANS_NODES_TABLE} (
     id                  text, 
@@ -93,4 +104,7 @@ CREATE TABLE IF NOT EXISTS ${ORPHANS_REFERENCES_TABLE}   (
     targets      jsonb[],
     node_id      text
 );
+
+INSERT INTO ${RESERVED_IDS_TABLE}(node_id, client_id)
+VALUES('ANN-1', 'Dummy');
 `
