@@ -105,6 +105,4 @@ CREATE TABLE IF NOT EXISTS ${ORPHANS_REFERENCES_TABLE}   (
     node_id      text
 );
 
-INSERT INTO ${RESERVED_IDS_TABLE}(node_id, client_id)
-VALUES('ANN-1', 'Dummy');
 `

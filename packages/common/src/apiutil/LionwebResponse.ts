@@ -54,6 +54,10 @@ export interface CreatePartitionsResponse extends LionwebResponse {
 export interface DeletePartitionsResponse extends LionwebResponse {
 }
 
+export interface IdsResponse extends LionwebResponse {
+    ids: string[]
+}
+
 export function lionwebResponse<T extends LionwebResponse>(response: Response, status: number, body: T): void {
     response.status(status)
     response.send(body)

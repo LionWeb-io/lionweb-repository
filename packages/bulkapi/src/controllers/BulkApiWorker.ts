@@ -1,7 +1,8 @@
 import {
+    createId,
     CreatePartitionsResponse,
     DeletePartitionsResponse, EMPTY_CHUNK,
-    EMPTY_SUCCES_RESPONSE, HttpClientErrors, HttpSuccessCodes,
+    EMPTY_SUCCES_RESPONSE, HttpClientErrors, HttpSuccessCodes, IdsResponse,
     logger, nodesToChunk,
     PartitionsResponse, QueryReturnType,
     ResponseMessage, RetrieveResponse, StoreResponse
@@ -113,6 +114,52 @@ export class BulkApiWorker {
                 success: true,
                 messages: [],
                 chunk: nodesToChunk(nodes)
+            }
+        }
+    }
+
+    ids = async (clientId: string, count: number): Promise<QueryReturnType<IdsResponse>> => {
+        console.log("Reserve Count ids " + count + " for " + clientId)
+        const result: string[] = []
+        // Create a bunch of ids, they are probably all free 
+        let done = false
+        while(!done) {
+            for (let i = 0; i < count; i++) {
+                const id = createId(clientId)
+                console.log("created id " + id)
+                result.push(createId(id))
+            }
+            // Check for already used or reserved ids and remove them if needed
+            const reservedByOtherClient = await this.context.queries.reservedNodeIdsByOtherClient(clientId, result)
+            if (reservedByOtherClient.length > 0) {
+                reservedByOtherClient.forEach(reservedId => {
+                    const index = result.indexOf(reservedId.node_id)
+                    result.splice(index, 1)
+                })
+            }
+            // Remove ids that are already in use
+            const usedIds = await this.context.queries.nodeIdsInUse(result)
+            if (usedIds.length > 0) {
+                usedIds.forEach(usedId => {
+                    const index = result.indexOf(usedId.id)
+                    result.splice(index, 1)
+                })
+            }
+            if (result.length > 0) {
+                done = true
+            }
+        }
+        //TODO store the reserved ids in the reserved id table.
+        const returnValue = await this.context.queries.makeNodeIdsReservation(clientId, result)
+        console.log("ids calculated " + JSON.stringify(result))
+        
+        return {
+            status: HttpSuccessCodes.Ok,
+            query: "",
+            queryResult: {
+                success: returnValue.queryResult.success,
+                messages: returnValue.queryResult.messages,
+                ids: result
             }
         }
     }

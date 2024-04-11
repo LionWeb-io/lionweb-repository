@@ -79,6 +79,12 @@ export class RepositoryClient {
         return x
     }
 
+    async testIds(clientId: string, count: number): Promise<ClientResponse> {
+        console.log(`test.testIds`)
+        const result = await this.postWithTimeout(`bulk/ids`, { body: {}, params: `clientId=${clientId}&count=${count}` })
+        return result
+    }
+
     async testRetrieve(nodeIds: string[], depth?: number): Promise<ClientResponse> {
         console.log(`test.testRetrieve ${nodeIds} with depth ${depth}`)
         const params = (depth === undefined) ? "" : `depthLimit=${depth}`
@@ -171,7 +177,9 @@ export class RepositoryClient {
     }
 
     private findParams(params?: string): string {
-        if (!!params && params.length > 0) {
+        if (!!params && params.includes("clientId")) {
+            return "?" + params
+        } else if (!!params && params.length > 0) {
             return "?" + params + "&clientId=" + this.clientId
         } else {
             return "?clientId=" + this.clientId

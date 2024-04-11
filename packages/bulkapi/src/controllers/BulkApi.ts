@@ -192,11 +192,22 @@ export class BulkApiImpl implements BulkApi {
      */
     ids = async (request: Request, response: Response): Promise<void> => {
         logger.requestLog(` * ids request received, with body of ${request.headers["content-length"]} bytes`)
-        lionwebResponse(response, HttpSuccessCodes.Ok, {
-            success: true,
-            messages: [],
-            ids: ["1", "2", "3"]
-        })        
+        const clientId = getStringParam(request, "clientId")
+        const count = getIntegerParam(request, "count", Number.MAX_SAFE_INTEGER)
+        if (isResponseMessage(count)) {
+            lionwebResponse(response, HttpClientErrors.PreconditionFailed, {
+                success: false,
+                messages: [count]
+            })
+        } else if (isResponseMessage(clientId)) {
+            lionwebResponse(response, HttpClientErrors.PreconditionFailed, {
+                success: false,
+                messages: [clientId]
+            })
+        } else {
+            const result = await this.ctx.bulkApiWorker.ids(clientId, count)
+            lionwebResponse(response, result.status, result.queryResult)
+        }
     }
 
 }

@@ -1,22 +1,23 @@
-import { HttpServerErrors } from "./httpcodes.js";
-import { collectUsedLanguages } from "./UsedLanguages.js";
-import { LionWebJsonChunk, LionWebJsonNode } from "@lionweb/validation";
+import { HttpServerErrors } from "./httpcodes.js"
+import { collectUsedLanguages } from "./UsedLanguages.js"
+import { LionWebJsonChunk, LionWebJsonNode } from "@lionweb/validation"
 import { Request, Response } from "express"
-import { lionwebResponse, ResponseMessage } from "./LionwebResponse.js";
+import { lionwebResponse, ResponseMessage } from "./LionwebResponse.js"
+import { v4 as uuidv4 } from "uuid"
 
 export function toFirstUpper(text: string): string {
-    return text[0].toUpperCase().concat(text.substring(1));
+    return text[0].toUpperCase().concat(text.substring(1))
 }
 
 /**
  * Get the query parameter named _paramName_ as a string value
  * @param request   The request object containing the query
  * @param paramName The name of the parameter.
- * @returns The value of the query parameter if this is avalable and of type string, 
+ * @returns The value of the query parameter if this is avalable and of type string,
  * Otherwise a ResponseMessage containing an error.
  */
 export function getStringParam(request: Request, paramName: string): string | ResponseMessage {
-    const result = request.query[paramName];
+    const result = request.query[paramName]
     if (typeof result === "string") {
         return result as string
     } else {
@@ -33,11 +34,11 @@ export function getStringParam(request: Request, paramName: string): string | Re
  * @param paramName The name of the parameter.
  * @param defaultValue The default value in case the parameter is missing.
  * @returns The value of the query parameter if this is avalable and represents an integer,
- * the _defaultValue_ if the parameters is missing, and 
+ * the _defaultValue_ if the parameters is missing, and
  * otherwise a ResponseMessage containing an error.
  */
 export function getIntegerParam(request: Request, paramName: string, defaultValue: number): number | ResponseMessage {
-    const result = request.query[paramName];
+    const result = request.query[paramName]
     if (typeof result === "string") {
         const value = Number.parseInt(result)
         if (isNaN(value)) {
@@ -58,11 +59,11 @@ export function getIntegerParam(request: Request, paramName: string, defaultValu
  * Catch-all wrapper function to handle exceptions for any api call
  * @param func
  */
-export function runWithTry( func: (request: Request, response: Response) => void): (request: Request, response: Response) => void {
-    return async function(request: Request, response: Response): Promise<void> {
+export function runWithTry(func: (request: Request, response: Response) => void): (request: Request, response: Response) => void {
+    return async function (request: Request, response: Response): Promise<void> {
         try {
             await func(request, response)
-        } catch(e) {
+        } catch (e) {
             const error = asError(e)
             console.log(`Exception while serving request for ${request.url}: ${error.message}`)
             lionwebResponse(response, HttpServerErrors.InternalServerError, {
@@ -71,6 +72,13 @@ export function runWithTry( func: (request: Request, response: Response) => void
             })
         }
     }
+}
+
+/**
+ * Get new node id
+ */
+export function createId(clientId: string): string {
+    return clientId + "-" + uuidv4()
 }
 
 /**

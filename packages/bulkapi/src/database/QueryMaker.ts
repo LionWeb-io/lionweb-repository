@@ -8,7 +8,8 @@ import {
     ORPHANS_REFERENCES_TABLE,
     PROPERTIES_TABLE,
     REFERENCES_TABLE,
-    logger, TableHelpers, RESERVED_IDS_TABLE
+    logger, TableHelpers, RESERVED_IDS_TABLE,
+    ReservedIdRecord, NodeRecord
 } from "@lionweb/repository-common"
 import {
     ChildAdded,
@@ -317,7 +318,7 @@ export class QueryMaker {
             if (tbsNodesToCreate.length === 0) {
                 return query
             }
-            const node_rows = tbsNodesToCreate.map(node => {
+            const node_rows: NodeRecord[] = tbsNodesToCreate.map(node => {
                 return {
                     id: node.id,
                     classifier_language: node.classifier.language,
@@ -372,6 +373,29 @@ export class QueryMaker {
             FROM ${RESERVED_IDS_TABLE}
             WHERE node_id IN ${sqlArray}  AND client_id != '${clientId}'   
     `
+    }
+
+    public findNodeIdsInUse(nodeIdList: string[]): string {
+        const sqlArray = sqlArrayFromNodeIdArray(nodeIdList)
+        return `-- Retrieve node tree
+            SELECT id
+            FROM ${NODES_TABLE}
+            WHERE id IN ${sqlArray}   
+    `
+    }
+
+    public storeReservedNodeIds(clientId: string, nodeIdList: string[]): string {
+        const insertReservation: ReservedIdRecord[]  = nodeIdList.map(id =>
+            ({ 
+                node_id: id,
+                client_id: clientId
+            })
+        )
+        if (insertReservation.length !== 0) {
+            return this.context.pgp.helpers.insert(insertReservation, TableHelpers.RESERVED_IDS_COLUMN_SET) + ";\n"
+        }
+
+        return ""
     }
 
     public async deleteNodesFromIdList(idList: string[]){ return idList }
