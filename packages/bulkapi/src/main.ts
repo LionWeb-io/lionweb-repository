@@ -47,7 +47,8 @@ export function registerBulkApi(app: Express, dbConnection: pgPromise.IDatabase<
     // Add routes to application
     app.post("/bulk/createPartitions", runWithTry(context.bulkApi.createPartitions))
     app.post("/bulk/deletePartitions", runWithTry(context.bulkApi.deletePartitions))
-    app.get("/bulk/partitions", runWithTry(context.bulkApi.partitions))
+    app.get("/bulk/listPartitions", runWithTry(context.bulkApi.listPartitions))
+    app.post("/bulk/ids", runWithTry(context.bulkApi.ids))
     app.post("/bulk/store", runWithTry(context.bulkApi.store))
     app.post("/bulk/retrieve", runWithTry(context.bulkApi.retrieve))
 }

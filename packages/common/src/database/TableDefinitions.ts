@@ -3,7 +3,7 @@
  */
 import pgPromise from "pg-promise";
 import pg from "pg-promise/typescript/pg-subset.js";
-import { CONTAINMENTS_TABLE, NODES_TABLE, PROPERTIES_TABLE, REFERENCES_TABLE } from "./TableNames.js"
+import { CONTAINMENTS_TABLE, NODES_TABLE, PROPERTIES_TABLE, REFERENCES_TABLE, RESERVED_IDS_TABLE } from "./TableNames.js"
 
 // NOTE: '?' at front of column name means that this column will not be updated by an UPDATE
 
@@ -12,6 +12,7 @@ export class TableDefinitions {
     CONTAINMENTS_COLUMN_SET: pgPromise.ColumnSet
     PROPERTIES_COLUMN_SET: pgPromise.ColumnSet
     REFERENCES_COLUMN_SET: pgPromise.ColumnSet
+    RESERVED_IDS_COLUMN_SET: pgPromise.ColumnSet
     
     constructor(private pgp: pgPromise.IMain<object, pg.IClient>) {
         this.pgp = pgp
@@ -56,6 +57,14 @@ export class TableDefinitions {
                 "?node_id"      // Don't update this column
             ],
             { table: REFERENCES_TABLE }
+        )
+        // prettier-ignore
+        this.RESERVED_IDS_COLUMN_SET = new this.pgp.helpers.ColumnSet(
+            [
+                "node_id",      // The reserved node id
+                "client_id"     // The client for which the node id has been reserved
+            ],
+            { table: RESERVED_IDS_TABLE }
         )
     }
 }

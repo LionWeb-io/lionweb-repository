@@ -25,6 +25,17 @@ export type ResponseMessage = {
     data?  : Record<string, string>
 }
 
+/**
+ * Checks whether the _object_ is a ResponseMessage
+ * @param object
+ */
+export function isResponseMessage(object: unknown): object is ResponseMessage {
+    return object["kind"] !== undefined &&
+        typeof object["kind"] === "string"
+        object["message"] !== undefined &&
+        typeof object["message"] === "string"
+}
+
 export interface LionwebResponse {
     success: boolean
     messages: ResponseMessage[]
@@ -45,6 +56,10 @@ export interface CreatePartitionsResponse extends LionwebResponse {
 }
 
 export interface DeletePartitionsResponse extends LionwebResponse {
+}
+
+export interface IdsResponse extends LionwebResponse {
+    ids: string[]
 }
 
 export function lionwebResponse<T extends LionwebResponse>(response: Response, status: number, body: T): void {

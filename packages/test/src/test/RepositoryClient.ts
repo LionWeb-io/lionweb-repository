@@ -8,10 +8,17 @@ export type ClientResponse = {
     status: Status
 }
 
+const CLIENT_ID = "TestClient"
+
 export class RepositoryClient {
     private _nodePort = process.env.NODE_PORT || 3005
     private _SERVER_IP = "http://127.0.0.1"
     private _SERVER_URL = `${this._SERVER_IP}:${this._nodePort}/`
+    private clientId: string
+    
+    constructor() {
+        this.clientId = CLIENT_ID
+    }
 
     readModel(filename: string): LionWebJsonChunk | null {
         if (fs.existsSync(filename)) {
@@ -30,14 +37,14 @@ export class RepositoryClient {
     }
 
     async testPartitions(): Promise<PartitionsResponse> {
-        const partitionsResponse: PartitionsResponse = await this.getWithTimeout<PartitionsResponse>("bulk/partitions", { body: {}, params: "" })
+        const partitionsResponse: PartitionsResponse = await this.getWithTimeout<PartitionsResponse>("bulk/listPartitions", { body: {}, params: "" })
         return partitionsResponse
     }
 
     async testCreatePartitions(data: LionWebJsonChunk): Promise<ClientResponse> {
         console.log(`test.testCreatePartitions`)
         if (data === null) {
-            console.log("Cannot read json data")
+            console.log("testCreatePartitions: Cannot read json data")
             return { status: HttpClientErrors.PreconditionFailed, body: { result: "Repository.testClient: cannot read partitions to create"} }
         }
         console.log("Create partition " + JSON.stringify(data))
@@ -48,7 +55,7 @@ export class RepositoryClient {
     async testDeletePartitions(partitionIds: string[]): Promise<ClientResponse> {
         console.log(`test.testDeletePartitions`)
         if (partitionIds === null) {
-            console.log("Cannot read partitions")
+            console.log("testDeletePartitions: Cannot read partitions")
             return { status: HttpClientErrors.PreconditionFailed, body: { result: "Repository.testClient: cannot read partitions to delete"} }
         }
         console.log("Delete partition " + partitionIds)
@@ -59,7 +66,7 @@ export class RepositoryClient {
     async testStore(data: LionWebJsonChunk): Promise<ClientResponse> {
         console.log(`test.store`)
         if (data === null) {
-            console.log("Cannot read json data")
+            console.log("testStore: Cannot read json data")
             return { status: HttpClientErrors.PreconditionFailed, body: { result: "Repository.testClient: cannot read data to store"} }
         }
         const result = await this.postWithTimeout(`bulk/store`, { body: data, params: "" })
@@ -70,6 +77,12 @@ export class RepositoryClient {
         console.log(`test.testGetNodeTree`)
         const x = await this.postWithTimeout(`getNodeTree`, { body: { ids: nodeIds }, params: "" })
         return x
+    }
+
+    async testIds(clientId: string, count: number): Promise<ClientResponse> {
+        console.log(`test.testIds`)
+        const result = await this.postWithTimeout(`bulk/ids`, { body: {}, params: `clientId=${clientId}&count=${count}` })
+        return result
     }
 
     async testRetrieve(nodeIds: string[], depth?: number): Promise<ClientResponse> {
@@ -164,10 +177,12 @@ export class RepositoryClient {
     }
 
     private findParams(params?: string): string {
-        if (!!params && params.length > 0) {
+        if (!!params && params.includes("clientId")) {
             return "?" + params
+        } else if (!!params && params.length > 0) {
+            return "?" + params + "&clientId=" + this.clientId
         } else {
-            return ""
+            return "?clientId=" + this.clientId
         }
     }
 

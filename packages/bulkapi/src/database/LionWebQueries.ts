@@ -7,7 +7,8 @@ import {
     StoreResponse,
     asError,
     TableHelpers,
-    QueryReturnType, nodesToChunk, HttpSuccessCodes, EMPTY_SUCCES_RESPONSE, HttpClientErrors
+    QueryReturnType, nodesToChunk, HttpSuccessCodes, EMPTY_SUCCES_RESPONSE, HttpClientErrors,
+    ReservedIdRecord, LionwebResponse
 } from "@lionweb/repository-common"
 import {
     LionWebJsonChunk,
@@ -115,7 +116,7 @@ export class LionWebQueries {
      *
      * @param toBeStoredChunk
      */
-    store = async (toBeStoredChunk: LionWebJsonChunk): Promise<QueryReturnType<StoreResponse>> => {
+    store = async (clientId: string, toBeStoredChunk: LionWebJsonChunk): Promise<QueryReturnType<StoreResponse>> => {
         logger.dbLog("LionWebQueries.store")
         if (toBeStoredChunk === null || toBeStoredChunk === undefined) {
             return {
@@ -130,7 +131,7 @@ export class LionWebQueries {
         const tbsContainedChildIds = this.getContainedIds(toBeStoredChunk.nodes)
         const tbsNodeAndChildIds = [...tbsNodeIds, ...tbsContainedChildIds.filter(cid => !tbsNodeIds.includes(cid))]
         // Retrieve nodes for all id's that exist
-        const databaseChunk = await this.context.bulkApiWorker.bulkRetrieve(tbsNodeAndChildIds, "", 0)
+        const databaseChunk = await this.context.bulkApiWorker.bulkRetrieve(clientId, tbsNodeAndChildIds, 0)
         const databaseChunkWrapper = new LionWebJsonChunkWrapper(databaseChunk.queryResult.chunk)
         logger.dbLog("DBChunk " + JSON.stringify(databaseChunkWrapper.jsonChunk))
         
@@ -209,13 +210,13 @@ export class LionWebQueries {
 
         // implicit child remove, find all parents
         const implicitlyRemovedChildNodes = await this.context.bulkApiWorker.bulkRetrieve(
+            clientId,
             addedAndNotRemovedChildren.map(ch => ch.childId),
-            "",
             0
         )
         const parentsOfImplicitlyRemovedChildNodes = await this.context.bulkApiWorker.bulkRetrieve(
+            clientId,
             implicitlyRemovedChildNodes.queryResult.chunk.nodes.map(node => node.parent),
-            "",
             0
         )
         // Now all changes are turned into queries.
@@ -233,6 +234,23 @@ export class LionWebQueries {
         queries += this.context.queryMaker.upsertQueriesForReferenceChanges(targetsChanged)
         queries += this.context.queryMaker.updateReferenceTargetOrder(targetOrderChanged)
         queries += this.makeQueriesForAnnotationsChanged([...addedAnnotations, ...removedAnnotations, ...annotationOrderChanged])
+        // Check whether new node ids are not reserved for another client
+        const reservedIds = await this.reservedNodeIdsByOtherClient(clientId, toBeStoredNewNodes.map(ch => ch.node.id))
+        if (reservedIds !== undefined && reservedIds.length > 0) {
+            return {
+                status: HttpClientErrors.PreconditionFailed,
+                query: "",
+                queryResult: {
+                    success: false,
+                    messages: [
+                        { 
+                            kind: "ReservedId",
+                            message: `The following id's are reserved by other client(s): ${reservedIds.map(id => `{ node id ${id.node_id} by client ${id.client_id}`).join(', ')}.`,
+                        }
+                    ]
+                }
+            }
+        }
         queries += this.context.queryMaker.dbInsertNodeArray(toBeStoredNewNodes.map(ch => (ch as NodeAdded).node))
         // And run them on the database
         if (queries !== "") {
@@ -240,6 +258,37 @@ export class LionWebQueries {
             await this.context.dbConnection.query(queries)
         }
         return { status: HttpSuccessCodes.Ok, query: queries, queryResult: EMPTY_SUCCES_RESPONSE
+        }
+    }
+
+    async reservedNodeIdsByOtherClient(clientId: string, addedNodes: string[]): Promise<ReservedIdRecord[]> {
+        if (addedNodes.length > 0) {
+            const query = this.context.queryMaker.findReservedNodesFromIdList(clientId, addedNodes)
+            const result = await this.context.dbConnection.query(query) as ReservedIdRecord[]
+            return result
+        }
+    }
+
+    async nodeIdsInUse(nodeIds: string[]): Promise<{ id: string }[]> {
+        if (nodeIds.length > 0) {
+            const query = this.context.queryMaker.findNodeIdsInUse(nodeIds)
+            const result = (await this.context.dbConnection.query(query)) as { id: string }[]
+            return result
+        }
+    }
+
+    async makeNodeIdsReservation(clientId: string, idsAdded: string[]): Promise<QueryReturnType<LionwebResponse>> {
+        if (idsAdded.length > 0) {
+            const query = this.context.queryMaker.storeReservedNodeIds(clientId, idsAdded)
+            await this.context.dbConnection.query(query)
+            return {
+                status: HttpSuccessCodes.Ok,
+                query: query,
+                queryResult: { 
+                    success: true,
+                    messages: []
+                }
+            }
         }
     }
 

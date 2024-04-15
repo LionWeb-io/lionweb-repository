@@ -31,11 +31,11 @@ app.use(bodyParser.json({limit: process.env.BODY_LIMIT || '50mb'}))
 
 const expectedToken = process.env.EXPECTED_TOKEN
 
-function verifyToken(req: Request, res: Response, next: NextFunction) {
+function verifyToken(request: Request, response: Response, next: NextFunction) {
     if (expectedToken != null) {
-        const providedToken = req.headers['authorization']
+        const providedToken = request.headers['authorization']
         if (providedToken == null || typeof providedToken !== "string" || providedToken.trim() != expectedToken) {
-            return res.status(HttpClientErrors.Unauthorized).send("Invalid token or no token provided")
+            return response.status(HttpClientErrors.Unauthorized).send("Invalid token or no token provided")
         } else {
             next();
         }

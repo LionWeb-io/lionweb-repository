@@ -1,9 +1,9 @@
-import { HttpSuccessCodes, RetrieveResponse } from "@lionweb/repository-common";
+import { HttpClientErrors, HttpSuccessCodes, RetrieveResponse } from "@lionweb/repository-common"
 import { LanguageChange, LionWebJsonChunk, LionWebJsonChunkWrapper, LionWebJsonDiff, NodeRemoved } from "@lionweb/validation"
 import { assert } from "chai"
 import { RepositoryClient } from "./RepositoryClient.js"
 
-const { deepEqual } = assert
+const { deepEqual, equal } = assert
 import sm from "source-map-support"
 
 sm.install()
@@ -252,6 +252,70 @@ describe("Repository tests", () => {
                 DATA + "reorder-reference-targets/reorder-reference-targets-partition.json",
                 DATA + "reorder-reference-targets/reorder-reference-targets-single-node.json"
             )
+        })
+    })
+
+    describe("Use reserved ids", () => {
+        it("test using ids reserved by same client", async () => {
+            console.log("=======================================")
+            const reservedIds = await t.testIds("FirstClient", 42)
+            console.log("Reserving ids " + JSON.stringify(reservedIds))
+        })
+        it("test using ids reserved by other client", async () => {
+            const reservedIds = await t.testIds("FirstClient", 2)
+            console.log("Reserving ids " + JSON.stringify(reservedIds))
+            const testIncorrect = await t.testStore({
+                languages: [
+                    {
+                        key: "-default-key-FileSystem",
+                        version: "2023.1"
+                    },
+                    {
+                        key: "LionCore-builtins",
+                        version: "2023.1"
+                    }
+                ],
+                nodes: [
+                    {
+                        id: "ANN-1",
+                        classifier: {
+                            language: "-default-key-FileSystem",
+                            version: "2023.1",
+                            key: "Folder-key"
+                        },
+                        properties: [],
+                        containments: [
+                            {
+                                containment: {
+                                    language: "-default-key-FileSystem",
+                                    version: "2023.1",
+                                    key: "Folder-listing-key"
+                                },
+                                children: [reservedIds.body["ids"][0]]
+                            }
+                        ],
+                        references: [],
+                        annotations: [],
+                        parent: "ID-2"
+                    },
+                    {
+                        id: reservedIds.body["ids"][0],
+                        classifier: {
+                            language: "-default-key-FileSystem",
+                            version: "2023.1",
+                            key: "Folder-key"
+                        },
+                        properties: [],
+                        containments: [],
+                        references: [],
+                        annotations: [],
+                        parent: "ANN-1"
+                    }
+                ],
+                serializationFormatVersion: "2023.1"
+            })
+            console.log("Reserved id eror result " + JSON.stringify(testIncorrect.body))
+            equal(testIncorrect.status, HttpClientErrors.PreconditionFailed, "Failed reserved id")
         })
     })
 
