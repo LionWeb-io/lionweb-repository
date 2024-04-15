@@ -13,7 +13,7 @@ import {
     lionwebResponse,
     ResponseMessage,
     DeletePartitionsResponse,
-    StoreResponse, HttpClientErrors, HttpSuccessCodes, isResponseMessage, getStringParam, getIntegerParam
+    StoreResponse, HttpClientErrors, HttpSuccessCodes, getStringParam, getIntegerParam, isParameterError
 } from "@lionweb/repository-common"
 
 export interface BulkApi {
@@ -38,10 +38,10 @@ export class BulkApiImpl implements BulkApi {
     listPartitions = async (request: Request, response: Response): Promise<void> => {
         logger.requestLog(` * listPartitions request received, with body of ${request.headers["content-length"]} bytes`)
         const clientId = getStringParam(request, "clientId")
-        if (isResponseMessage(clientId)) {
+        if (isParameterError(clientId)) {
             lionwebResponse<StoreResponse>(response, HttpClientErrors.PreconditionFailed, {
                 success: false,
-                messages: [clientId]
+                messages: [clientId.error]
             })
         } else {
             const result = await this.ctx.bulkApiWorker.bulkPartitions(clientId)
@@ -53,10 +53,10 @@ export class BulkApiImpl implements BulkApi {
         logger.requestLog(` * createPartitions request received, with body of ${request.headers["content-length"]} bytes`)
         const clientId = getStringParam(request, "clientId")
         const chunk: LionWebJsonChunk = request.body
-        if (isResponseMessage(clientId)) {
+        if (isParameterError(clientId)) {
             lionwebResponse<StoreResponse>(response, HttpClientErrors.PreconditionFailed, {
                 success: false,
-                messages: [clientId]
+                messages: [clientId.error]
             })
         } else {
             const validator = new LionWebValidator(chunk, getLanguageRegistry())
@@ -110,11 +110,11 @@ export class BulkApiImpl implements BulkApi {
         logger.requestLog(` * deletePartitions request received, with body of ${request.headers["content-length"]} bytes`)
         const clientId = getStringParam(request, "clientId")
         const idList = request.body
-        if (isResponseMessage(clientId)) {
+        if (isParameterError(clientId)) {
             logger.requestLog("STORE CLIENT ID ERROR: clientId incorrect: " + JSON.stringify(clientId))
             lionwebResponse<StoreResponse>(response, HttpClientErrors.PreconditionFailed, {
                 success: false,
-                messages: [clientId]
+                messages: [clientId.error]
             })
         } else {
             const x = await this.ctx.bulkApiWorker.deletePartitions(clientId, idList)
@@ -140,11 +140,11 @@ export class BulkApiImpl implements BulkApi {
                 success: false,
                 messages: validator.validationResult.issues.map(issue => ({ kind: issue.issueType, message: issue.errorMsg() }))
             })
-        } else if (isResponseMessage(clientId)) {
+        } else if (isParameterError(clientId)) {
             logger.requestLog("STORE CLIENT ID ERROR: clientId incorrect: " + JSON.stringify(clientId))
             lionwebResponse<StoreResponse>(response, HttpClientErrors.PreconditionFailed, {
                 success: false,
-                messages: [clientId]
+                messages: [clientId.error]
             })
         } else {
             const result = await this.ctx.bulkApiWorker.bulkStore(clientId, chunk)
@@ -164,15 +164,15 @@ export class BulkApiImpl implements BulkApi {
         const depthLimit = getIntegerParam(request, "depthLimit", Number.MAX_SAFE_INTEGER)
         const idList = request.body.ids
         logger.requestLog("Api.getNodes: " + JSON.stringify(request.body) + " depth " + depthLimit + " clientId: " + clientId)
-        if (isResponseMessage(depthLimit)) {
+        if (isParameterError(depthLimit)) {
             lionwebResponse(response, HttpClientErrors.PreconditionFailed, {
                 success: false,
-                messages: [depthLimit]
+                messages: [depthLimit.error]
             })
-        } else if (isResponseMessage(clientId)) {
+        } else if (isParameterError(clientId)) {
             lionwebResponse(response, HttpClientErrors.PreconditionFailed, {
                 success: false,
-                messages: [clientId]
+                messages: [clientId.error]
             })
         } else if (!Array.isArray(idList)) {
             lionwebResponse(response, HttpClientErrors.PreconditionFailed, {
@@ -194,15 +194,15 @@ export class BulkApiImpl implements BulkApi {
         logger.requestLog(` * ids request received, with body of ${request.headers["content-length"]} bytes`)
         const clientId = getStringParam(request, "clientId")
         const count = getIntegerParam(request, "count", Number.MAX_SAFE_INTEGER)
-        if (isResponseMessage(count)) {
+        if (isParameterError(count)) {
             lionwebResponse(response, HttpClientErrors.PreconditionFailed, {
                 success: false,
-                messages: [count]
+                messages: [count.error]
             })
-        } else if (isResponseMessage(clientId)) {
+        } else if (isParameterError(clientId)) {
             lionwebResponse(response, HttpClientErrors.PreconditionFailed, {
                 success: false,
-                messages: [clientId]
+                messages: [clientId.error]
             })
         } else {
             const result = await this.ctx.bulkApiWorker.ids(clientId, count)

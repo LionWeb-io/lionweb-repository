@@ -2,7 +2,7 @@ import { HttpServerErrors } from "./httpcodes.js"
 import { collectUsedLanguages } from "./UsedLanguages.js"
 import { LionWebJsonChunk, LionWebJsonNode } from "@lionweb/validation"
 import { Request, Response } from "express"
-import { lionwebResponse, ResponseMessage } from "./LionwebResponse.js"
+import { isResponseMessage, lionwebResponse, ResponseMessage } from "./LionwebResponse.js"
 import { v4 as uuidv4 } from "uuid"
 
 export function toFirstUpper(text: string): string {
@@ -10,20 +10,43 @@ export function toFirstUpper(text: string): string {
 }
 
 /**
+ * Type returned when the requested parameter is not found or has incorrect type.
+ */
+export type ParameterError = {
+    success: boolean
+    error: ResponseMessage
+}
+
+/**
+ * Checks whether the _object_ is a ParameterError
+ * @param object
+ */
+export function isParameterError(object: unknown): object is ParameterError {
+    return object["success"] !== undefined &&
+        typeof object["success"] === "boolean" &&
+        object["message"] !== undefined &&
+        isResponseMessage(object["message"])
+}
+
+
+/**
  * Get the query parameter named _paramName_ as a string value
  * @param request   The request object containing the query
  * @param paramName The name of the parameter.
  * @returns The value of the query parameter if this is avalable and of type string,
- * Otherwise a ResponseMessage containing an error.
+ * Otherwise a ParameterError containing an error.
  */
-export function getStringParam(request: Request, paramName: string): string | ResponseMessage {
+export function getStringParam(request: Request, paramName: string): string | ParameterError {
     const result = request.query[paramName]
     if (typeof result === "string") {
         return result as string
     } else {
         return {
-            kind: `${toFirstUpper(paramName)}Incorrect`,
-            message: `Parameter ${paramName} must be a string`
+            success: false,
+            error: {
+                kind: `${toFirstUpper(paramName)}Incorrect`,
+                message: `Parameter ${paramName} must be a string`
+            }
         }
     }
 }
@@ -35,16 +58,19 @@ export function getStringParam(request: Request, paramName: string): string | Re
  * @param defaultValue The default value in case the parameter is missing.
  * @returns The value of the query parameter if this is avalable and represents an integer,
  * the _defaultValue_ if the parameters is missing, and
- * otherwise a ResponseMessage containing an error.
+ * otherwise a ParameterError containing an error.
  */
-export function getIntegerParam(request: Request, paramName: string, defaultValue: number): number | ResponseMessage {
+export function getIntegerParam(request: Request, paramName: string, defaultValue: number): number | ParameterError {
     const result = request.query[paramName]
     if (typeof result === "string") {
         const value = Number.parseInt(result)
         if (isNaN(value)) {
             return {
-                kind: `${toFirstUpper(paramName)}Incorrect`,
-                message: `Parameter ${paramName} must be an integer, but it is ${result}`
+                success: false,
+                error: {
+                    kind: `${toFirstUpper(paramName)}Incorrect`,
+                    message: `Parameter ${paramName} must be an integer, but it is ${result}`
+                }
             }
         } else {
             return value

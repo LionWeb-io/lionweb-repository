@@ -397,6 +397,4 @@ export class QueryMaker {
 
         return ""
     }
-
-    public async deleteNodesFromIdList(idList: string[]){ return idList }
 }

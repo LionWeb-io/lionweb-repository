@@ -4,8 +4,7 @@ import {
     EMPTY_SUCCES_RESPONSE,
     getIntegerParam,
     HttpClientErrors,
-    HttpSuccessCodes,
-    isResponseMessage,
+    HttpSuccessCodes, isParameterError,
     lionwebResponse,
     logger
 } from "@lionweb/repository-common"
@@ -25,10 +24,10 @@ export class AdditionalApiImpl implements AdditionalApi {
     getNodeTree = async (request: Request, response: Response): Promise<void> => {
         const idList = request.body.ids
         const depthLimit = getIntegerParam(request, "depthLimit", Number.MAX_SAFE_INTEGER)
-        if (isResponseMessage(depthLimit)) {
+        if (isParameterError(depthLimit)) {
             lionwebResponse(response, HttpClientErrors.PreconditionFailed, {
                 success: false,
-                messages: [depthLimit]
+                messages: [depthLimit.error]
             })
         } else {
             logger.dbLog("API.getNodeTree is " + idList)

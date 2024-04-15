@@ -25,6 +25,10 @@ export type ResponseMessage = {
     data?  : Record<string, string>
 }
 
+/**
+ * Checks whether the _object_ is a ResponseMessage
+ * @param object
+ */
 export function isResponseMessage(object: unknown): object is ResponseMessage {
     return object["kind"] !== undefined &&
         typeof object["kind"] === "string"
