@@ -8,7 +8,9 @@ export interface LanguageNodes {
 export interface ClassifierNodes {
     language: string,
     classifier: string,
-    ids: [string]
+    ids?: [string],
+    tooMany: boolean,
+    size: number
 }
 
 /**
@@ -30,11 +32,23 @@ export class InspectionApiWorker {
 
     async nodesByClassifier(sql: string) {
         return (await this.context.dbConnection.query(sql) as [object]).map(el => {
-            return {
-                "language": el["classifier_language"],
-                "classifier": el["classifier_key"],
-                "ids": el["ids"].split(",")
-            } as ClassifierNodes
+            const ids = el["ids"].split(",");
+            if (ids.length> MAX_NUMBER_OF_IDS) {
+                return {
+                    "language": el["classifier_language"],
+                    "classifier": el["classifier_key"],
+                    "tooMany":true,
+                    "size": ids.length
+                } as ClassifierNodes
+            } else {
+                return {
+                    "language": el["classifier_language"],
+                    "classifier": el["classifier_key"],
+                    "ids": el["ids"].split(","),
+                    "tooMany":false,
+                    "size": ids.length
+                } as ClassifierNodes
+            }
         })
     }
 }
@@ -42,3 +56,5 @@ export class InspectionApiWorker {
 export function createInspectionApiWorker(context: InspectionContext) {
     return new InspectionApiWorker(context);
 }
+
+const MAX_NUMBER_OF_IDS = 5000
