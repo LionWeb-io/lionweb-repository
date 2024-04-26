@@ -90,9 +90,9 @@ export function runWithTry(func: (request: Request, response: Response) => void)
         try {
             await func(request, response)
         } catch (e) {
-            console.log(e.stack);
             const error = asError(e)
             console.log(`Exception while serving request for ${request.url}: ${error.message}`)
+            console.log(e.stack);
             lionwebResponse(response, HttpServerErrors.InternalServerError, {
                 success: false,
                 messages: [{ kind: error.name, message: `Exception while serving request for ${request.url}: ${error.message}` }]
