@@ -4,8 +4,7 @@ const MAX_NUMBER_OF_IDS = 5000
 
 export interface LanguageNodes {
     language: string,
-    ids?: [string],
-    tooMany: boolean,
+    ids: [string],
     size: number
 }
 
@@ -16,8 +15,7 @@ export interface LanguageNodes {
 export interface ClassifierNodes {
     language: string,
     classifier: string,
-    ids?: [string],
-    tooMany: boolean,
+    ids: [string],
     size: number
 }
 
@@ -32,42 +30,23 @@ export class InspectionApiWorker {
     async nodesByLanguage(sql: string) {
         return (await this.context.dbConnection.query(sql) as [object]).map(el => {
             const ids = el["ids"].split(",");
-            if (ids.length> MAX_NUMBER_OF_IDS) {
-                return {
-                    "language": el["classifier_language"],
-                    "tooMany":true,
-                    "size": ids.length
-                } as LanguageNodes
-            } else {
-                return {
-                    "language": el["classifier_language"],
-                    "ids": ids,
-                    "tooMany": false,
-                    "size": ids.length
-                } as LanguageNodes
-            }
+            return {
+                "language": el["classifier_language"],
+                "ids": ids,
+                "size": ids.length
+            } as LanguageNodes
         })
     }
 
     async nodesByClassifier(sql: string) {
         return (await this.context.dbConnection.query(sql) as [object]).map(el => {
             const ids = el["ids"].split(",");
-            if (ids.length> MAX_NUMBER_OF_IDS) {
-                return {
-                    "language": el["classifier_language"],
-                    "classifier": el["classifier_key"],
-                    "tooMany":true,
-                    "size": ids.length
-                } as ClassifierNodes
-            } else {
-                return {
-                    "language": el["classifier_language"],
-                    "classifier": el["classifier_key"],
-                    "ids": ids,
-                    "tooMany":false,
-                    "size": ids.length
-                } as ClassifierNodes
-            }
+            return {
+                "language": el["classifier_language"],
+                "classifier": el["classifier_key"],
+                "ids": ids,
+                "size": ids.length
+            } as ClassifierNodes
         })
     }
 }
