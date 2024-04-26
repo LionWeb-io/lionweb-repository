@@ -1,10 +1,18 @@
 import { InspectionContext } from "../main.js";
 
+const MAX_NUMBER_OF_IDS = 5000
+
 export interface LanguageNodes {
     language: string,
-    ids: [string]
+    ids?: [string],
+    tooMany: boolean,
+    size: number
 }
 
+/**
+ * This should contain all the Node IDs for a certain classifier, provided they are not higher than
+ * MAX_NUMBER_OF_IDS. If that is the case we do not set the IDs and set the flag tooMany to true.
+ */
 export interface ClassifierNodes {
     language: string,
     classifier: string,
@@ -23,10 +31,21 @@ export class InspectionApiWorker {
 
     async nodesByLanguage(sql: string) {
         return (await this.context.dbConnection.query(sql) as [object]).map(el => {
-            return {
-                "language": el["classifier_language"],
-                "ids": el["ids"].split(",")
-            } as LanguageNodes
+            const ids = el["ids"].split(",");
+            if (ids.length> MAX_NUMBER_OF_IDS) {
+                return {
+                    "language": el["classifier_language"],
+                    "tooMany":true,
+                    "size": ids.length
+                } as LanguageNodes
+            } else {
+                return {
+                    "language": el["classifier_language"],
+                    "ids": ids,
+                    "tooMany": false,
+                    "size": ids.length
+                } as LanguageNodes
+            }
         })
     }
 
@@ -44,7 +63,7 @@ export class InspectionApiWorker {
                 return {
                     "language": el["classifier_language"],
                     "classifier": el["classifier_key"],
-                    "ids": el["ids"].split(","),
+                    "ids": ids,
                     "tooMany":false,
                     "size": ids.length
                 } as ClassifierNodes
@@ -56,5 +75,3 @@ export class InspectionApiWorker {
 export function createInspectionApiWorker(context: InspectionContext) {
     return new InspectionApiWorker(context);
 }
-
-const MAX_NUMBER_OF_IDS = 5000
