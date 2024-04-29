@@ -20,7 +20,8 @@ Environment variables can be used to configure the project:
 ## Node application configuration
 
 * **NODE_PORT** (default `3005`): Port at which the lionweb repository can be reached
-* **BODY_LIMIT** (default `50mb`): Maximum size of the body requests accepted by the lionweb repository
+* **BODY_LIMIT** (default `50mb`): Maximum size of the body requests accepted by the lionweb repository. It should not 
+  be larger than 500 mb because of Node's limits.
 
 ## Other configuration parameters
 

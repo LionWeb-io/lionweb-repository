@@ -27,9 +27,21 @@ app.use(
     }),
 )
 app.use(bodyParser.urlencoded({ extended: false }))
+verifyBodyLimit()
 app.use(bodyParser.json({limit: process.env.BODY_LIMIT || '50mb'}))
 
 const expectedToken = process.env.EXPECTED_TOKEN
+
+function verifyBodyLimit() {
+    const bodyLimit = process.env.BODY_LIMIT
+    if (bodyLimit != null && bodyLimit.toLowerCase().endsWith("mb")) {
+        const mbLimit = parseInt(bodyLimit.substring(0, bodyLimit.length - "mb".length))
+        if (mbLimit > 500) {
+            throw Error("A body limit over 500 mb should not be specified, as we risk facing issues in the maximum " +
+                "size od data that Node.JS can handle")
+        }
+    }
+}
 
 function verifyToken(request: Request, response: Response, next: NextFunction) {
     if (expectedToken != null) {
