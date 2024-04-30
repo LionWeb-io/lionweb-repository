@@ -4,6 +4,14 @@ import { LionWebJsonChunk, LionWebJsonNode } from "@lionweb/validation"
 import { Request, Response } from "express"
 import { isResponseMessage, lionwebResponse, ResponseMessage } from "./LionwebResponse.js"
 import { v4 as uuidv4 } from "uuid"
+import Chain from 'stream-chain';
+import Disassembler from 'stream-json/Disassembler.js';
+import Stringer from 'stream-json/Stringer.js';
+import Replace from 'stream-json/filters/Replace.js';
+//import {parser} from "stream-json";
+import Stream, {Readable} from "stream";
+// import {stringer} from "stream-json/Stringer.js";
+// import Asm from "stream-json/Assembler.js";
 
 export function toFirstUpper(text: string): string {
     return text[0].toUpperCase().concat(text.substring(1))
@@ -138,6 +146,82 @@ export function nodesToChunk(nodes: LionWebJsonNode[]): LionWebJsonChunk {
         nodes: nodes,
     }
 }
+export async function nodesToChunkX(nodes: LionWebJsonNode[]): Promise<LionWebJsonChunk> {
+    const source = new Chain([
+        // new ReadString(JSON.stringify({
+        //     serializationFormatVersion: "2023.1",
+        //     languages: [
+        //         {
+        //             "key": "abc",
+        //             "version": "1"
+        //         }
+        //     ],
+        //     nodes: ["x"],
+        // })),
+        // parser(),
+        new Disassembler(),
+        new Replace({
+            filter: /^nodes\./,
+            once: true,
+            allowEmptyReplacement: true,
+            replacement: () => [MARKER]
+        })
+    ]);
+    const template = new Stream.Readable({objectMode: true})
+    template.pipe(source)
+
+    const replacement = new Chain([
+        new Disassembler(),
+    ]);
+    const nodeStream = Readable.from(nodes.flatMap((n) => {
+        const r: LionWebJsonNode[] = []
+        for (let i = 0; i < 600_000; i++) {
+            r.push(n)
+        }
+        return r
+    }))
+    nodeStream.pipe(replacement)
+
+    const output = new Stringer();
+
+    insert(source,replacement,output)
+
+    template.push( {
+        serializationFormatVersion: "2023.1",
+        languages: collectUsedLanguages(nodes),
+        nodes: ["x"],
+    })
+    template.push(null)
+
+    // const asm = Asm.connectTo(output);
+    // asm.on('done', asm => console.log(asm.current));
+    // @ts-ignore
+    return output;
+}
+
+const MARKER = {name: 'marker'};
+
+function insert(source, replacement, output) {
+    replacement.pause();
+
+    source.on('data', chunk => {
+        if (chunk === MARKER) {
+            source.pause();
+            replacement.resume();
+            return;
+        }
+        // console.log(chunk);
+        output.write(chunk);
+    });
+    source.on('end', () => output.end());
+
+    replacement.on('data', chunk => {
+        // console.log(chunk);
+        output.write(chunk);
+    });
+    replacement.on('end', () => source.resume());
+}
+
 
 export const EMPTY_CHUNK = nodesToChunk([])
 

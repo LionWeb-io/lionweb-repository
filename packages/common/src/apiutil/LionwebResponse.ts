@@ -1,5 +1,6 @@
 import { Response } from "express"
 import { LionWebJsonChunk } from "@lionweb/validation";
+import {Readable} from "stream";
 
 // "string" is needed as MessageKind can also be any of the ValidationIssue kinds.
 export type MessageKind = 
@@ -64,7 +65,16 @@ export interface IdsResponse extends LionwebResponse {
 
 export function lionwebResponse<T extends LionwebResponse>(response: Response, status: number, body: T): void {
     response.status(status)
-    response.send(body)
+    // @ts-ignore
+    if (body.chunk instanceof Readable) {
+        console.log("readableStream");
+        response.type("application/json");
+        // @ts-ignore
+        (body.chunk as Readable).pipe(response)
+    } else {
+        console.log("no stream")
+        response.send(body)
+    }
 }
 
 export const EMPTY_SUCCES_RESPONSE: LionwebResponse = {

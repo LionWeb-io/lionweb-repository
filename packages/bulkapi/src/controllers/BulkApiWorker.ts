@@ -3,12 +3,15 @@ import {
     CreatePartitionsResponse,
     DeletePartitionsResponse, EMPTY_CHUNK,
     EMPTY_SUCCES_RESPONSE, HttpClientErrors, HttpSuccessCodes, IdsResponse,
-    logger, nodesToChunk,
+    logger, nodesToChunk, nodesToChunkX,
     PartitionsResponse, QueryReturnType,
     ResponseMessage, RetrieveResponse, StoreResponse
 } from "@lionweb/repository-common";
 import { LionWebJsonChunk } from "@lionweb/validation"
 import { BulkApiContext } from "../main.js"
+import Parser, {parser} from "stream-json/Parser";
+import chain from "stream-chain";
+
 
 /**
  * Implementations of the LionWebBulkApi methods.
@@ -113,7 +116,7 @@ export class BulkApiWorker {
             queryResult: {
                 success: true,
                 messages: [],
-                chunk: nodesToChunk(nodes)
+                chunk: await nodesToChunkX(nodes)
             }
         }
     }
