@@ -27,7 +27,12 @@ app.use(
     }),
 )
 app.use(bodyParser.urlencoded({ extended: false }))
-app.use(bodyParser.json({limit: process.env.BODY_LIMIT || '50mb'}))
+// app.use(bodyParser.json({limit: process.env.BODY_LIMIT || '50mb'}))
+// app.use(bodyParser.raw({
+//     // limit: process.env.BODY_LIMIT || '50mb',
+//     limit: process.env.BODY_LIMIT || '300mb',
+//     type: 'application/json'
+// }))
 
 const expectedToken = process.env.EXPECTED_TOKEN
 

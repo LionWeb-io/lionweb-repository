@@ -6,7 +6,7 @@ import {
     HttpClientErrors,
     HttpSuccessCodes, isParameterError,
     lionwebResponse,
-    logger
+    logger, parse
 } from "@lionweb/repository-common"
 
 export interface AdditionalApi {
@@ -22,7 +22,7 @@ export class AdditionalApiImpl implements AdditionalApi {
      * @param response
      */
     getNodeTree = async (request: Request, response: Response): Promise<void> => {
-        const idList = request.body.ids
+        const idList = ((await parse(request)) as any).ids
         const depthLimit = getIntegerParam(request, "depthLimit", Number.MAX_SAFE_INTEGER)
         if (isParameterError(depthLimit)) {
             lionwebResponse(response, HttpClientErrors.PreconditionFailed, {

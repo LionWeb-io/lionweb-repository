@@ -13,7 +13,7 @@ import {
     lionwebResponse,
     ResponseMessage,
     DeletePartitionsResponse,
-    StoreResponse, HttpClientErrors, HttpSuccessCodes, getStringParam, getIntegerParam, isParameterError
+    StoreResponse, HttpClientErrors, HttpSuccessCodes, getStringParam, getIntegerParam, isParameterError, parse
 } from "@lionweb/repository-common"
 
 export interface BulkApi {
@@ -52,7 +52,14 @@ export class BulkApiImpl implements BulkApi {
     createPartitions = async (request: Request, response: Response): Promise<void> => {
         logger.requestLog(` * createPartitions request received, with body of ${request.headers["content-length"]} bytes`)
         const clientId = getStringParam(request, "clientId")
-        const chunk: LionWebJsonChunk = request.body
+        // const chunk: LionWebJsonChunk = JSON.parse(request.body)
+        let x = ((await parse(request)) as any)
+        const chunk: LionWebJsonChunk =  x
+        // const chunk: LionWebJsonChunk = {
+        //     serializationFormatVersion: '2023.1',
+        //     languages: [],
+        //     nodes: await parse(request),
+        // }
         if (isParameterError(clientId)) {
             lionwebResponse<StoreResponse>(response, HttpClientErrors.PreconditionFailed, {
                 success: false,
@@ -109,7 +116,7 @@ export class BulkApiImpl implements BulkApi {
     deletePartitions = async (request: Request, response: Response): Promise<void> => {
         logger.requestLog(` * deletePartitions request received, with body of ${request.headers["content-length"]} bytes`)
         const clientId = getStringParam(request, "clientId")
-        const idList = request.body
+        const idList = ((await parse(request)) as any)
         if (isParameterError(clientId)) {
             logger.requestLog("STORE CLIENT ID ERROR: clientId incorrect: " + JSON.stringify(clientId))
             lionwebResponse<StoreResponse>(response, HttpClientErrors.PreconditionFailed, {
@@ -130,7 +137,7 @@ export class BulkApiImpl implements BulkApi {
     store = async (request: Request, response: Response): Promise<void> => {
         logger.requestLog(` * store request received, with body of ${request.headers["content-length"]} bytes`)
         const clientId = getStringParam(request, "clientId")
-        const chunk: LionWebJsonChunk = request.body
+        const chunk: LionWebJsonChunk = ((await parse(request)) as any)
         const validator = new LionWebValidator(chunk, getLanguageRegistry())
         validator.validateSyntax()
         validator.validateReferences()
@@ -162,8 +169,8 @@ export class BulkApiImpl implements BulkApi {
         logger.requestLog(` * retrieve request received, with body of ${request.headers["content-length"]} bytes`)
         const clientId = getStringParam(request, "clientId")
         const depthLimit = getIntegerParam(request, "depthLimit", Number.MAX_SAFE_INTEGER)
-        const idList = request.body.ids
-        logger.requestLog("Api.getNodes: " + JSON.stringify(request.body) + " depth " + depthLimit + " clientId: " + clientId)
+        const idList = ((await parse(request)) as any).ids
+        logger.requestLog("Api.getNodes: " + request.body + " depth " + depthLimit + " clientId: " + clientId)
         if (isParameterError(depthLimit)) {
             lionwebResponse(response, HttpClientErrors.PreconditionFailed, {
                 success: false,
@@ -212,3 +219,11 @@ export class BulkApiImpl implements BulkApi {
 
 }
 
+function streamToString (stream): Promise<string> {
+    const chunks = [];
+    return new Promise((resolve, reject) => {
+        stream.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
+        stream.on('error', (err) => reject(err));
+        stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+    })
+}

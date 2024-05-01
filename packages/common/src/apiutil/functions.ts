@@ -10,6 +10,11 @@ import Stringer from 'stream-json/Stringer.js';
 import Replace from 'stream-json/filters/Replace.js';
 //import {parser} from "stream-json";
 import Stream, {Readable} from "stream";
+import Parser from "stream-json/Parser.js";
+import Filter from "stream-json/filters/Filter.js";
+import Pick from "stream-json/filters/Pick.js";
+import Asm from "stream-json/Assembler.js";
+import {as} from "pg-promise";
 // import {stringer} from "stream-json/Stringer.js";
 // import Asm from "stream-json/Assembler.js";
 
@@ -175,7 +180,7 @@ export async function nodesToChunkX(nodes: LionWebJsonNode[]): Promise<LionWebJs
     ]);
     const nodeStream = Readable.from(nodes.flatMap((n) => {
         const r: LionWebJsonNode[] = []
-        for (let i = 0; i < 600_000; i++) {
+        for (let i = 0; i < 6/*00_000*/; i++) {
             r.push(n)
         }
         return r
@@ -222,6 +227,51 @@ function insert(source, replacement, output) {
     replacement.on('end', () => source.resume());
 }
 
+// export async function parse(source: Readable): Promise<LionWebJsonChunk> {
+export async function parse(source: Readable): Promise<object> {
+// export async function parse(source: Readable): Promise<LionWebJsonNode[]> {
+    // const result: LionWebJsonNode[] = []
+
+    const pipeline = new Chain([
+        source,
+        new Parser()
+    ])
+    // const version = new Filter({filter: 'serializationFormatVersion'})
+    // version.on('data', data => {
+    //         if (data.name === 'stringValue' && data.value !== '2023.1') {
+    //             console.log(`bad serializationFormatVersion: ${data.value}`)
+    //             pipeline.destroy()
+    //         }
+    //     }
+    // )
+    // const nodes = new Pick({filter: /^nodes\./})
+    //
+    // pipeline.on('data', data => data.name === 'keyValue' && console.log(`pipeline key: ${data.value}`));
+    // nodes.on('data', data => data.name === 'keyValue' && console.log(`nodes key: ${data.value}`));
+
+
+    // pipeline.pipe(version)
+    // pipeline.pipe(nodes)
+
+    // const asm = Asm.connectTo(nodes);
+    // asm.on('done', asm => {
+    //     console.log(`got: ${JSON.stringify(asm.current)}`)
+    //     result.push(asm.current)
+    // });
+
+
+    // source.pipe(pipeline)
+    // return result;
+
+    const asm = Asm.connectTo(pipeline);
+    return new Promise(r =>     asm.on('done', asm => {
+        console.log(`got: $ something{JSON.stringify(asm.current)}`)
+        r(asm.current)
+        // return asm.current
+    })
+)
+
+}
 
 export const EMPTY_CHUNK = nodesToChunk([])
 
