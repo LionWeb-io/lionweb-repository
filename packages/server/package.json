@@ -42,7 +42,7 @@
     "@lionweb/repository-additionalapi": "0.1.1",
     "@lionweb/repository-languages": "0.1.1",
     "@lionweb/repository-bulkapi": "0.1.1",
-    "@lionweb/validation": "0.6.2",
+    "@lionweb/validation": "0.6.3-beta.0",
     "@types/express": "4.17.21",
     "body-parser": "1.20.2",
     "cors": "2.8.5",
