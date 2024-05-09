@@ -17,8 +17,7 @@ class BufferHolder {
     private usedSize: number = 0
     getBuffer() {
         // We return only the part of the buffer actually filled with data
-        const res = this.buffer.subarray(0, this.usedSize)
-        return res
+        return this.buffer.subarray(0, this.usedSize)
     }
 
     write(string: string) {
@@ -59,11 +58,11 @@ class InspectionApiImpl implements InspectionApi {
             if (index != 0) {
                 bufferHolder.write(",")
             }
-            bufferHolder.write(`{"language"="${element.language}",`)
-            bufferHolder.write(`"classifier"="${element.classifier}",`)
-            bufferHolder.write(`"ids"=[`)
+            bufferHolder.write(`{"language":"${element.language}",`)
+            bufferHolder.write(`"classifier":"${element.classifier}",`)
+            bufferHolder.write(`"ids":[`)
             this.serializeInBufferIDsList(bufferHolder, element.ids, limit)
-            bufferHolder.write(`], "size"=${element.size}}\n`)
+            bufferHolder.write(`], "size":${element.size}}\n`)
         })
         bufferHolder.write("]")
         return bufferHolder.getBuffer()
@@ -76,10 +75,10 @@ class InspectionApiImpl implements InspectionApi {
             if (index != 0) {
                 bufferHolder.write(",")
             }
-            bufferHolder.write(`"language"="${element.language}","`)
-            bufferHolder.write(`"ids"=[`)
+            bufferHolder.write(`{"language":"${element.language}",`)
+            bufferHolder.write(`"ids":[`)
             this.serializeInBufferIDsList(bufferHolder, element.ids, limit)
-            bufferHolder.write(`"], size"=${element.size}"`)
+            bufferHolder.write(`], "size":${element.size}}`)
         })
         bufferHolder.write("]")
         return bufferHolder.getBuffer()
@@ -90,7 +89,7 @@ class InspectionApiImpl implements InspectionApi {
         const queryResult = await this.context.inspectionApiWorker.nodesByClassifier(sql)
         const limitStr = request.query.limit
         // TODO handle the case in which multiple query parameters are specified
-        let limit: number = limitStr === undefined ? -1 : parseInt(limitStr as string, 10)
+        const limit: number = limitStr === undefined ? -1 : parseInt(limitStr as string, 10)
         response.send(this.classifierNodesToBuffer(queryResult, limit))
     }
 
@@ -99,7 +98,7 @@ class InspectionApiImpl implements InspectionApi {
         const queryResult = await this.context.inspectionApiWorker.nodesByLanguage(sql)
         const limitStr = request.query.limit
         // TODO handle the case in which multiple query parameters are specified
-        let limit: number = limitStr === undefined ? -1 : parseInt(limitStr as string, 10)
+        const limit: number = limitStr === undefined ? -1 : parseInt(limitStr as string, 10)
         response.send(this.languageNodesToBuffer(queryResult, limit))
     }
 }
