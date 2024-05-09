@@ -1,4 +1,4 @@
-import { HttpSuccessCodes, QueryReturnType } from "@lionweb/repository-common";
+import { HttpSuccessCodes, logger, QueryReturnType } from "@lionweb/repository-common";
 import { DbAdminApiContext } from "../main.js";
 
 /**
@@ -11,7 +11,12 @@ export class DBAdminApiWorker {
 
     async init(sql: string): Promise<QueryReturnType<string>> {
         // const q = this.ctx.pgp.helpers.concat([sql])
-        const queryResult = await this.ctx.dbConnection.result(sql)//.replaceAll("\\n", "       "))
+        logger.requestLog("INIT")
+        logger.requestLog(sql)
+        logger.requestLog("INIT2")
+        logger.requestLog(sql.replaceAll("\n", " "))
+        logger.requestLog("INIT3")
+        const queryResult = await this.ctx.dbConnection.result(sql.replaceAll("\n", " HELLO JOS "))
         return { 
             status: HttpSuccessCodes.Ok,
             query: "",
