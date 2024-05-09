@@ -13,7 +13,7 @@ import {
     lionwebResponse,
     ResponseMessage,
     DeletePartitionsResponse,
-    StoreResponse, HttpClientErrors, HttpSuccessCodes, getStringParam, getIntegerParam, isParameterError
+    StoreResponse, HttpClientErrors, HttpSuccessCodes, getStringParam, getIntegerParam, isParameterError, nextRepoVersion, getRepoVersion
 } from "@lionweb/repository-common"
 
 export interface BulkApi {
@@ -50,6 +50,7 @@ export class BulkApiImpl implements BulkApi {
     }
 
     createPartitions = async (request: Request, response: Response): Promise<void> => {
+        nextRepoVersion()
         logger.requestLog(` * createPartitions request received, with body of ${request.headers["content-length"]} bytes`)
         const clientId = getStringParam(request, "clientId")
         const chunk: LionWebJsonChunk = request.body
@@ -107,6 +108,7 @@ export class BulkApiImpl implements BulkApi {
     }
 
     deletePartitions = async (request: Request, response: Response): Promise<void> => {
+        nextRepoVersion()
         logger.requestLog(` * deletePartitions request received, with body of ${request.headers["content-length"]} bytes`)
         const clientId = getStringParam(request, "clientId")
         const idList = request.body
@@ -128,7 +130,8 @@ export class BulkApiImpl implements BulkApi {
      * @param response `ok`  if everything is correct
      */
     store = async (request: Request, response: Response): Promise<void> => {
-        logger.requestLog(` * store request received, with body of ${request.headers["content-length"]} bytes`)
+        nextRepoVersion()
+        logger.requestLog(` * store request received, with body of ${request.headers["content-length"]} bytes, repo version ${getRepoVersion()}`)
         const clientId = getStringParam(request, "clientId")
         const chunk: LionWebJsonChunk = request.body
         const validator = new LionWebValidator(chunk, getLanguageRegistry())
@@ -148,6 +151,7 @@ export class BulkApiImpl implements BulkApi {
             })
         } else {
             const result = await this.ctx.bulkApiWorker.bulkStore(clientId, chunk)
+            result.queryResult.messages.push( {kind: "Query", message: result.query })
             lionwebResponse<StoreResponse>(response, result.status, result.queryResult)
         }
     }
@@ -186,7 +190,6 @@ export class BulkApiImpl implements BulkApi {
     }
 
     /**
-     * TODO Implement this properly.
      * @param request
      * @param response
      */
