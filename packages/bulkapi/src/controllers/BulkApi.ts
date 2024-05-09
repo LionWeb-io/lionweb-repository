@@ -190,6 +190,7 @@ export class BulkApiImpl implements BulkApi {
     }
 
     /**
+     * Return a list od id's that are guaranteed to be free and not to be used by any other client.
      * @param request
      * @param response
      */
