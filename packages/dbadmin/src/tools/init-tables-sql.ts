@@ -18,6 +18,7 @@ DROP TABLE IF EXISTS ${CONTAINMENTS_TABLE_HISTORY};
 DROP TABLE IF EXISTS ${PROPERTIES_TABLE_HISTORY};
 DROP TABLE IF EXISTS ${REFERENCES_TABLE_HISTORY};
 DROP TABLE IF EXISTS ${RESERVED_IDS_TABLE};
+DROP TABLE IF EXISTS REPO_VERSIONS;
 
 -- Drop indices
 -- DROP INDEX IF EXISTS ContainmentsNodesIndex;
@@ -96,6 +97,16 @@ CREATE TABLE IF NOT EXISTS ${RESERVED_IDS_TABLE} (
     PRIMARY KEY(node_id)
 );
 
+CREATE TABLE IF NOT EXISTS REPO_VERSIONS (
+    version    integer NOT NULL,
+    date       timestamp,
+    client_id  text,
+    PRIMARY KEY(version)
+);
+
+INSERT INTO REPO_VERSIONS 
+    VALUES (0, NOW(), 'repository_id');
+    
 -- TODO: Create indices to enable finding features for nodes quickly
 
 -- CREATE INDEX ContainmentsNodesIndex ON ${CONTAINMENTS_TABLE} (node_id)
@@ -111,7 +122,14 @@ SET repo.version = 0;
 CREATE OR REPLACE FUNCTION public.insertNode()
     RETURNS TRIGGER
     AS 
-$$DECLARE repo_version integer; BEGIN repo_version = current_setting('repo.version', true)::integer; INSERT INTO ${NODES_TABLE_HISTORY} VALUES ( repo_version, 99999, NEW.id, NEW.classifier_language, NEW.classifier_version, NEW.classifier_key, NEW.annotations, NEW.parent ); RETURN NEW; END; $$     
+$$
+DECLARE 
+    repo_version integer; 
+BEGIN 
+    repo_version = current_setting('repo.version', true)::integer; 
+    INSERT INTO ${NODES_TABLE_HISTORY} 
+    VALUES ( repo_version, 99999, NEW.id, NEW.classifier_language, NEW.classifier_version, NEW.classifier_key, NEW.annotations, NEW.parent ); RETURN NEW; END; 
+$$     
 LANGUAGE plpgsql;
 
 CREATE TRIGGER nodes_insertView
