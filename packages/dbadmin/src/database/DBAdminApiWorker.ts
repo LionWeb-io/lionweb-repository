@@ -11,7 +11,7 @@ export class DBAdminApiWorker {
 
     async init(sql: string): Promise<QueryReturnType<string>> {
         // const q = this.ctx.pgp.helpers.concat([sql])
-        const queryResult = await this.ctx.dbConnection.query(sql) //.replace("\\n", " "))
+        const queryResult = await this.ctx.dbConnection.query(sql.replace("\\n", " "))
         return { 
             status: HttpSuccessCodes.Ok,
             query: "",
