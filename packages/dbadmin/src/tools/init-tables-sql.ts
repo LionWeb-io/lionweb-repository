@@ -105,7 +105,24 @@ CREATE TABLE IF NOT EXISTS ${RESERVED_IDS_TABLE} (
 
 SET repo.version = 0;
 
+CREATE OR REPLACE FUNCTION public.insertNode()
+    RETURNS TRIGGER
+    AS 
+$$
+DECLARE
+   repo_version integer;
+BEGIN
+    repo_version = current_setting('repo.version', true)::integer;
+    INSERT INTO ${NODES_TABLE_HISTORY} VALUES ( repo_version, 99999, NEW.id, NEW.classifier_language, NEW.classifier_version, NEW.classifier_key, NEW.annotations, NEW.parent );
+    RETURN NEW;
+END;
+$$     
+LANGUAGE plpgsql;
 
+CREATE TRIGGER nodes_insertView
+INSTEAD OF INSERT ON ${NODES_TABLE} 
+    FOR EACH ROW 
+        EXECUTE FUNCTION public.insertNode();
 
 --------------------------------------------------------------------        
 -- On update node, just make new row and fill TO_VERSION of old row
