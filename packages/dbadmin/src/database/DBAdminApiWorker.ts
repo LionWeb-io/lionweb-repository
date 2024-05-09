@@ -14,9 +14,9 @@ export class DBAdminApiWorker {
         logger.requestLog("INIT")
         logger.requestLog(sql)
         logger.requestLog("INIT2")
-        logger.requestLog(sql.replaceAll("\n", " "))
+        logger.requestLog(sql.replaceAll("\n", " HELLO JOS "))
         logger.requestLog("INIT3")
-        const queryResult = await this.ctx.dbConnection.result(sql.replaceAll("\n", " HELLO JOS "))
+        const queryResult = await this.ctx.dbConnection.result(sql.replaceAll("\n", "    "))
         return { 
             status: HttpSuccessCodes.Ok,
             query: "",
