@@ -1,8 +1,5 @@
 name: Build and test lioweb-repository
-on: 
-  push:
-    branches:
-      - '*'
+on: [push, pull_request]
 
 jobs:
   # Label of the container job
