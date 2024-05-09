@@ -1,14 +1,11 @@
 import {
-    CONTAINMENTS_TABLE,
-    NODES_TABLE,
     logger,
     PartitionsResponse,
     CreatePartitionsResponse,
     StoreResponse,
     asError,
-    TableHelpers,
     QueryReturnType, nodesToChunk, HttpSuccessCodes, EMPTY_SUCCES_RESPONSE, HttpClientErrors,
-    ReservedIdRecord, LionwebResponse
+    ReservedIdRecord, LionwebResponse, getRepoVersion
 } from "@lionweb/repository-common"
 import {
     LionWebJsonChunk,
@@ -17,11 +14,11 @@ import {
     NodeUtils,
     PropertyValueChanged,
     ReferenceChange,
-    TargetOrderChanged,
     AnnotationAdded, AnnotationChange, AnnotationRemoved, ChildOrderChanged,
-    NodeAdded, ChildAdded, ChildRemoved, LionWebJsonDiff, ParentChanged, AnnotationOrderChanged
+    NodeAdded, ChildAdded, ChildRemoved, LionWebJsonDiff, ParentChanged, AnnotationOrderChanged, JsonContext, NodeRemoved, createLwNode
 } from "@lionweb/validation"
 import { BulkApiContext } from "../main.js"
+import { DbChanges } from "./DbChanges.js";
 import { makeQueryNodeTreeForIdList, QueryNodeForIdList } from "./QueryNode.js"
 
 export type NodeTreeResultType = {
@@ -55,17 +52,10 @@ export class LionWebQueries {
         } catch (e) {
             const error = asError(e)
             console.log("Exception catched in getNodeTree(): " + error.message)
+            logger.requestLog("======================================================================")
+            logger.requestLog(query)
             throw error
         }
-    }
-
-    /**
-     * TODO: Not tested yet
-     */
-    getAllDbNodes = async (): Promise<LionWebJsonNode[]> => {
-        logger.dbLog("LionWebQueries.getAllDbNodes")
-        const queryResult = (await this.context.dbConnection.query(`SELECT id FROM ${NODES_TABLE}`)) as string[]
-        return this.getNodesFromIdList(queryResult)
     }
 
     getNodesFromIdList = async (nodeIdList: string[]): Promise<LionWebJsonNode[]> => {
@@ -75,6 +65,7 @@ export class LionWebQueries {
         if (nodeIdList.length == 0) {
             return []
         }
+        // logger.requestLog("getNodesFromIdList " + QueryNodeForIdList(nodeIdList))
         return await this.context.dbConnection.query(QueryNodeForIdList(nodeIdList))
     }
 
@@ -98,9 +89,11 @@ export class LionWebQueries {
         }
     }
 
-    createPartitions = async (partitions: LionWebJsonChunk): Promise<QueryReturnType<CreatePartitionsResponse>> => {
+    createPartitions = async (clientId: string, partitions: LionWebJsonChunk): Promise<QueryReturnType<CreatePartitionsResponse>> => {
         logger.dbLog("LionWebQueries.createPartitions")
-        const query = this.context.queryMaker.dbInsertNodeArray(partitions.nodes)
+        let query = `SET repo.version = ${getRepoVersion()};\n`
+        query += this.context.queryMaker.dbInsertNodeArray(partitions.nodes)
+
         // eslint-disable-next-line
         const result = await this.context.dbConnection.query(query)
         return {
@@ -126,12 +119,14 @@ export class LionWebQueries {
                 }
             }
         }
-        const toBeStoredChunkWrapper = new LionWebJsonChunkWrapper(toBeStoredChunk)
+        // const toBeStoredChunkWrapper = new LionWebJsonChunkWrapper(toBeStoredChunk)
         const tbsNodeIds = toBeStoredChunk.nodes.map(node => node.id)
         const tbsContainedChildIds = this.getContainedIds(toBeStoredChunk.nodes)
         const tbsNodeAndChildIds = [...tbsNodeIds, ...tbsContainedChildIds.filter(cid => !tbsNodeIds.includes(cid))]
+        logger.requestLog("tbsNodeAndChildIds " + tbsNodeAndChildIds)
         // Retrieve nodes for all id's that exist
         const databaseChunk = await this.context.bulkApiWorker.bulkRetrieve(clientId, tbsNodeAndChildIds, 0)
+        logger.requestLog("Bulk retrieve done " )
         const databaseChunkWrapper = new LionWebJsonChunkWrapper(databaseChunk.queryResult.chunk)
         logger.dbLog("DBChunk " + JSON.stringify(databaseChunkWrapper.jsonChunk))
         
@@ -151,20 +146,19 @@ export class LionWebQueries {
 
         const diff = new LionWebJsonDiff()
         diff.diffLwChunk(databaseChunkWrapper.jsonChunk, toBeStoredChunk)
-        logger.dbLog("STORE.CHANGES ")
-        logger.dbLog(diff.diffResult.changes.map(ch => "    " + ch.changeMsg()))
+        logger.requestLog("STORE.CHANGES ")
+        logger.requestLog(diff.diffResult.changes.map(ch => "    " + ch.changeMsg()))
 
         const toBeStoredNewNodes = diff.diffResult.changes.filter((ch): ch is NodeAdded => ch.changeType === "NodeAdded")
         const addedChildren: ChildAdded[] = diff.diffResult.changes.filter((ch): ch is ChildAdded => ch instanceof ChildAdded)
         const removedChildren = diff.diffResult.changes.filter((ch): ch is ChildRemoved => ch.changeType === "ChildRemoved")
+        const childrenOrderChanged = diff.diffResult.changes.filter((ch): ch is ChildOrderChanged => ch instanceof ChildOrderChanged)
         const parentChanged = diff.diffResult.changes.filter((ch): ch is ParentChanged => ch.changeType === "ParentChanged")
         const propertyChanged = diff.diffResult.changes.filter((ch): ch is PropertyValueChanged => ch.changeType === "PropertyValueChanged")
         const targetsChanged = diff.diffResult.changes.filter((ch): ch is ReferenceChange => ch instanceof ReferenceChange)
         const addedAnnotations = diff.diffResult.changes.filter((ch): ch is AnnotationAdded => ch instanceof AnnotationAdded)
         const removedAnnotations = diff.diffResult.changes.filter((ch): ch is AnnotationRemoved => ch instanceof AnnotationRemoved)
-        const childrenOrderChanged = diff.diffResult.changes.filter((ch): ch is ChildOrderChanged => ch instanceof ChildOrderChanged)
         const annotationOrderChanged = diff.diffResult.changes.filter((ch): ch is AnnotationOrderChanged => ch instanceof AnnotationOrderChanged)
-        const targetOrderChanged = diff.diffResult.changes.filter((ch): ch is TargetOrderChanged => ch instanceof TargetOrderChanged)
 
         // Only children that already exist in the database
         const databaseChildrenOfNewNodes = this.getContainedIds(toBeStoredNewNodes.map(ch => ch.node))
@@ -190,7 +184,7 @@ export class LionWebQueries {
         // Now get all children of the orphans
         const orphansContainedChildren = await this.getNodeTree(
             removedAndNotAddedChildren.map(rm => rm.childId),
-            999
+            99999
         )
         const orphansContainedChildrenOrphans = orphansContainedChildren.queryResult.filter(contained => {
             return (
@@ -204,8 +198,11 @@ export class LionWebQueries {
             return removedChildren.find(removed => removed.childId === added.childId) === undefined
         })
         // Child node itself needs updating its parent
+        logger.requestLog("ADDED CHILDREN " + addedChildren.map(ch => ch.childId))
+        // Existing nodes that have moved parent without the node being in the TBS chunk.
         const addedAndNotParentChangedChildren = addedChildren.filter(added => {
-            return parentChanged.find(parentChange => parentChange.node.id === added.childId) === undefined
+            return parentChanged.find(parentChange => parentChange.node.id === added.childId) === undefined &&
+                toBeStoredNewNodes.find(nodeAdded => nodeAdded.node.id === added.childId) === undefined
         })
 
         // implicit child remove, find all parents
@@ -220,20 +217,30 @@ export class LionWebQueries {
             0
         )
         // Now all changes are turned into queries.
-        let queries = ""
-        queries += this.context.queryMaker.upsertQueriesForPropertyChanges(propertyChanged)
-        queries += this.context.queryMaker.upsertAddedChildrenQuery(addedChildren, toBeStoredChunkWrapper)
-        queries += this.context.queryMaker.updateQueriesForRemovedChildren(removedChildren, toBeStoredChunkWrapper)
-        queries += this.context.queryMaker.updateQueriesForChildOrder(childrenOrderChanged)
-        queries += this.makeQueriesForParentChanged(parentChanged)
-        queries += this.updateQueriesForImplicitlyRemovedChildNodes(implicitlyRemovedChildNodes.queryResult.chunk, parentsOfImplicitlyRemovedChildNodes.queryResult.chunk)
-        queries += this.makeQueriesForImplicitParentChanged(addedAndNotParentChangedChildren)
-        // queries += this.chro(removedAndNotAddedChildren.map(ra => ra.childId))
-        queries += this.context.queryMaker.makeQueriesForOrphans(orphansContainedChildrenOrphans.map(oc => oc.id))
-        queries += this.context.queryMaker.makeQueriesForOrphans(removedAndNotAddedAnnotations.map(oc => oc.annotationId))
-        queries += this.context.queryMaker.upsertQueriesForReferenceChanges(targetsChanged)
-        queries += this.context.queryMaker.updateReferenceTargetOrder(targetOrderChanged)
-        queries += this.makeQueriesForAnnotationsChanged([...addedAnnotations, ...removedAnnotations, ...annotationOrderChanged])
+        const dbCommands = new DbChanges(this.context)
+        let queries = `SET repo.version = ${getRepoVersion()};`
+        dbCommands.addChanges(propertyChanged)
+        dbCommands.addChanges([...addedChildren, ...removedChildren, ...childrenOrderChanged])
+        dbCommands.addChanges(parentChanged)
+        this.makeQueriesForImplicitParentChanged(dbCommands, addedAndNotParentChangedChildren, databaseChunkWrapper)
+        dbCommands.addChanges(targetsChanged)
+        dbCommands.addChanges([...addedAnnotations, ...removedAnnotations, ...annotationOrderChanged])
+        // Now deletions
+        dbCommands.addChanges(orphansContainedChildrenOrphans.map(oc => {
+            // Create dummy node to avoid lookup, we only need the _id_ of the node
+            const dummyNode = createLwNode()
+            dummyNode.id = oc.id
+            return new NodeRemoved(new JsonContext(null, ["implicit_orphan"]), dummyNode)
+        }))
+        dbCommands.addChanges(removedAndNotAddedAnnotations.map(oc => {
+            // Create dummy node to avoid lookup, we only need the _id_ of the node
+            const dummyNode2 = createLwNode()
+            dummyNode2.id = oc.annotationId
+            return new NodeRemoved(new JsonContext(null, ["implicit_orphan"]), dummyNode2)
+        }))
+        this.dbCommandsForImplicitlyRemovedChildNodes(dbCommands, implicitlyRemovedChildNodes.queryResult.chunk, parentsOfImplicitlyRemovedChildNodes.queryResult.chunk)
+        queries += dbCommands.createPostgresQuery()
+
         // Check whether new node ids are not reserved for another client
         const reservedIds = await this.reservedNodeIdsByOtherClient(clientId, toBeStoredNewNodes.map(ch => ch.node.id))
         if (reservedIds !== undefined && reservedIds.length > 0) {
@@ -254,10 +261,13 @@ export class LionWebQueries {
         queries += this.context.queryMaker.dbInsertNodeArray(toBeStoredNewNodes.map(ch => (ch as NodeAdded).node))
         // And run them on the database
         if (queries !== "") {
-            logger.dbLog("QUERIES " + queries)
+            logger.requestLog("QUERIES " + queries)
             await this.context.dbConnection.query(queries)
         }
-        return { status: HttpSuccessCodes.Ok, query: queries, queryResult: EMPTY_SUCCES_RESPONSE
+        return { status: HttpSuccessCodes.Ok, query: queries, queryResult: { 
+                success: true,
+                messages: [ { kind: "Query", message: queries }],    
+            } 
         }
     }
 
@@ -292,57 +302,62 @@ export class LionWebQueries {
         }
     }
 
-    private updateQueriesForImplicitlyRemovedChildNodes(
+    private dbCommandsForImplicitlyRemovedChildNodes(
+        dbCommands: DbChanges,
         implicitlyRemovedChildNodes: LionWebJsonChunk,
         parentsOfImplicitlyRemovedChildNodes: LionWebJsonChunk
     ) {
-        let queries = ""
         implicitlyRemovedChildNodes.nodes.forEach(child => {
             const previousParentNode = parentsOfImplicitlyRemovedChildNodes.nodes.find(p => (p.id = child.parent))
             const changedContainment = NodeUtils.findContainmentContainingChild(previousParentNode.containments, child.id)
             const index = changedContainment.children.indexOf(child.id)
             const newChildren = [...changedContainment.children]
             newChildren.splice(index, 1)
-            const setChildren = this.context.pgp.helpers.sets({ children: newChildren }, TableHelpers.CONTAINMENTS_COLUMN_SET)
-            queries += `-- Implicitly removed children
-                UPDATE ${CONTAINMENTS_TABLE} c 
-                    SET ${setChildren}
-                WHERE
-                    c.node_id = '${previousParentNode.id}' AND
-                    c.containment->>'key' = '${changedContainment.containment.key}' AND 
-                    c.containment->>'version' = '${changedContainment.containment.version}'  AND
-                    c.containment->>'language' = '${changedContainment.containment.language}' ;
-                `
+            // Make a deep copy of the old parent node so we can change the children in there and create a Change object,
+            const parentCopy: LionWebJsonNode = structuredClone(previousParentNode)
+            // replace the containment with the removed child with a copy that does not have the child
+            const changedContainmentCopy = NodeUtils.findContainmentContainingChild(parentCopy.containments, child.id)
+            const indexCopy = changedContainmentCopy.children.indexOf(child.id)
+            changedContainmentCopy.children.splice(indexCopy, 1)
+            const change = new ChildRemoved(new JsonContext(null, ["implictlyRemovedChild"]), parentCopy, changedContainmentCopy.containment, changedContainmentCopy, child.id)
+            dbCommands.addChanges([change])
         })
-        return queries
     }
 
-    private makeQueriesForParentChanged(parentChanged: ParentChanged[]) {
-        let queries = "-- makeQueriesForParentChanged"
-        parentChanged.forEach(parentChanged => {
-            queries += this.context.queryMaker.updateParentQuery(parentChanged.node.id, parentChanged.afterParentId)
-        })
-        return queries
-    }
+    // private makeQueriesForParentChanged(parentChanged: ParentChanged[]) {
+    //     const dbCommands = new DbCommands(this.context)
+    //     dbCommands.addChanges(parentChanged)
+    //     return dbCommands.createPostgresQuery()
+    // }
 
-    private makeQueriesForImplicitParentChanged(addedAndNotParentChangedChildren: ChildAdded[]) {
-        let queries = "-- makeQueriesForImplicitParentChanged\n"
+    /**
+     * Creates a set of ParentChanged diff objects, which are converted by DatabaseChanges to SQL.
+     * @param addedAndNotParentChangedChildren
+     * @param databaseChunkWrapper
+     * @private
+     */
+    private makeQueriesForImplicitParentChanged(dbCommands: DbChanges, addedAndNotParentChangedChildren: ChildAdded[], databaseChunkWrapper : LionWebJsonChunkWrapper) {
+        const changes: ParentChanged[] = []
         addedAndNotParentChangedChildren.forEach(added => {
-            queries += this.context.queryMaker.updateParentQuery(added.childId, added.parentNode.id)
+            const node = databaseChunkWrapper.getNode(added.childId)
+            if (node !== undefined) {
+                logger.dbLog("FOUND CHILD PARENT " + JSON.stringify(node))
+                changes.push(new ParentChanged(new JsonContext(null, ["implicitParentChange"]), node, node.parent, added.parentNode.id))
+            } else {
+                logger.requestLog("MISSING CHILD " + added.childId)
+                throw new Error("MISSING CHILD " + added.childId + " in makeQueriesForImplicitParentChanged(...)")
+            }
         })
-        return queries
+        dbCommands.addChanges(changes)
     }
 
     private makeQueriesForAnnotationsChanged(annotationChanges: AnnotationChange[]) {
-        let queries = "-- makeQueriesForAnnotationsChanged\n"
-        annotationChanges
-            .forEach(annotationChange => {
-                queries += this.context.queryMaker.updateAnnotationsQuery(annotationChange.nodeBefore.id, annotationChange.nodeAfter.annotations)
-            })
-        return queries
+        const dbCommands = new DbChanges(this.context)
+        dbCommands.addChanges(annotationChanges)
+        return dbCommands.createPostgresQuery()
     }
 
-    async deletePartitions(idList: string[]): Promise<void> {
+    async deletePartitions(clientId: string, idList: string[]): Promise<void> {
         logger.dbLog(("LionWebQueries.deletePartitions: " + idList))
         const partitions = await this.getNodesFromIdList(idList)
         // Validate that the nodes are partitions
@@ -352,8 +367,10 @@ export class LionWebQueries {
             }
         })
         // Remove the partition nodes and all children/annotations
-        const removedNodes = (await this.getNodeTree(idList, 999)).queryResult.map(n => n.id)
-        const query = this.context.queryMaker.makeQueriesForOrphans(removedNodes)
+        const removedNodes = (await this.getNodeTree(idList, 99999)).queryResult.map(n => n.id)
+        let query= `SET repo.version = ${getRepoVersion()};\n`
+        query += this.context.queryMaker.makeQueriesForOrphans(removedNodes)
+        logger.requestLog("DELETE PARTITIONS QUERY: " + query)
         return await this.context.dbConnection.query(query)
     }
 

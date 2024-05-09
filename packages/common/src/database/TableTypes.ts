@@ -6,10 +6,10 @@ export type ReservedIdRecord = {
 }
 
 export type NodeRecord = {
-    id,                   // The node id // Don't update this column
-    classifier_language,  // The classifier of the node
-    classifier_version,   // The classifier of the node
-    classifier_key,       // The classifier of the node
-    annotations,          // The annotation(id)s
-    parent
+    id: string,                   // The node id // Don't update this column
+    classifier_language: string,  // The classifier of the node
+    classifier_version: string,   // The classifier of the node
+    classifier_key: string,       // The classifier of the node
+    annotations: string[],          // The annotation(id)s
+    parent: string | null
 }

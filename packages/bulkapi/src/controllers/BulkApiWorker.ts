@@ -44,7 +44,7 @@ export class BulkApiWorker {
                 } 
             }
         }
-        return await this.context.queries.createPartitions(chunk)
+        return await this.context.queries.createPartitions(clientId, chunk)
     }
 
     /**
@@ -69,10 +69,10 @@ export class BulkApiWorker {
                 }
             }
         }
-        await this.context.queries.deletePartitions(idList)
+        await this.context.queries.deletePartitions(clientId, idList)
         return { status: HttpSuccessCodes.Ok, query: "", queryResult: EMPTY_SUCCES_RESPONSE }
     }
-
+      
     bulkStore = async (clientId: string, chunk: LionWebJsonChunk): Promise<QueryReturnType<StoreResponse>> => {
         return await this.context.queries.store(clientId, chunk)
     }
@@ -118,6 +118,11 @@ export class BulkApiWorker {
         }
     }
 
+    /**
+     * Return _count_ free id's for _clientId_ and reserve these ids for this client only.
+     * @param clientId
+     * @param count
+     */
     ids = async (clientId: string, count: number): Promise<QueryReturnType<IdsResponse>> => {
         console.log("Reserve Count ids " + count + " for " + clientId)
         const result: string[] = []
@@ -149,9 +154,7 @@ export class BulkApiWorker {
                 done = true
             }
         }
-        //TODO store the reserved ids in the reserved id table.
         const returnValue = await this.context.queries.makeNodeIdsReservation(clientId, result)
-        console.log("ids calculated " + JSON.stringify(result))
         
         return {
             status: HttpSuccessCodes.Ok,

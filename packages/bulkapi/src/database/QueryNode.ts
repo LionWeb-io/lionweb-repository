@@ -19,16 +19,25 @@ export const QueryNodeForIdList = (nodeid: string[]): string => {
 WITH 
     node_properties AS ( 
         SELECT
-            id ,
+            n1.id ,
             array_remove(
                 array_agg(
-                    JSON_OBJECT(
-                        'property': prop.property,
-                        'value': prop.value ABSENT ON NULL
-                        RETURNING JSONB
-                    )
+                    CASE
+                      WHEN prop.property_key IS NOT NULL THEN
+                        jsonb_build_object(
+                            'property', 
+                            json_build_object(
+                                'version', prop.property_version,
+                                'language', prop.property_language,
+                                'key', prop.property_key
+                            ),
+                            'value', prop.value
+                        )
+                      WHEN TRUE THEN
+                        null
+                    END
                 ),
-                '{}'
+                null
             ) properties
         FROM ${NODES_TABLE} n1 
         left join ${PROPERTIES_TABLE} prop  on prop.node_id  = n1.id 
@@ -38,14 +47,27 @@ WITH
     node_containments AS (
         select    
             n1.id ,
-            array_remove(array_agg(
-                CASE 
-                    WHEN con.containment IS NOT NULL THEN
-                        jsonb_build_object('containment', con.containment, 'children', con.children)
-                    WHEN TRUE THEN
-                        null
-                END), null)        containments
-        from ${NODES_TABLE} n1
+            array_remove(
+                array_agg(
+                    CASE 
+                        WHEN con.containment_key IS NOT NULL THEN
+                            jsonb_build_object(
+                                'containment',
+                                json_build_object(
+                                    'version', con.containment_version,
+                                    'language', con.containment_language,
+                                    'key', con.containment_key
+                                ),     
+                                'children', con.children
+                            )
+                        WHEN TRUE THEN
+                            null
+                    END
+                ),
+                null
+            )
+        containments
+        FROM ${NODES_TABLE} n1
         left join ${CONTAINMENTS_TABLE} con  on con.node_id  = n1.id 
         where n1.id IN ${sqlNodeCollection}
         group by n1.id, con.node_id
@@ -55,8 +77,16 @@ WITH
             n1.id ,
             array_remove(array_agg(
                 CASE 
-                    WHEN rref.reference IS NOT NULL THEN
-                        jsonb_build_object('reference', rref.reference, 'targets', rref.targets)
+                    WHEN rref.reference_key IS NOT NULL THEN
+                        jsonb_build_object(
+                            'reference',
+                                json_build_object(
+                                    'version', rref.reference_version,
+                                    'language', rref.reference_language,
+                                    'key', rref.reference_key
+                                ),     
+                              'targets', rref.targets
+                          )
                     WHEN TRUE THEN
                         null
                 END), null)        rreferences
@@ -82,7 +112,6 @@ left join node_properties prop on prop.id = lionweb_nodes.id
 left join node_containments con on con.id = lionweb_nodes.id
 left join node_references rref on rref.id = lionweb_nodes.id
 where lionweb_nodes.id IN ${sqlNodeCollection}
-group by lionweb_nodes.id, prop.id, con.id, prop.properties, containments, rreferences
 
     `
 }

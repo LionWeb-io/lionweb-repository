@@ -7,6 +7,28 @@ import { CONTAINMENTS_TABLE, NODES_TABLE, PROPERTIES_TABLE, REFERENCES_TABLE, RE
 
 // NOTE: '?' at front of column name means that this column will not be updated by an UPDATE
 
+export type ContainmentRowData = {
+    containment_version: string
+    containment_language: string
+    containment_key: string
+    children: string[]
+    node_id: string
+}
+export type PropertyRowData = {
+    property_version: string
+    property_language: string
+    property_key: string
+    value: unknown
+    node_id: string
+}
+export type ReferenceRowData = {
+    reference_version: string
+    reference_language: string
+    reference_key: string
+    targets: object[]
+    node_id: string
+}
+
 export class TableDefinitions {
     NODES_COLUMN_SET: pgPromise.ColumnSet
     CONTAINMENTS_COLUMN_SET: pgPromise.ColumnSet
@@ -31,7 +53,9 @@ export class TableDefinitions {
         // prettier-ignore
         this.CONTAINMENTS_COLUMN_SET = new this.pgp.helpers.ColumnSet(
             [
-                "?containment",         // Don't update this column
+                "?containment_language",  // The classifier of the node
+                "?containment_version",   // The classifier of the node
+                "?containment_key",       // The classifier of the node
                 "children",
                 "?node_id"              // Don't update this column
             ],
@@ -40,7 +64,9 @@ export class TableDefinitions {
         // prettier-ignore
         this.PROPERTIES_COLUMN_SET = new this.pgp.helpers.ColumnSet(
             [
-                "?property",    // Don't update this column
+                "?property_language",  // The classifier of the node
+                "?property_version",   // The classifier of the node
+                "?property_key",       // The classifier of the node
                 "value",
                 "?node_id"      // Don't update this column
             ],
@@ -49,7 +75,9 @@ export class TableDefinitions {
         // prettier-ignore
         this.REFERENCES_COLUMN_SET = new this.pgp.helpers.ColumnSet(
             [
-                "?reference",    // Don't update this column
+                "?reference_language",  // The classifier of the node
+                "?reference_version",   // The classifier of the node
+                "?reference_key",       // The classifier of the node
                 {
                     name: "targets",
                     cast: "jsonb[]"
