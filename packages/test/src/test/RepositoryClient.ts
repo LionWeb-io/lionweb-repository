@@ -60,6 +60,7 @@ export class RepositoryClient {
         }
         console.log("Delete partition " + partitionIds)
         const result = await this.postWithTimeout(`bulk/deletePartitions`, { body: partitionIds, params: "" })
+        console.log("testPartitions response messages: " + JSON.stringify(result.body))
         return result
     }
 

@@ -1,5 +1,5 @@
 import { HttpClientErrors, HttpSuccessCodes, RetrieveResponse } from "@lionweb/repository-common"
-import { LanguageChange, LionWebJsonChunk, LionWebJsonChunkWrapper, LionWebJsonDiff, NodeRemoved } from "@lionweb/validation"
+import { LanguageChange, LionWebJsonChunk, LionWebJsonChunkWrapper, LionWebJsonDiff } from "@lionweb/validation"
 import { assert } from "chai"
 import { RepositoryClient } from "./RepositoryClient.js"
 
@@ -100,7 +100,7 @@ describe("Repository tests", () => {
                 DATA + "change-property-value/Disk_Property_value_changed-partition.json"
             )
         })
-        it("test update node (3)", async () => {
+        it( "test update node (3)", async () => {
             await testResult(
                 DATA + "change-property-value/Disk_Property_value_changed-partition.json",
                 DATA + "change-property-value/Disk_Property_value_changed-single-node.json"
@@ -167,7 +167,6 @@ describe("Repository tests", () => {
         })
     })
     describe("Remove annotation", () => {
-        // TODO ANN-1 is still in the repo !!!
         it("test update full partition", async () => {
             await testResult(
                 DATA + "remove-annotation/Disk-remove-annotation-partition.json",
@@ -182,7 +181,6 @@ describe("Repository tests", () => {
         })
     })
     describe("Add new annotation", () => {
-        // TODO ANN-1 is still in the repo !!!
         it("test update full partition", async () => {
             await testResult(
                 DATA + "add-new-annotation/Disk-add-new-annotation-partition.json",
@@ -197,7 +195,6 @@ describe("Repository tests", () => {
         })
     })
     describe("Add new node", () => {
-        // TODO ANN-1 is still in the repo !!!
         it("test update full partition", async () => {
             await testResult(
                 DATA + "add-new-nodes/Disk-add-new-nodes-partition.json",
@@ -324,7 +321,8 @@ describe("Repository tests", () => {
         const diff = new LionWebJsonDiff()
         diff.diffLwChunk(baseFullChunk, changesChunk)
         console.log("DIFF number of changes: " + diff.diffResult.changes.length)
-        diff.diffResult.changes.filter(change => !(change instanceof NodeRemoved)).forEach(change => console.log(change.changeMsg()))
+        // diff.diffResult.changes.filter(change => !(change instanceof NodeRemoved)).forEach(change => console.log(change.changeMsg()))
+        diff.diffResult.changes.forEach(change => console.log(change.changeMsg()))
 
         const result = await t.testStore(changesChunk)
         console.log("Result: \n" + JSON.stringify(result.body))
