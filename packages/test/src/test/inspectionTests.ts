@@ -39,7 +39,8 @@ describe("Repository tests for inspection APIs", () => {
                         "ID-3", "ID-4",
                         "ID-5", "ID-6", "ID-7",
                         "ID-8", "ID-9"
-                    ]
+                    ],
+                    size: 17
                 }
             ]
         )
@@ -53,7 +54,8 @@ describe("Repository tests for inspection APIs", () => {
                     "classifier": "Disk-key",
                     "ids": [
                         "ID-2"
-                    ]
+                    ],
+                    "size": 1
                 },
                 {
                     "language": "-default-key-FileSystem",
@@ -75,7 +77,8 @@ describe("Repository tests for inspection APIs", () => {
                         "ID-7",
                         "ID-8",
                         "ID-9"
-                    ]
+                    ],
+                    "size": 16
                 }
             ]
         )
