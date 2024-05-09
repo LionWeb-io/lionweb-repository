@@ -132,7 +132,7 @@ describe("Repository tests", () => {
             )
             await testHistory()
         })
-        it("test update node (3)", async () => {
+        it( "test update node (3)", async () => {
             await testResult(
                 DATA + "change-property-value/Disk_Property_value_changed-partition.json",
                 DATA + "change-property-value/Disk_Property_value_changed-single-node.json"
