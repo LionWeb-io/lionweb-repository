@@ -10,3 +10,7 @@ export function nextRepoVersion(): number {
     logger.requestLog("REPO VERSION++ TO " + REPO_VERSION)
     return REPO_VERSION
 }
+
+// export function getRepoVersionQuery(): string {
+//     return SET repo_version
+// }

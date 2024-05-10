@@ -13,12 +13,23 @@ describe("Repository tests", () => {
     const t = new RepositoryClient()
     let baseFullChunk: LionWebJsonChunk
 
+    before("create database", async function () {
+        const initResponse = await t.createDatabase()
+        if (initResponse.status !== HttpSuccessCodes.Ok) {
+            console.log("Cannot create database: " + JSON.stringify(initResponse.body))
+        } else {
+            console.log("database created: " + JSON.stringify(initResponse.body))
+        }
+    })
+    
     beforeEach("a", async function () {
         const initialPartition = t.readModel(DATA + "Disk_A_partition.json") as LionWebJsonChunk
         baseFullChunk = t.readModel(DATA + "Disk_A.json") as LionWebJsonChunk
         const initResponse = await t.init()
         if (initResponse.status !== HttpSuccessCodes.Ok) {
             console.log("Cannot initialize database: " + JSON.stringify(initResponse.body))
+        } else {
+            console.log("initialized database: " + JSON.stringify(initResponse.body))
         }
         const partResult = await t.testCreatePartitions(initialPartition)
         if (partResult.status !== HttpSuccessCodes.Ok) {

@@ -123,15 +123,15 @@ CREATE OR REPLACE FUNCTION public.insertNode()
     RETURNS TRIGGER
     AS 
 $$
-DECLARE  repo_version integer; 
-BEGIN 
-    repo_version = current_setting('repo.version', true)::integer; 
-    INSERT INTO ${NODES_TABLE_HISTORY} 
-    VALUES ( repo_version, 99999, NEW.id, NEW.classifier_language, NEW.classifier_version, NEW.classifier_key, NEW.annotations, NEW.parent ); 
-    RETURN NEW; 
-END; 
-$$     
-LANGUAGE plpgsql;
+DECLARE
+    repo_version integer;
+    BEGIN
+        repo_version = current_setting('repo.version', true)::integer;
+        INSERT INTO ${NODES_TABLE_HISTORY} 
+            VALUES ( repo_version, 99999, NEW.id, NEW.classifier_language, NEW.classifier_version, NEW.classifier_key, NEW.annotations, NEW.parent );
+        RETURN NEW;
+    END;
+$$  LANGUAGE plpgsql;
 
 CREATE TRIGGER nodes_insertView
 INSTEAD OF INSERT ON ${NODES_TABLE} 
@@ -145,7 +145,7 @@ CREATE OR REPLACE FUNCTION public.updateNode()
     RETURNS TRIGGER
     LANGUAGE plpgsql
     AS 
-$update_function$ DECLARE repo_version integer; BEGIN repo_version = current_setting('repo.version', true)::integer; UPDATE ${NODES_TABLE_HISTORY} nh SET to_version = repo_version - 1 WHERE to_version = 99999 AND id = NEW.id; INSERT INTO ${NODES_TABLE_HISTORY} VALUES ( repo_version, 99999, NEW.id, NEW.classifier_language, NEW.classifier_version, NEW.classifier_key, NEW.annotations, NEW.parent ); RETURN NEW; END; $update_function$;
+$$ DECLARE repo_version integer; BEGIN repo_version = current_setting('repo.version', true)::integer; UPDATE ${NODES_TABLE_HISTORY} nh SET to_version = repo_version - 1 WHERE to_version = 99999 AND id = NEW.id; INSERT INTO ${NODES_TABLE_HISTORY} VALUES ( repo_version, 99999, NEW.id, NEW.classifier_language, NEW.classifier_version, NEW.classifier_key, NEW.annotations, NEW.parent ); RETURN NEW; END; $$;
 
 CREATE TRIGGER nodes_update
 INSTEAD OF UPDATE ON ${NODES_TABLE} 
@@ -159,7 +159,7 @@ CREATE OR REPLACE FUNCTION public.deleteNode()
     RETURNS TRIGGER
     LANGUAGE plpgsql
     AS 
-$delete_function$ DECLARE repo_version integer; BEGIN repo_version = current_setting('repo.version', true)::integer; UPDATE ${NODES_TABLE_HISTORY} SET to_version = repo_version - 1 WHERE to_version = 99999 AND id = OLD.id; RETURN NEW; END; $delete_function$;
+$$ DECLARE repo_version integer; BEGIN repo_version = current_setting('repo.version', true)::integer; UPDATE ${NODES_TABLE_HISTORY} SET to_version = repo_version - 1 WHERE to_version = 99999 AND id = OLD.id; RETURN NEW; END; $$;
 
 DROP TRIGGER IF EXISTS nodes_delete ON ${NODES_TABLE};
 
@@ -175,7 +175,7 @@ CREATE OR REPLACE FUNCTION public.insertProperty()
     RETURNS TRIGGER
     LANGUAGE plpgsql
     AS
-$insert_property$ DECLARE repo_version integer; BEGIN repo_version = current_setting('repo.version', true)::integer; IF NOT EXISTS (SELECT FROM ${PROPERTIES_TABLE_HISTORY} WHERE property_language = NEW.property_language AND property_version = NEW.property_version AND property_key = NEW.property_key AND node_id = NEW.node_id ) THEN INSERT INTO ${PROPERTIES_TABLE_HISTORY} VALUES ( repo_version, 99999, NEW.property_language, NEW.property_version, NEW.property_key, NEW.value, NEW.node_id ); ELSE UPDATE ${PROPERTIES_TABLE} SET value = NEW.value WHERE to_version = 99999 AND property_language = NEW.property_language AND property_version = NEW.property_version AND property_key = NEW.property_key AND node_id = NEW.node_id; END IF; RETURN NEW; END; $insert_property$;
+$$ DECLARE repo_version integer; BEGIN repo_version = current_setting('repo.version', true)::integer; IF NOT EXISTS (SELECT FROM ${PROPERTIES_TABLE_HISTORY} WHERE property_language = NEW.property_language AND property_version = NEW.property_version AND property_key = NEW.property_key AND node_id = NEW.node_id ) THEN INSERT INTO ${PROPERTIES_TABLE_HISTORY} VALUES ( repo_version, 99999, NEW.property_language, NEW.property_version, NEW.property_key, NEW.value, NEW.node_id ); ELSE UPDATE ${PROPERTIES_TABLE} SET value = NEW.value WHERE to_version = 99999 AND property_language = NEW.property_language AND property_version = NEW.property_version AND property_key = NEW.property_key AND node_id = NEW.node_id; END IF; RETURN NEW; END; $$;
 
 CREATE TRIGGER nodes_insertProperty
 INSTEAD OF INSERT ON ${PROPERTIES_TABLE} 
@@ -189,7 +189,7 @@ CREATE OR REPLACE FUNCTION public.updateProperty()
     RETURNS TRIGGER
     LANGUAGE plpgsql
     AS
-$update_property$ DECLARE repo_version integer; BEGIN repo_version = current_setting('repo.version', true)::integer; UPDATE ${PROPERTIES_TABLE_HISTORY} nh SET to_version = repo_version - 1 WHERE to_version = 99999 AND property_language = NEW.property_language AND property_version = NEW.property_version AND property_key = NEW.property_key AND node_id = NEW.node_id; INSERT INTO ${PROPERTIES_TABLE_HISTORY} VALUES ( repo_version, 99999, NEW.property_language, NEW.property_version, NEW.property_key, NEW.value, NEW.node_id ); RETURN NEW; END; $update_property$;
+$$ DECLARE repo_version integer; BEGIN repo_version = current_setting('repo.version', true)::integer; UPDATE ${PROPERTIES_TABLE_HISTORY} nh SET to_version = repo_version - 1 WHERE to_version = 99999 AND property_language = NEW.property_language AND property_version = NEW.property_version AND property_key = NEW.property_key AND node_id = NEW.node_id; INSERT INTO ${PROPERTIES_TABLE_HISTORY} VALUES ( repo_version, 99999, NEW.property_language, NEW.property_version, NEW.property_key, NEW.value, NEW.node_id ); RETURN NEW; END; $$;
 
 CREATE TRIGGER property_update
 INSTEAD OF UPDATE ON ${PROPERTIES_TABLE} 
@@ -203,7 +203,7 @@ CREATE OR REPLACE FUNCTION public.deleteProperty()
     RETURNS TRIGGER
     LANGUAGE plpgsql
     AS 
-$delete_property_function$ DECLARE repo_version integer; BEGIN repo_version = current_setting('repo.version', true)::integer; UPDATE ${PROPERTIES_TABLE_HISTORY} SET to_version = repo_version - 1 WHERE to_version = 99999 AND node_id = OLD.node_id; RETURN NEW; END; $delete_property_function$;
+$$ DECLARE repo_version integer; BEGIN repo_version = current_setting('repo.version', true)::integer; UPDATE ${PROPERTIES_TABLE_HISTORY} SET to_version = repo_version - 1 WHERE to_version = 99999 AND node_id = OLD.node_id; RETURN NEW; END; $$;
 
 DROP TRIGGER IF EXISTS property_delete ON ${PROPERTIES_TABLE};
 
@@ -219,7 +219,7 @@ CREATE OR REPLACE FUNCTION public.insertContainment()
     RETURNS TRIGGER
     LANGUAGE plpgsql
     AS 
-$insert_Containment$ DECLARE repo_version integer; BEGIN repo_version = current_setting('repo.version', true)::integer; IF NOT EXISTS (SELECT FROM ${CONTAINMENTS_TABLE_HISTORY} WHERE containment_key = NEW.containment_key AND node_id = NEW.node_id ) THEN INSERT INTO ${CONTAINMENTS_TABLE_HISTORY} VALUES ( repo_version, 99999, NEW.containment_language, NEW.containment_version, NEW.containment_key, NEW.children, NEW.node_id ); ELSE UPDATE ${CONTAINMENTS_TABLE} SET children = NEW.children WHERE to_version = 99999 AND containment_key = NEW.containment_key AND node_id = NEW.node_id; END IF; RETURN NEW; END; $insert_Containment$;
+$$ DECLARE repo_version integer; BEGIN repo_version = current_setting('repo.version', true)::integer; IF NOT EXISTS (SELECT FROM ${CONTAINMENTS_TABLE_HISTORY} WHERE containment_key = NEW.containment_key AND node_id = NEW.node_id ) THEN INSERT INTO ${CONTAINMENTS_TABLE_HISTORY} VALUES ( repo_version, 99999, NEW.containment_language, NEW.containment_version, NEW.containment_key, NEW.children, NEW.node_id ); ELSE UPDATE ${CONTAINMENTS_TABLE} SET children = NEW.children WHERE to_version = 99999 AND containment_key = NEW.containment_key AND node_id = NEW.node_id; END IF; RETURN NEW; END; $$;
 
 CREATE TRIGGER nodes_insertContainment
 INSTEAD OF INSERT ON ${CONTAINMENTS_TABLE} 
@@ -233,7 +233,7 @@ CREATE OR REPLACE FUNCTION public.updateContainment()
     RETURNS TRIGGER
     LANGUAGE plpgsql
     AS 
-$update_containment$ DECLARE repo_version integer; BEGIN repo_version = current_setting('repo.version', true)::integer; UPDATE ${CONTAINMENTS_TABLE_HISTORY} nh SET to_version = repo_version - 1 WHERE to_version = 99999 AND containment_key = NEW.containment_key AND node_id = NEW.node_id; INSERT INTO ${CONTAINMENTS_TABLE_HISTORY} VALUES ( repo_version, 99999, NEW.containment_language, NEW.containment_version, NEW.containment_key, NEW.children, NEW.node_id ); RETURN NEW; END; $update_containment$;
+$$ DECLARE repo_version integer; BEGIN repo_version = current_setting('repo.version', true)::integer; UPDATE ${CONTAINMENTS_TABLE_HISTORY} nh SET to_version = repo_version - 1 WHERE to_version = 99999 AND containment_key = NEW.containment_key AND node_id = NEW.node_id; INSERT INTO ${CONTAINMENTS_TABLE_HISTORY} VALUES ( repo_version, 99999, NEW.containment_language, NEW.containment_version, NEW.containment_key, NEW.children, NEW.node_id ); RETURN NEW; END; $$;
 
 CREATE TRIGGER containment_update
 INSTEAD OF UPDATE ON ${CONTAINMENTS_TABLE} 
@@ -247,7 +247,7 @@ CREATE OR REPLACE FUNCTION public.deleteContainment()
     RETURNS TRIGGER
     LANGUAGE plpgsql
     AS 
-$delete_containment_function$ DECLARE repo_version integer; BEGIN repo_version = current_setting('repo.version', true)::integer; UPDATE ${CONTAINMENTS_TABLE_HISTORY} SET to_version = repo_version - 1 WHERE to_version = 99999 AND node_id = OLD.node_id; RETURN NEW; END; $delete_containment_function$;
+$$ DECLARE repo_version integer; BEGIN repo_version = current_setting('repo.version', true)::integer; UPDATE ${CONTAINMENTS_TABLE_HISTORY} SET to_version = repo_version - 1 WHERE to_version = 99999 AND node_id = OLD.node_id; RETURN NEW; END; $$;
 
 DROP TRIGGER IF EXISTS containment_delete ON ${CONTAINMENTS_TABLE};
 
@@ -263,7 +263,7 @@ CREATE OR REPLACE FUNCTION public.insertReference()
     RETURNS TRIGGER
     LANGUAGE plpgsql
     AS 
-$insert_Reference$ DECLARE repo_version integer; BEGIN repo_version = current_setting('repo.version', true)::integer; IF NOT EXISTS (SELECT FROM ${REFERENCES_TABLE_HISTORY} WHERE reference_key = NEW.reference_key AND node_id = NEW.node_id ) THEN INSERT INTO ${REFERENCES_TABLE_HISTORY} VALUES ( repo_version, 99999, NEW.reference_language, NEW.reference_version, NEW.reference_key, NEW.targets, NEW.node_id ); ELSE UPDATE ${REFERENCES_TABLE} SET targets = NEW.targets WHERE to_version = 99999 AND reference_key = NEW.reference_key AND node_id = NEW.node_id; END IF; RETURN NEW; END; $insert_Reference$;
+$$ DECLARE repo_version integer; BEGIN repo_version = current_setting('repo.version', true)::integer; IF NOT EXISTS (SELECT FROM ${REFERENCES_TABLE_HISTORY} WHERE reference_key = NEW.reference_key AND node_id = NEW.node_id ) THEN INSERT INTO ${REFERENCES_TABLE_HISTORY} VALUES ( repo_version, 99999, NEW.reference_language, NEW.reference_version, NEW.reference_key, NEW.targets, NEW.node_id ); ELSE UPDATE ${REFERENCES_TABLE} SET targets = NEW.targets WHERE to_version = 99999 AND reference_key = NEW.reference_key AND node_id = NEW.node_id; END IF; RETURN NEW; END; $$;
 
 CREATE TRIGGER nodes_insertReference
 INSTEAD OF INSERT ON ${REFERENCES_TABLE} 
@@ -277,7 +277,16 @@ CREATE OR REPLACE FUNCTION public.updateReference()
     RETURNS TRIGGER
     LANGUAGE plpgsql
     AS 
-$update_reference$ DECLARE repo_version integer; BEGIN repo_version = current_setting('repo.version', true)::integer; UPDATE ${REFERENCES_TABLE_HISTORY} nh SET to_version = repo_version - 1 WHERE to_version = 99999 AND reference_key = NEW.reference_key AND node_id = NEW.node_id; INSERT INTO ${REFERENCES_TABLE_HISTORY} VALUES ( repo_version, 99999, NEW.reference_language, NEW.reference_version, NEW.reference_key, NEW.targets, NEW.node_id ); RETURN NEW; END; $update_reference$;
+$$
+    DECLARE 
+        repo_version integer;
+    BEGIN
+        repo_version = current_setting('repo.version', true)::integer;
+        UPDATE ${REFERENCES_TABLE_HISTORY} nh SET to_version = repo_version - 1 
+            WHERE to_version = 99999 AND reference_key = NEW.reference_key AND node_id = NEW.node_id; 
+        INSERT INTO ${REFERENCES_TABLE_HISTORY} 
+            VALUES ( repo_version, 99999, NEW.reference_language, NEW.reference_version, NEW.reference_key, NEW.targets, NEW.node_id ); RETURN NEW; END; 
+$$;
 
 CREATE TRIGGER reference_update
 INSTEAD OF UPDATE ON ${REFERENCES_TABLE} 
@@ -291,7 +300,7 @@ CREATE OR REPLACE FUNCTION public.deleteReference()
     RETURNS TRIGGER
     LANGUAGE plpgsql
     AS
-$delete_reference_function$ DECLARE repo_version integer; BEGIN repo_version = current_setting('repo.version', true)::integer; UPDATE ${REFERENCES_TABLE_HISTORY} SET to_version = repo_version - 1 WHERE to_version = 99999 AND node_id = OLD.node_id; RETURN NEW; END; $delete_reference_function$;
+$$ DECLARE repo_version integer; BEGIN repo_version = current_setting('repo.version', true)::integer; UPDATE ${REFERENCES_TABLE_HISTORY} SET to_version = repo_version - 1 WHERE to_version = 99999 AND node_id = OLD.node_id; RETURN NEW; END; $$;
 
 DROP TRIGGER IF EXISTS reference_delete ON ${REFERENCES_TABLE};
 

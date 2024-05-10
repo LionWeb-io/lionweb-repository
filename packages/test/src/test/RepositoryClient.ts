@@ -36,6 +36,11 @@ export class RepositoryClient {
         return x
     }
 
+    async createDatabase(): Promise<ClientResponse> {
+        const x = await this.postWithTimeout("createDatabase", { body: {}, params: "" })
+        return x
+    }
+
     async testPartitions(): Promise<PartitionsResponse> {
         const partitionsResponse: PartitionsResponse = await this.getWithTimeout<PartitionsResponse>("bulk/listPartitions", { body: {}, params: "" })
         return partitionsResponse

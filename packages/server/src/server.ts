@@ -3,7 +3,7 @@ import http from "http"
 import express, {Express, NextFunction, Response, Request} from "express"
 import bodyParser from "body-parser"
 import cors from "cors"
-import { dbConnection, pgp } from "./DbConnection.js"
+import { dbConnection, pgp, postgresConnection } from "./DbConnection.js"
 import { initializeCommons } from "@lionweb/repository-common"
 import { registerDBAdmin } from "@lionweb/repository-dbadmin"
 import { registerInspection } from "@lionweb/repository-inspection"
@@ -48,7 +48,7 @@ app.use(verifyToken)
 
 // Must be first to initialize
 initializeCommons(pgp)
-registerDBAdmin(app, dbConnection, pgp)
+registerDBAdmin(app, dbConnection, postgresConnection, pgp)
 registerBulkApi(app, dbConnection, pgp)
 registerInspection(app, dbConnection, pgp)
 registerAdditionalApi(app, dbConnection, pgp)
