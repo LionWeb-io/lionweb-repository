@@ -16,7 +16,7 @@ export class AdditionalQueries {
     }
 
     /**
-     * Get recursively all children/annotations of _nodeIdList_ with depth _depthLimit_
+     * Get recursively the ids of all children/annotations of _nodeIdList_ with depth _depthLimit_
      * @param nodeIdList
      * @param depthLimit
      */
@@ -26,7 +26,6 @@ export class AdditionalQueries {
         if (nodeIdList.length === 0) {
             return { status: HttpSuccessCodes.NoContent, query: "query", queryResult: [] }
         }
-        // TODO Currently only gives the node id's, should give full node.
         query = makeQueryNodeTreeForIdList(nodeIdList, depthLimit)
         return { status: HttpSuccessCodes.Ok, query: query, queryResult: await this.context.dbConnection.query(query) }
     }

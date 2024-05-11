@@ -124,7 +124,7 @@ export class BulkApiWorker {
      * @param count
      */
     ids = async (clientId: string, count: number): Promise<QueryReturnType<IdsResponse>> => {
-        console.log("Reserve Count ids " + count + " for " + clientId)
+        logger.requestLog("Reserve Count ids " + count + " for " + clientId)
         const result: string[] = []
         // Create a bunch of ids, they are probably all free 
         let done = false

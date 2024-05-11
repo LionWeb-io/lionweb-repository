@@ -1,6 +1,5 @@
 import { Response } from "express"
 import { LionWebJsonChunk } from "@lionweb/validation";
-import { getRepoVersion } from "./RepoVersion.js";
 
 // "string" is needed as MessageKind can also be any of the ValidationIssue kinds.
 export type MessageKind = 
@@ -67,7 +66,8 @@ export function lionwebResponse<T extends LionwebResponse>(response: Response, s
     body.messages.push({
         kind: "Info",
         message: "RepositoryVersion at end of Transaction",
-        data: { "repository_version": `${getRepoVersion()}`} 
+        // TODO This is now incorrect as the value has to be fetched from the database.
+        data: { "repository_version": `TODO FEtch from table`} 
     })
     response.status(status)
     response.send(body)

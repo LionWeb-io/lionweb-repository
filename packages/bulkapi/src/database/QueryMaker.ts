@@ -144,10 +144,13 @@ export class QueryMaker {
     `
     }
 
+    /**
+     * Return the subset of _nodeIdList_ that are currently in use in the repository. 
+     * @param nodeIdList The list of node is's to be checked.
+     */
     public findNodeIdsInUse(nodeIdList: string[]): string {
-        // TODO This should also look at historical nodes
-        //      Primary Key will be ok, as from_version is part of it, so not neccesary
-        //      Also, even if two nodes with the same ID will be created, their ligetimes do not overlap.
+        // This works ok as along as you don't mix old (deleted) nodes with newer node,
+        // because it allows node id's to be reused.
         const sqlArray = sqlArrayFromNodeIdArray(nodeIdList)
         return `-- Retrieve node tree
             SELECT id

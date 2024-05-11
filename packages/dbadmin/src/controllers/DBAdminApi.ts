@@ -32,7 +32,7 @@ export class DBAdminApiImpl implements DBAdminApi {
     }
 }
 
-function removeNewlinesBetween$$(plpgsql: string): string {
+export function removeNewlinesBetween$$(plpgsql: string): string {
     let result = plpgsql
     // Match all substrings between $$ and $$ markers (PLPGSQL specific)
     const first = plpgsql.match(/\$\$[^$]*\$\$/g) ?? []

@@ -5,7 +5,7 @@ import {
     StoreResponse,
     asError,
     QueryReturnType, nodesToChunk, HttpSuccessCodes, EMPTY_SUCCES_RESPONSE, HttpClientErrors,
-    ReservedIdRecord, LionwebResponse, getRepoVersion
+    ReservedIdRecord, LionwebResponse
 } from "@lionweb/repository-common"
 import {
     LionWebJsonChunk,
@@ -35,7 +35,7 @@ export class LionWebQueries {
     }
 
     /**
-     * Get recursively all children/annotations of _nodeIdList_ with depth _depthLimit_
+     * Get recursively the ids of all children/annotations of _nodeIdList_ with depth _depthLimit_
      * @param nodeIdList
      * @param depthLimit
      */
@@ -46,7 +46,6 @@ export class LionWebQueries {
             if (nodeIdList.length === 0) {
                 return { status: HttpClientErrors.PreconditionFailed, query: "query", queryResult: [] }
             }
-            // TODO Currently only gives the node id's, should give full node.
             query = makeQueryNodeTreeForIdList(nodeIdList, depthLimit)
             return { status: HttpSuccessCodes.Ok, query: query, queryResult: await this.context.dbConnection.query(query) }
         } catch (e) {
@@ -65,7 +64,6 @@ export class LionWebQueries {
         if (nodeIdList.length == 0) {
             return []
         }
-        // logger.requestLog("getNodesFromIdList " + QueryNodeForIdList(nodeIdList))
         return await this.context.dbConnection.query(QueryNodeForIdList(nodeIdList))
     }
 
@@ -74,7 +72,7 @@ export class LionWebQueries {
      */
     getPartitions = async (): Promise<QueryReturnType<PartitionsResponse>> => {
         logger.dbLog("LionWebQueries.getPartitions")
-        // TODO Optimization?: The following WHERE can also directly be includes in the getNodesFromIdList
+        // TODO Possibl;e Optimization?: The following WHERE query can also directly be includes in the getNodesFromIdList
         const result = await this.selectNodesIdsWithoutParent()
         logger.dbLog("LionWebQueries.getPartitions.Result: " + JSON.stringify(result))
         const nodes = await this.getNodesFromIdList(result.map(n => n.id))
@@ -91,7 +89,7 @@ export class LionWebQueries {
 
     createPartitions = async (clientId: string, partitions: LionWebJsonChunk): Promise<QueryReturnType<CreatePartitionsResponse>> => {
         logger.dbLog("LionWebQueries.createPartitions")
-        let query = `SET repo.version = ${getRepoVersion()};\n`
+        let query = `SELECT repoVersionPlusPlus('${clientId}');\n`
         query += this.context.queryMaker.dbInsertNodeArray(partitions.nodes)
 
         // eslint-disable-next-line
@@ -103,7 +101,6 @@ export class LionWebQueries {
         }
     }
 
-    // TODO This function is way too complex, should be simplified.
     /**
      * Store all nodes in the `nodes` collection in the nodes table.
      *
@@ -131,7 +128,6 @@ export class LionWebQueries {
         logger.dbLog("DBChunk " + JSON.stringify(databaseChunkWrapper.jsonChunk))
         
         // Check whether there are new nodes without a parent
-        // TODO If node already exists as a partition this is ok
         const newNodesWithoutParent = toBeStoredChunk.nodes
             .filter(node => node.parent === null)
             .filter(node => databaseChunkWrapper.getNode(node.id) === undefined)
@@ -218,7 +214,7 @@ export class LionWebQueries {
         )
         // Now all changes are turned into queries.
         const dbCommands = new DbChanges(this.context)
-        let queries = `SET repo.version = ${getRepoVersion()};`
+        let queries = `SELECT repoVersionPlusPlus('${clientId}');\n`
         dbCommands.addChanges(propertyChanged)
         dbCommands.addChanges([...addedChildren, ...removedChildren, ...childrenOrderChanged])
         dbCommands.addChanges(parentChanged)
@@ -368,7 +364,7 @@ export class LionWebQueries {
         })
         // Remove the partition nodes and all children/annotations
         const removedNodes = (await this.getNodeTree(idList, 99999)).queryResult.map(n => n.id)
-        let query= `SET repo.version = ${getRepoVersion()};\n`
+        let query = `SELECT repoVersionPlusPlus('${clientId}');\n`
         query += this.context.queryMaker.makeQueriesForOrphans(removedNodes)
         logger.requestLog("DELETE PARTITIONS QUERY: " + query)
         return await this.context.dbConnection.query(query)

@@ -70,7 +70,6 @@ export type ReferenceKey = {
     reference: LionWebJsonMetaPointer
 }
 
-// TODO Make easier to use, or use only one of this in LionwebQueries.ts
 /**
  * This class captures changes in nodes and creates the Postgres queries to apply these changes to
  * the database tables.
@@ -289,6 +288,7 @@ export class DbChanges {
                 break
             case Missing.MissingAfter:
                 result += `-- delete feature for existing node
+                                -- table is a reserved word, so we use tabl instead
                                 DELETE FROM ${tableName} tabl
                                 WHERE 
                                     tabl.node_id = '${data["node_id"]}' AND
