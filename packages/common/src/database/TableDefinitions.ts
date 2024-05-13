@@ -5,6 +5,16 @@ import pgPromise from "pg-promise";
 import pg from "pg-promise/typescript/pg-subset.js";
 import { CONTAINMENTS_TABLE, NODES_TABLE, PROPERTIES_TABLE, REFERENCES_TABLE, RESERVED_IDS_TABLE } from "./TableNames.js"
 
+/**
+ * Value use in the _to_ column to represent _forever_.
+ * The value 2147483647 is the max integer value in postgres.
+ */
+export const FOREVER = 2147483647
+/**
+ * Value used to represent unlimited depth in recursive queries.
+ */
+export const UNLIMITED_DEPTH = 2147483647
+
 // NOTE: '?' at front of column name means that this column will not be updated by an UPDATE
 
 export type ContainmentRowData = {

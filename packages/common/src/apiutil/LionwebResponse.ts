@@ -67,7 +67,7 @@ export function lionwebResponse<T extends LionwebResponse>(response: Response, s
         kind: "Info",
         message: "RepositoryVersion at end of Transaction",
         // TODO This is now incorrect as the value has to be fetched from the database.
-        data: { "repository_version": `TODO FEtch from table`} 
+        data: { "repository_version": `TODO Fetch from table`} 
     })
     response.status(status)
     response.send(body)

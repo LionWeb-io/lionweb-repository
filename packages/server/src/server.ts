@@ -1,3 +1,4 @@
+import { registerHistoryApi } from "@lionweb/repository-history";
 import dotenv from "dotenv"
 import http from "http"
 import express, {Express, NextFunction, Response, Request} from "express"
@@ -53,6 +54,7 @@ registerBulkApi(app, dbConnection, pgp)
 registerInspection(app, dbConnection, pgp)
 registerAdditionalApi(app, dbConnection, pgp)
 registerLanguagesApi(app, dbConnection, pgp)
+registerHistoryApi(app, dbConnection, pgp)
 
 const httpServer = http.createServer(app)
 

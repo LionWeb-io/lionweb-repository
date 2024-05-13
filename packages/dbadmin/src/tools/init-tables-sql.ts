@@ -1,6 +1,6 @@
 import {
     CONTAINMENTS_TABLE, CONTAINMENTS_TABLE_HISTORY,
-    NODES_TABLE, NODES_TABLE_HISTORY,
+    NODES_TABLE, NODES_TABLE_HISTORY, FOREVER,
     PROPERTIES_TABLE, PROPERTIES_TABLE_HISTORY,
     REFERENCES_TABLE, REFERENCES_TABLE_HISTORY,
     RESERVED_IDS_TABLE
@@ -41,7 +41,32 @@ CREATE TABLE IF NOT EXISTS ${NODES_TABLE_HISTORY} (
 
 CREATE OR REPLACE VIEW ${NODES_TABLE} AS
   SELECT * FROM ${NODES_TABLE_HISTORY}
-    WHERE to_version = 99999;
+    WHERE to_version = ${FOREVER};
+
+--------------------------------------------------------------------        
+-- Dynamic subset of ${NODES_TABLE_HISTORY} for repoVersion
+--------------------------------------------------------------------        
+CREATE OR REPLACE FUNCTION nodesForVersion(repoVersion integer)
+    RETURNS table(
+        id                  text, 
+        classifier_language text,
+        classifier_version  text,
+        classifier_key      text,
+        annotations         text[],
+        parent              text)
+AS $$
+BEGIN
+    RETURN QUERY SELECT 
+        ${NODES_TABLE_HISTORY}.id, 
+        ${NODES_TABLE_HISTORY}.classifier_language, 
+        ${NODES_TABLE_HISTORY}.classifier_version, 
+        ${NODES_TABLE_HISTORY}.classifier_key, 
+        ${NODES_TABLE_HISTORY}.annotations, 
+        ${NODES_TABLE_HISTORY}.parent
+    FROM ${NODES_TABLE_HISTORY}
+    WHERE from_version <= repoVersion AND to_version >= repoVersion;
+END;
+$$ LANGUAGE plpgsql;
 
 -- Creates containments table
 CREATE TABLE IF NOT EXISTS ${CONTAINMENTS_TABLE_HISTORY} (
@@ -57,7 +82,30 @@ CREATE TABLE IF NOT EXISTS ${CONTAINMENTS_TABLE_HISTORY} (
 
 CREATE OR REPLACE VIEW ${CONTAINMENTS_TABLE} AS
   SELECT * FROM ${CONTAINMENTS_TABLE_HISTORY}
-    WHERE to_version = 99999;
+    WHERE to_version = ${FOREVER};
+
+--------------------------------------------------------------------        
+-- Dynamic subset of ${CONTAINMENTS_TABLE_HISTORY} for repoVersion
+--------------------------------------------------------------------        
+CREATE OR REPLACE FUNCTION containmentsForVersion(repoVersion integer)
+    RETURNS table(
+        containment_language text,
+        containment_version  text,
+        containment_key      text,
+        children             text[],
+        node_id              text)
+AS $$
+BEGIN
+    RETURN QUERY SELECT 
+        ${CONTAINMENTS_TABLE_HISTORY}.containment_language, 
+        ${CONTAINMENTS_TABLE_HISTORY}.containment_version, 
+        ${CONTAINMENTS_TABLE_HISTORY}.containment_key, 
+        ${CONTAINMENTS_TABLE_HISTORY}.children, 
+        ${CONTAINMENTS_TABLE_HISTORY}.node_id
+    FROM ${CONTAINMENTS_TABLE_HISTORY}
+    WHERE from_version <= repoVersion AND to_version >= repoVersion;
+END;
+$$ LANGUAGE plpgsql;
 
 -- Creates properties table
 CREATE TABLE IF NOT EXISTS ${PROPERTIES_TABLE_HISTORY} (
@@ -73,7 +121,30 @@ CREATE TABLE IF NOT EXISTS ${PROPERTIES_TABLE_HISTORY} (
 
 CREATE OR REPLACE VIEW ${PROPERTIES_TABLE} AS
   SELECT * FROM ${PROPERTIES_TABLE_HISTORY}
-    WHERE to_version = 99999;
+    WHERE to_version = ${FOREVER};
+
+--------------------------------------------------------------------        
+-- Dynamic subset of ${PROPERTIES_TABLE_HISTORY} for repoVersion
+--------------------------------------------------------------------        
+CREATE OR REPLACE FUNCTION propertiesForVersion(repoVersion integer)
+    RETURNS table(
+        property_language text,
+        property_version  text,
+        property_key      text,
+        value             text,
+        node_id           text)
+AS $$
+BEGIN
+     RETURN QUERY SELECT 
+        ${PROPERTIES_TABLE_HISTORY}.property_language, 
+        ${PROPERTIES_TABLE_HISTORY}.property_version, 
+        ${PROPERTIES_TABLE_HISTORY}.property_key, 
+        ${PROPERTIES_TABLE_HISTORY}.value, 
+        ${PROPERTIES_TABLE_HISTORY}.node_id
+    FROM ${PROPERTIES_TABLE_HISTORY}
+    WHERE from_version <= repoVersion AND to_version >= repoVersion;
+END;
+$$ LANGUAGE plpgsql;
 
 -- Creates references table
 CREATE TABLE IF NOT EXISTS ${REFERENCES_TABLE_HISTORY} (
@@ -89,7 +160,30 @@ CREATE TABLE IF NOT EXISTS ${REFERENCES_TABLE_HISTORY} (
 
 CREATE OR REPLACE VIEW ${REFERENCES_TABLE} AS
   SELECT * FROM ${REFERENCES_TABLE_HISTORY}
-    WHERE to_version = 99999;
+    WHERE to_version = ${FOREVER};
+
+--------------------------------------------------------------------        
+-- Dynamic subset of ${REFERENCES_TABLE_HISTORY} for repoVersion
+--------------------------------------------------------------------        
+CREATE OR REPLACE FUNCTION referencesForVersion(repoVersion integer)
+    RETURNS table(
+        reference_language text,
+        reference_version  text,
+        reference_key      text,
+        targets            jsonb[],
+        node_id             text)
+AS $$
+BEGIN
+    RETURN QUERY SELECT 
+        ${REFERENCES_TABLE_HISTORY}.reference_language, 
+        ${REFERENCES_TABLE_HISTORY}.reference_version, 
+        ${REFERENCES_TABLE_HISTORY}.reference_key, 
+        ${REFERENCES_TABLE_HISTORY}.targets, 
+        ${REFERENCES_TABLE_HISTORY}.node_id
+    FROM ${REFERENCES_TABLE_HISTORY}
+    WHERE from_version <= repoVersion AND to_version >= repoVersion;
+END;
+$$ LANGUAGE plpgsql;
 
 -- Creates reserved_ids table
 CREATE TABLE IF NOT EXISTS ${RESERVED_IDS_TABLE} (
@@ -167,7 +261,7 @@ DECLARE
     BEGIN
         SELECT value INTO repo_version FROM CURRENT_DATA WHERE key = 'repo.version';
         INSERT INTO ${NODES_TABLE_HISTORY} 
-            VALUES ( repo_version, 99999, NEW.id, NEW.classifier_language, NEW.classifier_version, NEW.classifier_key, NEW.annotations, NEW.parent );
+            VALUES ( repo_version, ${FOREVER}, NEW.id, NEW.classifier_language, NEW.classifier_version, NEW.classifier_key, NEW.annotations, NEW.parent );
         RETURN NEW;
     END;
 $$  LANGUAGE plpgsql;
@@ -192,9 +286,9 @@ BEGIN
     UPDATE ${NODES_TABLE_HISTORY} nh 
         SET to_version = repo_version - 1 
     WHERE 
-        to_version = 99999 AND id = NEW.id; 
+        to_version = ${FOREVER} AND id = NEW.id; 
     INSERT INTO ${NODES_TABLE_HISTORY} 
-        VALUES ( repo_version, 99999, NEW.id, NEW.classifier_language, NEW.classifier_version, NEW.classifier_key, NEW.annotations, NEW.parent ); 
+        VALUES ( repo_version, ${FOREVER}, NEW.id, NEW.classifier_language, NEW.classifier_version, NEW.classifier_key, NEW.annotations, NEW.parent ); 
     RETURN NEW;
  END;
 $$;
@@ -219,7 +313,7 @@ DECLARE
         SELECT value INTO repo_version FROM CURRENT_DATA WHERE key = 'repo.version';
         UPDATE ${NODES_TABLE_HISTORY} 
             SET to_version = repo_version - 1 
-        WHERE to_version = 99999 AND id = OLD.id; 
+        WHERE to_version = ${FOREVER} AND id = OLD.id; 
         RETURN NEW; 
     END; 
 $$;
@@ -246,10 +340,10 @@ DECLARE repo_version integer; BEGIN
                   )
     THEN 
         INSERT INTO ${PROPERTIES_TABLE_HISTORY} 
-        VALUES ( repo_version, 99999, NEW.property_language, NEW.property_version, NEW.property_key, NEW.value, NEW.node_id ); 
+        VALUES ( repo_version, ${FOREVER}, NEW.property_language, NEW.property_version, NEW.property_key, NEW.value, NEW.node_id ); 
     ELSE 
         UPDATE ${PROPERTIES_TABLE} 
-            SET value = NEW.value WHERE to_version = 99999 AND property_language = NEW.property_language AND property_version = NEW.property_version AND property_key = NEW.property_key AND node_id = NEW.node_id; 
+            SET value = NEW.value WHERE to_version = ${FOREVER} AND property_language = NEW.property_language AND property_version = NEW.property_version AND property_key = NEW.property_key AND node_id = NEW.node_id; 
     END IF; 
     RETURN NEW; 
 END;
@@ -269,7 +363,17 @@ CREATE OR REPLACE FUNCTION public.updateProperty()
     AS
 $$ DECLARE repo_version integer; BEGIN 
         SELECT value INTO repo_version FROM CURRENT_DATA WHERE key = 'repo.version';
-    UPDATE ${PROPERTIES_TABLE_HISTORY} nh SET to_version = repo_version - 1 WHERE to_version = 99999 AND property_language = NEW.property_language AND property_version = NEW.property_version AND property_key = NEW.property_key AND node_id = NEW.node_id; INSERT INTO ${PROPERTIES_TABLE_HISTORY} VALUES ( repo_version, 99999, NEW.property_language, NEW.property_version, NEW.property_key, NEW.value, NEW.node_id ); RETURN NEW; END; $$;
+    UPDATE ${PROPERTIES_TABLE_HISTORY} nh 
+    SET
+        to_version = repo_version - 1 
+    WHERE 
+        to_version = ${FOREVER} AND
+        property_language = NEW.property_language AND 
+        property_version = NEW.property_version AND 
+        property_key = NEW.property_key AND 
+        node_id = NEW.node_id; 
+    INSERT INTO ${PROPERTIES_TABLE_HISTORY} 
+        VALUES ( repo_version, ${FOREVER}, NEW.property_language, NEW.property_version, NEW.property_key, NEW.value, NEW.node_id ); RETURN NEW; END; $$;
 
 CREATE TRIGGER property_update
 INSTEAD OF UPDATE ON ${PROPERTIES_TABLE} 
@@ -286,7 +390,7 @@ CREATE OR REPLACE FUNCTION public.deleteProperty()
 $$ DECLARE repo_version integer; 
 BEGIN 
         SELECT value INTO repo_version FROM CURRENT_DATA WHERE key = 'repo.version';
-    UPDATE ${PROPERTIES_TABLE_HISTORY} SET to_version = repo_version - 1 WHERE to_version = 99999 AND node_id = OLD.node_id; RETURN NEW; END; $$;
+    UPDATE ${PROPERTIES_TABLE_HISTORY} SET to_version = repo_version - 1 WHERE to_version = ${FOREVER} AND node_id = OLD.node_id; RETURN NEW; END; $$;
 
 DROP TRIGGER IF EXISTS property_delete ON ${PROPERTIES_TABLE};
 
@@ -304,7 +408,7 @@ CREATE OR REPLACE FUNCTION public.insertContainment()
     AS 
 $$ DECLARE repo_version integer; BEGIN 
         SELECT value INTO repo_version FROM CURRENT_DATA WHERE key = 'repo.version';
-    IF NOT EXISTS (SELECT FROM ${CONTAINMENTS_TABLE_HISTORY} WHERE containment_key = NEW.containment_key AND node_id = NEW.node_id ) THEN INSERT INTO ${CONTAINMENTS_TABLE_HISTORY} VALUES ( repo_version, 99999, NEW.containment_language, NEW.containment_version, NEW.containment_key, NEW.children, NEW.node_id ); ELSE UPDATE ${CONTAINMENTS_TABLE} SET children = NEW.children WHERE to_version = 99999 AND containment_key = NEW.containment_key AND node_id = NEW.node_id; END IF; RETURN NEW; END; $$;
+    IF NOT EXISTS (SELECT FROM ${CONTAINMENTS_TABLE_HISTORY} WHERE containment_key = NEW.containment_key AND node_id = NEW.node_id ) THEN INSERT INTO ${CONTAINMENTS_TABLE_HISTORY} VALUES ( repo_version, ${FOREVER}, NEW.containment_language, NEW.containment_version, NEW.containment_key, NEW.children, NEW.node_id ); ELSE UPDATE ${CONTAINMENTS_TABLE} SET children = NEW.children WHERE to_version = ${FOREVER} AND containment_key = NEW.containment_key AND node_id = NEW.node_id; END IF; RETURN NEW; END; $$;
 
 CREATE TRIGGER nodes_insertContainment
 INSTEAD OF INSERT ON ${CONTAINMENTS_TABLE} 
@@ -325,9 +429,9 @@ BEGIN
         SELECT value INTO repo_version FROM CURRENT_DATA WHERE key = 'repo.version';
     UPDATE ${CONTAINMENTS_TABLE_HISTORY} nh 
         SET to_version = repo_version - 1 
-        WHERE to_version = 99999 AND containment_key = NEW.containment_key AND node_id = NEW.node_id; 
+        WHERE to_version = ${FOREVER} AND containment_key = NEW.containment_key AND node_id = NEW.node_id; 
         INSERT INTO ${CONTAINMENTS_TABLE_HISTORY} 
-        VALUES ( repo_version, 99999, NEW.containment_language, NEW.containment_version, NEW.containment_key, NEW.children, NEW.node_id ); 
+        VALUES ( repo_version, ${FOREVER}, NEW.containment_language, NEW.containment_version, NEW.containment_key, NEW.children, NEW.node_id ); 
     RETURN NEW; 
 END; 
 $$;
@@ -344,9 +448,15 @@ CREATE OR REPLACE FUNCTION public.deleteContainment()
     RETURNS TRIGGER
     LANGUAGE plpgsql
     AS 
-$$ DECLARE repo_version integer; BEGIN 
-        SELECT value INTO repo_version FROM CURRENT_DATA WHERE key = 'repo.version';
-    UPDATE ${CONTAINMENTS_TABLE_HISTORY} SET to_version = repo_version - 1 WHERE to_version = 99999 AND node_id = OLD.node_id; RETURN NEW; END; $$;
+$$ DECLARE 
+    repo_version integer; 
+BEGIN 
+    SELECT value INTO repo_version 
+        FROM CURRENT_DATA 
+    WHERE key = 'repo.version';
+    UPDATE ${CONTAINMENTS_TABLE_HISTORY} 
+        SET to_version = repo_version - 1 
+    WHERE to_version = ${FOREVER} AND node_id = OLD.node_id; RETURN NEW; END; $$;
 
 DROP TRIGGER IF EXISTS containment_delete ON ${CONTAINMENTS_TABLE};
 
@@ -371,7 +481,7 @@ BEGIN
                         WHERE reference_key = NEW.reference_key AND node_id = NEW.node_id ) 
     THEN
         INSERT INTO ${REFERENCES_TABLE_HISTORY}
-            VALUES ( repo_version, 99999, NEW.reference_language, NEW.reference_version, NEW.reference_key, NEW.targets, NEW.node_id ); ELSE UPDATE ${REFERENCES_TABLE} SET targets = NEW.targets WHERE to_version = 99999 AND reference_key = NEW.reference_key AND node_id = NEW.node_id;
+            VALUES ( repo_version, ${FOREVER}, NEW.reference_language, NEW.reference_version, NEW.reference_key, NEW.targets, NEW.node_id ); ELSE UPDATE ${REFERENCES_TABLE} SET targets = NEW.targets WHERE to_version = ${FOREVER} AND reference_key = NEW.reference_key AND node_id = NEW.node_id;
     END IF;
     RETURN NEW;
 END;
@@ -395,9 +505,9 @@ DECLARE
 BEGIN
         SELECT value INTO repo_version FROM CURRENT_DATA WHERE key = 'repo.version';
     UPDATE ${REFERENCES_TABLE_HISTORY} nh SET to_version = repo_version - 1 
-        WHERE to_version = 99999 AND reference_key = NEW.reference_key AND node_id = NEW.node_id; 
+        WHERE to_version = ${FOREVER} AND reference_key = NEW.reference_key AND node_id = NEW.node_id; 
     INSERT INTO ${REFERENCES_TABLE_HISTORY} 
-        VALUES ( repo_version, 99999, NEW.reference_language, NEW.reference_version, NEW.reference_key, NEW.targets, NEW.node_id ); 
+        VALUES ( repo_version, ${FOREVER}, NEW.reference_language, NEW.reference_version, NEW.reference_key, NEW.targets, NEW.node_id ); 
     RETURN NEW; 
 END; 
 $$;
@@ -421,7 +531,7 @@ BEGIN
         SELECT value INTO repo_version FROM CURRENT_DATA WHERE key = 'repo.version';
     UPDATE ${REFERENCES_TABLE_HISTORY} 
         SET to_version = repo_version - 1 
-        WHERE to_version = 99999 AND node_id = OLD.node_id; 
+        WHERE to_version = ${FOREVER} AND node_id = OLD.node_id; 
     RETURN NEW; 
 END; 
 $$;

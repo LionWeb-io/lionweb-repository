@@ -5,7 +5,7 @@ import {
     PROPERTIES_TABLE,
     REFERENCES_TABLE,
     logger, TableHelpers, RESERVED_IDS_TABLE,
-    ReservedIdRecord, NodeRecord
+    ReservedIdRecord, NodeRecord, NODES_TABLE_HISTORY
 } from "@lionweb/repository-common"
 import {
     LionWebJsonNode,
@@ -133,6 +133,10 @@ export class QueryMaker {
 
     public makeSelectNodesIdsWithoutParent(): string {
         return `SELECT id FROM ${NODES_TABLE} WHERE parent is null`
+    }
+
+    public makeSelectNodesIdsWithoutParentWithVersion(repo_version: number): string {
+        return `SELECT id FROM ${NODES_TABLE_HISTORY} WHERE parent is null AND from_version <= ${repo_version} AND to_version >${repo_version}`
     }
 
     public findReservedNodesFromIdList(clientId: string, nodeIdList: string[]): string {

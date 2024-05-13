@@ -187,7 +187,7 @@ export class DbChanges {
                 reference_key: values[0].reference.key,
                 targets: values[0].targets
             }
-            result += this.createQuery(
+            result += this.createQueryForFeatures(
                 data,
                 "reference_language",
                 "reference_version",
@@ -207,7 +207,7 @@ export class DbChanges {
                 containment_key: values[0].containment.key,
                 children: values[0].children
             }
-            result += this.createQuery(
+            result += this.createQueryForFeatures(
                 data,
                 "containment_language",
                 "containment_version",
@@ -227,7 +227,7 @@ export class DbChanges {
                 property_key: values[0].property.key,
                 value: values[0].newValue
             }
-            result += this.createQuery(
+            result += this.createQueryForFeatures(
                 data,
                 "property_language",
                 "property_version",
@@ -271,7 +271,7 @@ export class DbChanges {
      * @param columnSet
      * @param missing
      */
-    private createQuery(
+    private createQueryForFeatures(
         data: object,
         languageColum: string,
         versionColumn: string,

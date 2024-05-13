@@ -46,6 +46,11 @@ export class RepositoryClient {
         return partitionsResponse
     }
 
+    async testPartitionsHistory(version: number): Promise<PartitionsResponse> {
+        const partitionsResponse: PartitionsResponse = await this.getWithTimeout<PartitionsResponse>("history/listPartitions", { body: {}, params: `repoVersion=${version}` })
+        return partitionsResponse
+    }
+
     async testCreatePartitions(data: LionWebJsonChunk): Promise<ClientResponse> {
         console.log(`test.testCreatePartitions`)
         if (data === null) {

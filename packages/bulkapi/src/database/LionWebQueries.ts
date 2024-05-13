@@ -5,7 +5,7 @@ import {
     StoreResponse,
     asError,
     QueryReturnType, nodesToChunk, HttpSuccessCodes, EMPTY_SUCCES_RESPONSE, HttpClientErrors,
-    ReservedIdRecord, LionwebResponse
+    ReservedIdRecord, LionwebResponse, FOREVER, UNLIMITED_DEPTH
 } from "@lionweb/repository-common"
 import {
     LionWebJsonChunk,
@@ -50,7 +50,7 @@ export class LionWebQueries {
             return { status: HttpSuccessCodes.Ok, query: query, queryResult: await this.context.dbConnection.query(query) }
         } catch (e) {
             const error = asError(e)
-            console.log("Exception catched in getNodeTree(): " + error.message)
+            console.error("Exception catched in LionWebQueries.getNodeTree(): " + error.message)
             logger.requestLog("======================================================================")
             logger.requestLog(query)
             throw error
@@ -59,8 +59,7 @@ export class LionWebQueries {
 
     getNodesFromIdList = async (nodeIdList: string[]): Promise<LionWebJsonNode[]> => {
         logger.dbLog("LionWebQueries.getNodesFromIdList: " + nodeIdList)
-        // this is necessary as otherwise the query would crash as it is not intended to be run
-        // on an empty set
+        // this is necessary as otherwise the query would crash as it is not intended to be run on an empty set
         if (nodeIdList.length == 0) {
             return []
         }
@@ -72,7 +71,7 @@ export class LionWebQueries {
      */
     getPartitions = async (): Promise<QueryReturnType<PartitionsResponse>> => {
         logger.dbLog("LionWebQueries.getPartitions")
-        // TODO Possibl;e Optimization?: The following WHERE query can also directly be includes in the getNodesFromIdList
+        // TODO Possible Optimization?: combine both queries
         const result = await this.selectNodesIdsWithoutParent()
         logger.dbLog("LionWebQueries.getPartitions.Result: " + JSON.stringify(result))
         const nodes = await this.getNodesFromIdList(result.map(n => n.id))
@@ -180,7 +179,7 @@ export class LionWebQueries {
         // Now get all children of the orphans
         const orphansContainedChildren = await this.getNodeTree(
             removedAndNotAddedChildren.map(rm => rm.childId),
-            99999
+            UNLIMITED_DEPTH
         )
         const orphansContainedChildrenOrphans = orphansContainedChildren.queryResult.filter(contained => {
             return (
@@ -320,12 +319,6 @@ export class LionWebQueries {
         })
     }
 
-    // private makeQueriesForParentChanged(parentChanged: ParentChanged[]) {
-    //     const dbCommands = new DbCommands(this.context)
-    //     dbCommands.addChanges(parentChanged)
-    //     return dbCommands.createPostgresQuery()
-    // }
-
     /**
      * Creates a set of ParentChanged diff objects, which are converted by DatabaseChanges to SQL.
      * @param addedAndNotParentChangedChildren
@@ -363,7 +356,7 @@ export class LionWebQueries {
             }
         })
         // Remove the partition nodes and all children/annotations
-        const removedNodes = (await this.getNodeTree(idList, 99999)).queryResult.map(n => n.id)
+        const removedNodes = (await this.getNodeTree(idList, UNLIMITED_DEPTH)).queryResult.map(n => n.id)
         let query = `SELECT repoVersionPlusPlus('${clientId}');\n`
         query += this.context.queryMaker.makeQueriesForOrphans(removedNodes)
         logger.requestLog("DELETE PARTITIONS QUERY: " + query)
@@ -371,7 +364,7 @@ export class LionWebQueries {
     }
 
     public async selectNodesIdsWithoutParent(): Promise<{ id: string }[]> {
-        return (await this.context.dbConnection.query(this.context.queryMaker.makeSelectNodesIdsWithoutParent)) as { id: string }[]
+        return (await this.context.dbConnection.query(this.context.queryMaker.makeSelectNodesIdsWithoutParent())) as { id: string }[]
     }
 
     /**
@@ -399,4 +392,3 @@ export function printMap(map: Map<string, string>): string {
     return result
 }
 
-// export const LIONWEB_QUERIES = new LionWebQueries()
