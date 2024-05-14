@@ -75,28 +75,47 @@ export class LionWebQueries {
         const result = await this.selectNodesIdsWithoutParent()
         logger.dbLog("LionWebQueries.getPartitions.Result: " + JSON.stringify(result))
         const nodes = await this.getNodesFromIdList(result.map(n => n.id))
+        const version = await this.getRepoVersion()
         return {
             status: HttpSuccessCodes.Ok,
             query: "query",
             queryResult:{ 
                 chunk: nodesToChunk(nodes),
                 success: true,
-                messages: []
+                messages: [{
+                    kind: "Info",
+                    message: "RepositoryVersion at end of Transaction",
+                    data: { "repository_version": `${version}`}                 
+                }]
             }
         }
     }
+    
+    getRepoVersion = async (): Promise<number> => {
+        const v = await this.context.dbConnection.one("SELECT value FROM current_data WHERE key = 'repo.version'")
+        return Number.parseInt(v.value)
+    }
 
     createPartitions = async (clientId: string, partitions: LionWebJsonChunk): Promise<QueryReturnType<CreatePartitionsResponse>> => {
-        logger.dbLog("LionWebQueries.createPartitions")
+        logger.requestLog("LionWebQueries.createPartitions")
         let query = `SELECT repoVersionPlusPlus('${clientId}');\n`
         query += this.context.queryMaker.dbInsertNodeArray(partitions.nodes)
 
         // eslint-disable-next-line
         const result = await this.context.dbConnection.query(query)
+        const version = await this.getRepoVersion()
+        logger.requestLog("Dome creating partitions, version is now " + version)
         return {
             status: HttpSuccessCodes.Ok,
             query: query,
-            queryResult:EMPTY_SUCCES_RESPONSE
+            queryResult:{
+                success: true,
+                messages: [{
+                    kind: "Info",
+                    message: "RepositoryVersion at end of Transaction",
+                    data: { "repository_version": `${version}`}
+                }]
+            }
         }
     }
 
@@ -259,9 +278,20 @@ export class LionWebQueries {
             logger.requestLog("QUERIES " + queries)
             await this.context.dbConnection.query(queries)
         }
-        return { status: HttpSuccessCodes.Ok, query: queries, queryResult: { 
+        const version = await this.getRepoVersion()
+        return { 
+            status: HttpSuccessCodes.Ok, 
+            query: queries, 
+            queryResult: { 
                 success: true,
-                messages: [ { kind: "Query", message: queries }],    
+                messages: [ 
+                    {
+                        kind: "Info",
+                        message: "RepositoryVersion at end of Transaction",
+                        data: { "repository_version": `${version}` }
+                    },
+                    { kind: "QueryFromStore", message: queries }
+                ],    
             } 
         }
     }

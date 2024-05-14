@@ -1,10 +1,11 @@
 import { asError, HttpClientErrors, PartitionsResponse } from "@lionweb/repository-common";
 import { LionWebJsonChunk } from "@lionweb/validation"
 import fs from "fs"
+import { CreatePartitionsResponse, DeletePartitionsResponse, IdsResponse, LionwebResponse, RetrieveResponse, StoreResponse } from "./responses.js";
 
 export type Status = number
-export type ClientResponse = {
-    body: object,
+export type ClientResponse<T extends LionwebResponse> = {
+    body: T,
     status: Status
 }
 
@@ -31,12 +32,12 @@ export class RepositoryClient {
         return null
     }
 
-    async init(): Promise<ClientResponse> {
+    async init(): Promise<ClientResponse<LionwebResponse>> {
         const x = await this.postWithTimeout("init", { body: {}, params: "" })
         return x
     }
 
-    async createDatabase(): Promise<ClientResponse> {
+    async createDatabase(): Promise<ClientResponse<LionwebResponse>> {
         const x = await this.postWithTimeout("createDatabase", { body: {}, params: "" })
         return x
     }
@@ -51,22 +52,46 @@ export class RepositoryClient {
         return partitionsResponse
     }
 
-    async testCreatePartitions(data: LionWebJsonChunk): Promise<ClientResponse> {
+    async testRetrieveHistory(version: number, nodeIds: string[], depth?: number): Promise<ClientResponse<RetrieveResponse>> {
+        console.log(`test.testRetrieveHistory ${nodeIds} with depth ${depth}`)
+        let params = ((depth === undefined) ? "" : `depthLimit=${depth}`) + `&repoVersion=${version}`
+        const x = await this.postWithTimeout(`history/retrieve`, { body: { ids: nodeIds }, params: `${params}` })
+        return x as ClientResponse<RetrieveResponse>
+    }
+
+    async testCreatePartitions(data: LionWebJsonChunk): Promise<ClientResponse<CreatePartitionsResponse>> {
         console.log(`test.testCreatePartitions`)
         if (data === null) {
             console.log("testCreatePartitions: Cannot read json data")
-            return { status: HttpClientErrors.PreconditionFailed, body: { result: "Repository.testClient: cannot read partitions to create"} }
+            return {
+                status: HttpClientErrors.PreconditionFailed, body: {
+                    success: false,
+                    messages: [{
+                        kind: "ClientError",
+                        message: "Repository.testClient: cannot read partitions to create"
+                    }]
+                }
+            }
         }
         console.log("Create partition " + JSON.stringify(data))
         const result = await this.postWithTimeout(`bulk/createPartitions`, { body: data, params: "" })
         return result
     }
 
-    async testDeletePartitions(partitionIds: string[]): Promise<ClientResponse> {
+    async testDeletePartitions(partitionIds: string[]): Promise<ClientResponse<DeletePartitionsResponse>> {
         console.log(`test.testDeletePartitions`)
         if (partitionIds === null) {
             console.log("testDeletePartitions: Cannot read partitions")
-            return { status: HttpClientErrors.PreconditionFailed, body: { result: "Repository.testClient: cannot read partitions to delete"} }
+            return { 
+                status: HttpClientErrors.PreconditionFailed,
+                body: {
+                    success: false,
+                    messages: [{
+                        message: "Repository.testClient: cannot read partitions to delete",
+                        kind: "ClientError"
+                    }]
+                }
+            }
         }
         console.log("Delete partition " + partitionIds)
         const result = await this.postWithTimeout(`bulk/deletePartitions`, { body: partitionIds, params: "" })
@@ -74,33 +99,41 @@ export class RepositoryClient {
         return result
     }
 
-    async testStore(data: LionWebJsonChunk): Promise<ClientResponse> {
+    async testStore(data: LionWebJsonChunk): Promise<ClientResponse<StoreResponse>> {
         console.log(`test.store`)
         if (data === null) {
             console.log("testStore: Cannot read json data")
-            return { status: HttpClientErrors.PreconditionFailed, body: { result: "Repository.testClient: cannot read data to store"} }
+            return {
+                status: HttpClientErrors.PreconditionFailed, body: {
+                    success: false,
+                    messages: [{
+                        kind: "ClientError",
+                        message: "Repository.testClient: cannot read data to store"
+                    }]
+                }
+            }
         }
         const result = await this.postWithTimeout(`bulk/store`, { body: data, params: "" })
         return result
     }
 
-    async testGetNodeTree(nodeIds: string[]): Promise<ClientResponse> {
+    async testGetNodeTree(nodeIds: string[]): Promise<ClientResponse<LionwebResponse>> {
         console.log(`test.testGetNodeTree`)
         const x = await this.postWithTimeout(`getNodeTree`, { body: { ids: nodeIds }, params: "" })
         return x
     }
 
-    async testIds(clientId: string, count: number): Promise<ClientResponse> {
+    async testIds(clientId: string, count: number): Promise<ClientResponse<IdsResponse>> {
         console.log(`test.testIds`)
         const result = await this.postWithTimeout(`bulk/ids`, { body: {}, params: `clientId=${clientId}&count=${count}` })
-        return result
+        return result as ClientResponse<IdsResponse>
     }
 
-    async testRetrieve(nodeIds: string[], depth?: number): Promise<ClientResponse> {
+    async testRetrieve(nodeIds: string[], depth?: number): Promise<ClientResponse<RetrieveResponse>> {
         console.log(`test.testRetrieve ${nodeIds} with depth ${depth}`)
         const params = (depth === undefined) ? "" : `depthLimit=${depth}`
         const x = await this.postWithTimeout(`bulk/retrieve`, { body: { ids: nodeIds }, params: `${params}` })
-        return x
+        return x as ClientResponse<RetrieveResponse>
     }
 
     async testNodesByLanguage() {
@@ -137,7 +170,7 @@ export class RepositoryClient {
         return null
     }
 
-    async postWithTimeout(method: string, parameters: { body: unknown; params: string }): Promise<ClientResponse> {
+    async postWithTimeout(method: string, parameters: { body: unknown; params: string }): Promise<ClientResponse<LionwebResponse>> {
         const params = this.findParams(parameters.params)
         try {
             const controller = new AbortController()
@@ -158,7 +191,11 @@ export class RepositoryClient {
         } catch (e) {
             const error = asError(e)
             this.handleError(error)
-            return { status: HttpClientErrors.PreconditionFailed, body: { error: error.message } }
+            return { status: HttpClientErrors.PreconditionFailed, body: {
+                    success: false,
+                    messages: [{ message: error.message, kind: "Error" }]
+                }
+            }
         }
     }
 

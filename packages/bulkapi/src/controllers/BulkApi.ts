@@ -148,7 +148,7 @@ export class BulkApiImpl implements BulkApi {
             })
         } else {
             const result = await this.ctx.bulkApiWorker.bulkStore(clientId, chunk)
-            result.queryResult.messages.push( {kind: "Query", message: result.query })
+            result.queryResult.messages.push( {kind: "QueryFromApi", message: result.query })
             lionwebResponse<StoreResponse>(response, result.status, result.queryResult)
         }
     }

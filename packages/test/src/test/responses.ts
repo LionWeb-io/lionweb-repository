@@ -1,11 +1,12 @@
-import { Response } from "express"
+/**
+ * Copy from database side code, to define the structure of the responses.
+ */
 import { LionWebJsonChunk } from "@lionweb/validation";
 
-// "string" is needed as MessageKind can also be any of the ValidationIssue kinds.
-export type MessageKind = 
-    "PartitionHasParent" 
+export type MessageKind =
+    "PartitionHasParent"
     | "Info"
-    | "PartitionHasChildren" 
+    | "PartitionHasChildren"
     | "PartitionHasAnnotations"
     | "EmptyChunk"
     | "NullChunk"
@@ -32,8 +33,8 @@ export type ResponseMessage = {
 export function isResponseMessage(object: unknown): object is ResponseMessage {
     return object["kind"] !== undefined &&
         typeof object["kind"] === "string"
-        object["message"] !== undefined &&
-        typeof object["message"] === "string"
+    object["message"] !== undefined &&
+    typeof object["message"] === "string"
 }
 
 export interface LionwebResponse {
@@ -61,33 +62,3 @@ export interface DeletePartitionsResponse extends LionwebResponse {
 export interface IdsResponse extends LionwebResponse {
     ids: string[]
 }
-
-export function lionwebResponse<T extends LionwebResponse>(response: Response, status: number, body: T): void {
-    // TODO need to get the version at one place, now it is defined repeatedly.
-    // body.messages.push({
-    //     kind: "Info",
-    //     message: "RepositoryVersion at end of Transaction",
-    //     // TODO This is now incorrect as the value has to be fetched from the database.
-    //     data: { "repository_version": `TODO Fetch from table`} 
-    // })
-    response.status(status)
-    response.send(body)
-}
-
-export const EMPTY_SUCCES_RESPONSE: LionwebResponse = {
-    success: true,
-    messages: []
-}
-
-export const EMPTY_FAIL_RESPONSE: LionwebResponse = {
-    success: false,
-    messages: []
-}
-
-
-export type QueryReturnType<T> = {
-    status: number
-    query: string
-    queryResult: T
-}
-

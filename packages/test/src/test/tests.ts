@@ -11,7 +11,10 @@ const DATA: string = "./data/"
 
 describe("Repository tests", () => {
     const t = new RepositoryClient()
+    let initialPartition: LionWebJsonChunk
+    let initialPartitionVersion: number = 0
     let baseFullChunk: LionWebJsonChunk
+    let baseFullChunkVersion: number = 0
 
     before("create database", async function () {
         const initResponse = await t.createDatabase()
@@ -23,7 +26,7 @@ describe("Repository tests", () => {
     })
     
     beforeEach("a", async function () {
-        const initialPartition = t.readModel(DATA + "Disk_A_partition.json") as LionWebJsonChunk
+        initialPartition = t.readModel(DATA + "Disk_A_partition.json") as LionWebJsonChunk
         baseFullChunk = t.readModel(DATA + "Disk_A.json") as LionWebJsonChunk
         const initResponse = await t.init()
         if (initResponse.status !== HttpSuccessCodes.Ok) {
@@ -36,34 +39,40 @@ describe("Repository tests", () => {
             console.log("Cannot create initial partition: " + JSON.stringify(partResult.body))
             console.log(JSON.stringify(initialPartition))
         }
-        console.log("CREATE PARTITIONS RESULT " + JSON.stringify(partResult))
+        // console.log("CREATE PARTITIONS RESULT " + JSON.stringify(partResult))
+        initialPartitionVersion = Number.parseInt(partResult.body.messages.find(m => m.data["repository_version"] !== undefined).data["repository_version"])
         const result = await t.testStore(baseFullChunk)
         if (result.status !== HttpSuccessCodes.Ok) {
             console.log("Cannot store initial chunk: " + JSON.stringify(result.body))
         }
+        // console.log("STORE PARTITIONS RESULT " + JSON.stringify(result.body.messages))
+        const tmp2 = result.body.messages.find(m => m.data["repository_version"] !== undefined).data["repository_version"]
+        console.log("TMP 2 [" + tmp2 + "]")
+        baseFullChunkVersion = Number.parseInt(result.body.messages.find(m => m.data["repository_version"] !== undefined).data["repository_version"])
+        console.log("repoVersionAfterPartitionCreated " + initialPartitionVersion + "repoVersionAfterPartitionFilled " + baseFullChunkVersion)
     })
 
     describe("Partition tests", () => {
-        // it("retrieve nodes", async () => {
-        //     const retrieve = await t.testRetrieve(["ID-2"])
-        //     console.log("JSON MODEL ORIGINAL")
-        //     printChunk(baseFullChunk)
-        //     console.log("JSON MODEL RETRIEVED")
-        //     const retrieveResponse = retrieve.body as RetrieveResponse 
-        //     printChunk(retrieveResponse.chunk)
-        //     const diff = new LionWebJsonDiff()
-        //     diff.diffLwChunk(baseFullChunk, retrieveResponse.chunk)
-        //     deepEqual(diff.diffResult.changes, [])
-        // })
-        //
-        // it("retrieve partitions", async () => {
-        //     const model = structuredClone(baseFullChunk)
-        //     model.nodes = model.nodes.filter(node => node.parent === null)
-        //     const partitions = await t.testPartitions()
-        //     const diff = new LionWebJsonDiff()
-        //     diff.diffLwChunk(model, partitions.chunk)
-        //     deepEqual(diff.diffResult.changes, [])
-        // })
+        it("retrieve nodes", async () => {
+            const retrieve = await t.testRetrieve(["ID-2"])
+            console.log("JSON MODEL ORIGINAL")
+            printChunk(baseFullChunk)
+            console.log("JSON MODEL RETRIEVED")
+            const retrieveResponse = retrieve.body as RetrieveResponse 
+            printChunk(retrieveResponse.chunk)
+            const diff = new LionWebJsonDiff()
+            diff.diffLwChunk(baseFullChunk, retrieveResponse.chunk)
+            deepEqual(diff.diffResult.changes, [])
+        })
+
+        it("retrieve partitions", async () => {
+            const model = structuredClone(baseFullChunk)
+            model.nodes = model.nodes.filter(node => node.parent === null)
+            const partitions = await t.testPartitions()
+            const diff = new LionWebJsonDiff()
+            diff.diffLwChunk(model, partitions.chunk)
+            deepEqual(diff.diffResult.changes, [])
+        })
 
         it("delete partitions", async () => {
             const prePartitions = await t.testPartitions()
@@ -81,256 +90,281 @@ describe("Repository tests", () => {
         })
     })
 
-    // describe("Move node (9) to from parent (4) to (5)", () => {
-    //     it("test update full partition", async () => {
-    //         await testResult(
-    //             DATA + "move-child/Disk-move-child-partition.json",
-    //             DATA + "move-child/Disk-move-child-partition.json"
-    //         )
-    //     })
-    //     it("test update node (5)", async () => {
-    //         await testResult(
-    //             DATA + "move-child/Disk-move-child-partition.json",
-    //             DATA + "move-child/Disk-move-child-single-node.json"
-    //         )
-    //     })
-    //     it("test update nodes (5) and (4)", async () => {
-    //         await testResult(
-    //             DATA + "move-child/Disk-move-child-partition.json",
-    //             DATA + "move-child/Disk-move-child-two-nodes.json"
-    //         )
-    //     })
-    //
-    //     it("test update nodes (5) and (9)", async () => {
-    //         await testResult(
-    //             DATA + "move-child/Disk-move-child-partition.json",
-    //             DATA + "move-child/Disk-move-child-two-nodes-2.json"
-    //         )
-    //     })
-    // })
-    //
-    // describe("Change value of node (3) property 'name' to 'root-new-value'", () => {
-    //     it("test update full partition", async () => {
-    //         await testResult(
-    //             DATA + "change-property-value/Disk_Property_value_changed-partition.json",
-    //             DATA + "change-property-value/Disk_Property_value_changed-partition.json"
-    //         )
-    //     })
-    //     it( "test update node (3)", async () => {
-    //         await testResult(
-    //             DATA + "change-property-value/Disk_Property_value_changed-partition.json",
-    //             DATA + "change-property-value/Disk_Property_value_changed-single-node.json"
-    //         )
-    //     })
-    // })
-    //
-    // describe("Add new property ", () => {
-    //     it("test update full partition", async () => {
-    //         await testResult(
-    //             DATA + "add-new-property-with-value/Disk-Property-add-property-partition.json",
-    //             DATA + "add-new-property-with-value/Disk-Property-add-property-partition.json"
-    //         )
-    //     })
-    //     it("test update single node", async () => {
-    //         await testResult(
-    //             DATA + "add-new-property-with-value/Disk-Property-add-property-partition.json",
-    //             DATA + "add-new-property-with-value/Disk-Property-add-property-single-node.json"
-    //         )
-    //     })
-    // })
-    //
-    // describe("Remove node (4) from parent (3) and mode child (9) to (5)", () => {
-    //     it("test update full partition", async () => {
-    //         await testResult(
-    //             DATA + "remove-child/Disk-remove-child-partition.json",
-    //             DATA + "remove-child/Disk-remove-child-partition.json"
-    //         )
-    //     })
-    //     it("test update (3)", async () => {
-    //         await testResult(
-    //             DATA + "remove-child/Disk-remove-child-partition.json",
-    //             DATA + "remove-child/Disk-remove-child-single-node.json"
-    //         )
-    //     })
-    // })
-    //
-    // describe("Add reference", () => {
-    //     it("test update full partition", async () => {
-    //         await testResult(
-    //             DATA + "add-reference/Disk_add-reference-partition.json",
-    //             DATA + "add-reference/Disk_add-reference-partition.json"
-    //         )
-    //     })
-    //     it("test update single node", async () => {
-    //         await testResult(
-    //             DATA + "add-reference/Disk_add-reference-partition.json",
-    //             DATA + "add-reference/Disk_add-reference-single-node.json"
-    //         )
-    //     })
-    // })
-    // describe("Remove reference", () => {
-    //     it("test update full partition", async () => {
-    //         await testResult(
-    //             DATA + "remove-reference/Disk-remove-reference-partition.json",
-    //             DATA + "remove-reference/Disk-remove-reference-partition.json"
-    //         )
-    //     })
-    //     it("test update single node", async () => {
-    //         await testResult(
-    //             DATA + "remove-reference/Disk-remove-reference-partition.json",
-    //             DATA + "remove-reference/Disk-remove-reference-single-node.json"
-    //         )
-    //     })
-    // })
-    // describe("Remove annotation", () => {
-    //     it("test update full partition", async () => {
-    //         await testResult(
-    //             DATA + "remove-annotation/Disk-remove-annotation-partition.json",
-    //             DATA + "remove-annotation/Disk-remove-annotation-partition.json"
-    //         )
-    //     })
-    //     it("test update single node", async () => {
-    //         await testResult(
-    //             DATA + "remove-annotation/Disk-remove-annotation-partition.json",
-    //             DATA + "remove-annotation/Disk-remove-annotation-single-node.json"
-    //         )
-    //     })
-    // })
-    // describe("Add new annotation", () => {
-    //     it("test update full partition", async () => {
-    //         await testResult(
-    //             DATA + "add-new-annotation/Disk-add-new-annotation-partition.json",
-    //             DATA + "add-new-annotation/Disk-add-new-annotation-partition.json"
-    //         )
-    //     })
-    //     it("test update two nodes node", async () => {
-    //         await testResult(
-    //             DATA + "add-new-annotation/Disk-add-new-annotation-partition.json",
-    //             DATA + "add-new-annotation/Disk-add-new-annotation-two-nodes.json"
-    //         )
-    //     })
-    // })
-    // describe("Add new node", () => {
-    //     it("test update full partition", async () => {
-    //         await testResult(
-    //             DATA + "add-new-nodes/Disk-add-new-nodes-partition.json",
-    //             DATA + "add-new-nodes/Disk-add-new-nodes-partition.json"
-    //         )
-    //     })
-    //     it("test update single node", async () => {
-    //         await testResult(
-    //             DATA + "add-new-nodes/Disk-add-new-nodes-partition.json",
-    //             DATA + "add-new-nodes/Disk-add-new-nodes-single-node.json"
-    //         )
-    //     })
-    // })
-    // describe("Reorder children", () => {
-    //     it("test update full partition", async () => {
-    //         await testResult(
-    //             DATA + "reorder-children/reorder-children-partition.json",
-    //             DATA + "reorder-children/reorder-children-partition.json"
-    //         )
-    //     })
-    //     it("test update single node", async () => {
-    //         await testResult(
-    //             DATA + "reorder-children/reorder-children-partition.json",
-    //             DATA + "reorder-children/reorder-children-single-node.json"
-    //         )
-    //     })
-    // })
-    //
-    // describe("Reorder annotations", () => {
-    //     it("test update full partition", async () => {
-    //         await testResult(
-    //             DATA + "reorder-annotations/reorder-annotations-partition.json",
-    //             DATA + "reorder-annotations/reorder-annotations-partition.json"
-    //         )
-    //     })
-    //     it("test update single node", async () => {
-    //         await testResult(
-    //             DATA + "reorder-annotations/reorder-annotations-partition.json",
-    //             DATA + "reorder-annotations/reorder-annotations-single-node.json"
-    //         )
-    //     })
-    // })
-    // describe("Reorder reference targets", () => {
-    //     it("test update full partition", async () => {
-    //         await testResult(
-    //             DATA + "reorder-reference-targets/reorder-reference-targets-partition.json",
-    //             DATA + "reorder-reference-targets/reorder-reference-targets-partition.json"
-    //         )
-    //     })
-    //     it("test update single node", async () => {
-    //         await testResult(
-    //             DATA + "reorder-reference-targets/reorder-reference-targets-partition.json",
-    //             DATA + "reorder-reference-targets/reorder-reference-targets-single-node.json"
-    //         )
-    //     })
-    // })
-    //
-    // describe("Use reserved ids", () => {
-    //     it("test using ids reserved by same client", async () => {
-    //         console.log("=======================================")
-    //         const reservedIds = await t.testIds("FirstClient", 42)
-    //         console.log("Reserving ids " + JSON.stringify(reservedIds))
-    //     })
-    //     it("test using ids reserved by other client", async () => {
-    //         const reservedIds = await t.testIds("FirstClient", 2)
-    //         console.log("Reserving ids " + JSON.stringify(reservedIds))
-    //         const testIncorrect = await t.testStore({
-    //             languages: [
-    //                 {
-    //                     key: "-default-key-FileSystem",
-    //                     version: "2023.1"
-    //                 },
-    //                 {
-    //                     key: "LionCore-builtins",
-    //                     version: "2023.1"
-    //                 }
-    //             ],
-    //             nodes: [
-    //                 {
-    //                     id: "ANN-1",
-    //                     classifier: {
-    //                         language: "-default-key-FileSystem",
-    //                         version: "2023.1",
-    //                         key: "Folder-key"
-    //                     },
-    //                     properties: [],
-    //                     containments: [
-    //                         {
-    //                             containment: {
-    //                                 language: "-default-key-FileSystem",
-    //                                 version: "2023.1",
-    //                                 key: "Folder-listing-key"
-    //                             },
-    //                             children: [reservedIds.body["ids"][0]]
-    //                         }
-    //                     ],
-    //                     references: [],
-    //                     annotations: [],
-    //                     parent: "ID-2"
-    //                 },
-    //                 {
-    //                     id: reservedIds.body["ids"][0],
-    //                     classifier: {
-    //                         language: "-default-key-FileSystem",
-    //                         version: "2023.1",
-    //                         key: "Folder-key"
-    //                     },
-    //                     properties: [],
-    //                     containments: [],
-    //                     references: [],
-    //                     annotations: [],
-    //                     parent: "ANN-1"
-    //                 }
-    //             ],
-    //             serializationFormatVersion: "2023.1"
-    //         })
-    //         console.log("Reserved id eror result " + JSON.stringify(testIncorrect.body))
-    //         equal(testIncorrect.status, HttpClientErrors.PreconditionFailed, "Failed reserved id")
-    //     })
-    // })
+    describe("Move node (9) to from parent (4) to (5)", () => {
+        it("test update full partition", async () => {
+            await testResult(
+                DATA + "move-child/Disk-move-child-partition.json",
+                DATA + "move-child/Disk-move-child-partition.json"
+            )
+            await testHistory()
+        })
+        it("test update node (5)", async () => {
+            await testResult(
+                DATA + "move-child/Disk-move-child-partition.json",
+                DATA + "move-child/Disk-move-child-single-node.json"
+            )
+            await testHistory()
+        })
+        it("test update nodes (5) and (4)", async () => {
+            await testResult(
+                DATA + "move-child/Disk-move-child-partition.json",
+                DATA + "move-child/Disk-move-child-two-nodes.json"
+            )
+        })
+
+        it("test update nodes (5) and (9)", async () => {
+            await testResult(
+                DATA + "move-child/Disk-move-child-partition.json",
+                DATA + "move-child/Disk-move-child-two-nodes-2.json"
+            )
+            await testHistory()
+        })
+    })
+
+    describe("Change value of node (3) property 'name' to 'root-new-value'", () => {
+        it("test update full partition", async () => {
+            await testResult(
+                DATA + "change-property-value/Disk_Property_value_changed-partition.json",
+                DATA + "change-property-value/Disk_Property_value_changed-partition.json"
+            )
+            await testHistory()
+        })
+        it( "test update node (3)", async () => {
+            await testResult(
+                DATA + "change-property-value/Disk_Property_value_changed-partition.json",
+                DATA + "change-property-value/Disk_Property_value_changed-single-node.json"
+            )
+            await testHistory()
+        })
+    })
+
+    describe("Add new property ", () => {
+        it("test update full partition", async () => {
+            await testResult(
+                DATA + "add-new-property-with-value/Disk-Property-add-property-partition.json",
+                DATA + "add-new-property-with-value/Disk-Property-add-property-partition.json"
+            )
+            await testHistory()
+        })
+        it("test update single node", async () => {
+            await testResult(
+                DATA + "add-new-property-with-value/Disk-Property-add-property-partition.json",
+                DATA + "add-new-property-with-value/Disk-Property-add-property-single-node.json"
+            )
+            await testHistory()
+        })
+    })
+
+    describe("Remove node (4) from parent (3) and mode child (9) to (5)", () => {
+        it("test update full partition", async () => {
+            await testResult(
+                DATA + "remove-child/Disk-remove-child-partition.json",
+                DATA + "remove-child/Disk-remove-child-partition.json"
+            )
+            await testHistory()
+        })
+        it("test update (3)", async () => {
+            await testResult(
+                DATA + "remove-child/Disk-remove-child-partition.json",
+                DATA + "remove-child/Disk-remove-child-single-node.json"
+            )
+            await testHistory()
+        })
+    })
+
+    describe("Add reference", () => {
+        it("test update full partition", async () => {
+            await testResult(
+                DATA + "add-reference/Disk_add-reference-partition.json",
+                DATA + "add-reference/Disk_add-reference-partition.json"
+            )
+            await testHistory()
+        })
+        it("test update single node", async () => {
+            await testResult(
+                DATA + "add-reference/Disk_add-reference-partition.json",
+                DATA + "add-reference/Disk_add-reference-single-node.json"
+            )
+            await testHistory()
+        })
+    })
+    describe("Remove reference", () => {
+        it("test update full partition", async () => {
+            await testResult(
+                DATA + "remove-reference/Disk-remove-reference-partition.json",
+                DATA + "remove-reference/Disk-remove-reference-partition.json"
+            )
+            await testHistory()
+        })
+        it("test update single node", async () => {
+            await testResult(
+                DATA + "remove-reference/Disk-remove-reference-partition.json",
+                DATA + "remove-reference/Disk-remove-reference-single-node.json"
+            )
+            await testHistory()
+        })
+    })
+    describe("Remove annotation", () => {
+        it("test update full partition", async () => {
+            await testResult(
+                DATA + "remove-annotation/Disk-remove-annotation-partition.json",
+                DATA + "remove-annotation/Disk-remove-annotation-partition.json"
+            )
+            await testHistory()
+        })
+        it("test update single node", async () => {
+            await testResult(
+                DATA + "remove-annotation/Disk-remove-annotation-partition.json",
+                DATA + "remove-annotation/Disk-remove-annotation-single-node.json"
+            )
+            await testHistory()
+        })
+    })
+    describe("Add new annotation", () => {
+        it("test update full partition", async () => {
+            await testResult(
+                DATA + "add-new-annotation/Disk-add-new-annotation-partition.json",
+                DATA + "add-new-annotation/Disk-add-new-annotation-partition.json"
+            )
+            await testHistory()
+        })
+        it("test update two nodes node", async () => {
+            await testResult(
+                DATA + "add-new-annotation/Disk-add-new-annotation-partition.json",
+                DATA + "add-new-annotation/Disk-add-new-annotation-two-nodes.json"
+            )
+            await testHistory()
+        })
+    })
+    describe("Add new node", () => {
+        it("test update full partition", async () => {
+            await testResult(
+                DATA + "add-new-nodes/Disk-add-new-nodes-partition.json",
+                DATA + "add-new-nodes/Disk-add-new-nodes-partition.json"
+            )
+            await testHistory()
+        })
+        it("test update single node", async () => {
+            await testResult(
+                DATA + "add-new-nodes/Disk-add-new-nodes-partition.json",
+                DATA + "add-new-nodes/Disk-add-new-nodes-single-node.json"
+            )
+            await testHistory()
+        })
+    })
+    describe("Reorder children", () => {
+        it("test update full partition", async () => {
+            await testResult(
+                DATA + "reorder-children/reorder-children-partition.json",
+                DATA + "reorder-children/reorder-children-partition.json"
+            )
+            await testHistory()
+        })
+        it("test update single node", async () => {
+            await testResult(
+                DATA + "reorder-children/reorder-children-partition.json",
+                DATA + "reorder-children/reorder-children-single-node.json"
+            )
+            await testHistory()
+        })
+    })
+
+    describe("Reorder annotations", () => {
+        it("test update full partition", async () => {
+            await testResult(
+                DATA + "reorder-annotations/reorder-annotations-partition.json",
+                DATA + "reorder-annotations/reorder-annotations-partition.json"
+            )
+            await testHistory()
+        })
+        it("test update single node", async () => {
+            await testResult(
+                DATA + "reorder-annotations/reorder-annotations-partition.json",
+                DATA + "reorder-annotations/reorder-annotations-single-node.json"
+            )
+            await testHistory()
+        })
+    })
+    describe("Reorder reference targets", () => {
+        it("test update full partition", async () => {
+            await testResult(
+                DATA + "reorder-reference-targets/reorder-reference-targets-partition.json",
+                DATA + "reorder-reference-targets/reorder-reference-targets-partition.json"
+            )
+            await testHistory()
+        })
+        it("test update single node", async () => {
+            await testResult(
+                DATA + "reorder-reference-targets/reorder-reference-targets-partition.json",
+                DATA + "reorder-reference-targets/reorder-reference-targets-single-node.json"
+            )
+            await testHistory()
+        })
+    })
+
+    describe("Use reserved ids", () => {
+        it("test using ids reserved by same client", async () => {
+            console.log("=======================================")
+            const reservedIds = await t.testIds("FirstClient", 42)
+            console.log("Reserving ids " + JSON.stringify(reservedIds))
+        })
+        it("test using ids reserved by other client", async () => {
+            const reservedIds = await t.testIds("FirstClient", 2)
+            console.log("Reserving ids " + JSON.stringify(reservedIds))
+            const testIncorrect = await t.testStore({
+                languages: [
+                    {
+                        key: "-default-key-FileSystem",
+                        version: "2023.1"
+                    },
+                    {
+                        key: "LionCore-builtins",
+                        version: "2023.1"
+                    }
+                ],
+                nodes: [
+                    {
+                        id: "ANN-1",
+                        classifier: {
+                            language: "-default-key-FileSystem",
+                            version: "2023.1",
+                            key: "Folder-key"
+                        },
+                        properties: [],
+                        containments: [
+                            {
+                                containment: {
+                                    language: "-default-key-FileSystem",
+                                    version: "2023.1",
+                                    key: "Folder-listing-key"
+                                },
+                                children: [reservedIds.body["ids"][0]]
+                            }
+                        ],
+                        references: [],
+                        annotations: [],
+                        parent: "ID-2"
+                    },
+                    {
+                        id: reservedIds.body["ids"][0],
+                        classifier: {
+                            language: "-default-key-FileSystem",
+                            version: "2023.1",
+                            key: "Folder-key"
+                        },
+                        properties: [],
+                        containments: [],
+                        references: [],
+                        annotations: [],
+                        parent: "ANN-1"
+                    }
+                ],
+                serializationFormatVersion: "2023.1"
+            })
+            console.log("Reserved id eror result " + JSON.stringify(testIncorrect.body))
+            equal(testIncorrect.status, HttpClientErrors.PreconditionFailed, "Failed reserved id")
+        })
+    })
 
     async function testResult(originalJsonFile: string, changesFile: string) {
         const changesChunk = t.readModel(changesFile) as LionWebJsonChunk
@@ -362,6 +396,25 @@ describe("Repository tests", () => {
                 []
             )
         }
+    }
+    
+    async function testHistory(): Promise<void> {
+        const repoAt_1 = await t.testPartitionsHistory(initialPartitionVersion)
+        const diff = new LionWebJsonDiff()
+        diff.diffLwChunk(initialPartition, repoAt_1.chunk)
+        deepEqual(
+            diff.diffResult.changes.filter(ch => !(ch instanceof LanguageChange)),
+            []
+        )
+        const repoAt_2 = await t.testRetrieveHistory(baseFullChunkVersion, ["ID-2"])
+        console.log("TEST RETRIEVE HISTORY")
+        console.log(JSON.stringify(repoAt_2, null, 2))
+        const diff2 = new LionWebJsonDiff()
+        diff2.diffLwChunk(baseFullChunk, repoAt_2.body.chunk)
+        deepEqual(
+            diff2.diffResult.changes.filter(ch => !(ch instanceof LanguageChange)),
+            []
+        )
     }
 })
 

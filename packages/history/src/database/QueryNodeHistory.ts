@@ -127,10 +127,11 @@ WHERE nodes_for_version.id IN ${sqlNodeCollection}
 export const makeQueryNodeTreeForIdList = (nodeidlist: string[], depthLimit: number, repoVersion: number): string => {
     const sqlArray = sqlArrayFromNodeIdArray(nodeidlist)
     return `-- Recursively retrieve node tree
-            WITH nodes AS (
-                SELECT * FROM nodesForVersion(${repoVersion})
-            ),
-            RECURSIVE tmp AS (
+            DROP VIEW IF EXISTS nodes;
+            CREATE TEMPORARY VIEW nodes AS
+                SELECT * FROM nodesForVersion(${repoVersion});
+            
+            WITH RECURSIVE tmp AS (
                 SELECT id, parent, 0 as depth
                 FROM nodes
                 WHERE id IN ${sqlArray}    
