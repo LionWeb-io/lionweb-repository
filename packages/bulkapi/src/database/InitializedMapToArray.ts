@@ -1,6 +1,6 @@
 export class InitializedMapToArray<KEY, VALUE> {
     /**
-     * Use the stringified version of the KEY, so two objects with the same contents are iodentical
+     * Use the stringified version of the KEY, so two objects with the same contents are identical
      */
     private map: Map<string, VALUE[]> = new Map<string, VALUE[]>()
     

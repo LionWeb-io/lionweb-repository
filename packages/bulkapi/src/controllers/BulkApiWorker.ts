@@ -32,7 +32,7 @@ export class BulkApiWorker {
      */
     createPartitions = async (clientId: string, chunk: LionWebJsonChunk): Promise<QueryReturnType<CreatePartitionsResponse>> => {
         logger.requestLog("BulkApiWorker.createPartitions")
-        // TODO Optimize: This esues the "getNodesFromIdList", but that retrieves full nodes, which is not needed here
+        // TODO Optimize: This reuses the "getNodesFromIdList", but that retrieves full nodes, which is not needed here
         return await this.context.dbConnection.tx(async task => {
             const existingNodes = await this.context.queries.getNodesFromIdList(task, chunk.nodes.map(n => n.id))
             if (existingNodes.length > 0) {

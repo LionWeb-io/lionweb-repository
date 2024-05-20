@@ -52,9 +52,9 @@ export class TableDefinitions {
         this.NODES_COLUMN_SET = new this.pgp.helpers.ColumnSet(
             [
                 "?id",                   // The node id // Don't update this column
-                "?classifier_language",  // The classifier of the node
-                "?classifier_version",   // The classifier of the node
-                "?classifier_key",       // The classifier of the node
+                "?classifier_language",  // MetaPointer
+                "?classifier_version",   // MetaPointer
+                "?classifier_key",       // MetaPointer
                 "annotations",          // The annotation(id)s
                 "parent"                // The id of the parent node
             ],
@@ -63,9 +63,9 @@ export class TableDefinitions {
         // prettier-ignore
         this.CONTAINMENTS_COLUMN_SET = new this.pgp.helpers.ColumnSet(
             [
-                "?containment_language",  // The classifier of the node
-                "?containment_version",   // The classifier of the node
-                "?containment_key",       // The classifier of the node
+                "?containment_language",  // MetaPointer
+                "?containment_version",   // MetaPointer
+                "?containment_key",       // MetaPointer
                 "children",
                 "?node_id"              // Don't update this column
             ],
@@ -74,9 +74,9 @@ export class TableDefinitions {
         // prettier-ignore
         this.PROPERTIES_COLUMN_SET = new this.pgp.helpers.ColumnSet(
             [
-                "?property_language",  // The classifier of the node
-                "?property_version",   // The classifier of the node
-                "?property_key",       // The classifier of the node
+                "?property_language",  // MetaPointer
+                "?property_version",   // MetaPointer
+                "?property_key",       // MetaPointer
                 "value",
                 "?node_id"      // Don't update this column
             ],
@@ -85,9 +85,9 @@ export class TableDefinitions {
         // prettier-ignore
         this.REFERENCES_COLUMN_SET = new this.pgp.helpers.ColumnSet(
             [
-                "?reference_language",  // The classifier of the node
-                "?reference_version",   // The classifier of the node
-                "?reference_key",       // The classifier of the node
+                "?reference_language",  // MetaPointer
+                "?reference_version",   // MetaPointer
+                "?reference_key",       // MetaPointer
                 {
                     name: "targets",
                     cast: "jsonb[]"
