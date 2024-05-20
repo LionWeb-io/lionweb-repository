@@ -1,3 +1,5 @@
+import { CONTAINMENTS_TABLE, NODES_TABLE, PROPERTIES_TABLE, REFERENCES_TABLE } from "@lionweb/repository-common";
+
 export function sqlArrayFromNodeIdArray(strings: string[]): string {
     return `(${strings.map(id => `'${id}'`).join(", ")})`
 }
@@ -11,13 +13,20 @@ export function postgresArrayFromStringArray(strings: string[]): string {
  * @param nodeid string[] The node ids for which the full node needs to be retrieved.
  * @constructor
  */
-export const QueryNodeForIdList = (nodeid: string[], repoVersion: number): string => {
-    const sqlNodeCollection = sqlArrayFromNodeIdArray(nodeid)
-    return `-- get full nodes from node id's
-WITH nodes_for_version AS (
-    SELECT * FROM nodesForVersion(${repoVersion})
+export const retrieveQuery = (nodeid: string[], depthLimit: number): string => {
+    const sqlArray = sqlArrayFromNodeIdArray(nodeid)
+    return `-- Recursively retrieve node tree
+WITH RECURSIVE tmp AS (
+    SELECT id, parent, 0 as depth
+    FROM ${NODES_TABLE}
+    WHERE id IN ${sqlArray}    
+    UNION
+        SELECT nn.id, nn.parent, tmp.depth + 1
+        FROM ${NODES_TABLE} as nn
+        INNER JOIN tmp ON tmp.id = nn.parent
+        WHERE tmp.depth < ${depthLimit} -- AND nn.id NOT in ${"otherArray"}
 ),
- 
+-- get full nodes from node id's
     node_properties AS ( 
         SELECT
             n1.id ,
@@ -40,8 +49,9 @@ WITH nodes_for_version AS (
                 ),
                 null
             ) properties
-        FROM nodes_for_version n1 
-        LEFT JOIN propertiesForVersion(${repoVersion}) prop  on prop.node_id  = n1.id 
+        FROM ${NODES_TABLE} n1 
+        left join ${PROPERTIES_TABLE} prop  on prop.node_id  = n1.id 
+        where n1.id IN (SELECT id FROM tmp)
         group by n1.id, prop.node_id
     ),
     node_containments AS (
@@ -67,12 +77,13 @@ WITH nodes_for_version AS (
                 null
             )
         containments
-        FROM nodes_for_version n1
-        LEFT JOIN containmentsForVersion(${repoVersion}) con  on con.node_id  = n1.id 
+        FROM ${NODES_TABLE} n1
+        left join ${CONTAINMENTS_TABLE} con  on con.node_id  = n1.id 
+        where n1.id IN (SELECT id FROM tmp)
         group by n1.id, con.node_id
     ),
     node_references AS (
-        SELECT    
+        select    
             n1.id ,
             array_remove(array_agg(
                 CASE 
@@ -89,27 +100,28 @@ WITH nodes_for_version AS (
                     WHEN TRUE THEN
                         null
                 END), null)        rreferences
-        FROM nodes_for_version n1
-        LEFT JOIN referencesForVersion(${repoVersion}) rref  on rref.node_id  = n1.id 
-        GROUP BY n1.id, rref.node_id
+        from ${NODES_TABLE} n1
+        left join ${REFERENCES_TABLE} rref  on rref.node_id  = n1.id 
+        where n1.id IN (SELECT id FROM tmp)
+        group by n1.id, rref.node_id
     )
 
-SELECT 
-    nodes_for_version.id,
+select 
+    lionweb_nodes.id,
     jsonb_build_object(
-            'key', classifier_key,
-            'language', classifier_language,
-            'version', classifier_version) classifier,
-    parent,
+            'key', lionweb_nodes.classifier_key,
+            'language', lionweb_nodes.classifier_language,
+            'version', lionweb_nodes.classifier_version) classifier,
+    lionweb_nodes.parent,
     array_to_json(prop.properties) properties,
     array_to_json(containments) containments,
     array_to_json(rreferences) references,
     annotations annotations
-FROM nodes_for_version
-LEFT JOIN node_properties prop on prop.id = nodes_for_version.id
-LEFT JOIN node_containments con on con.id = nodes_for_version.id
-LEFT JOIN node_references rref on rref.id = nodes_for_version.id
-
+from ${NODES_TABLE}
+left join node_properties prop on prop.id = lionweb_nodes.id
+left join node_containments con on con.id = lionweb_nodes.id
+left join node_references rref on rref.id = lionweb_nodes.id
+where lionweb_nodes.id IN (SELECT id FROM tmp)
 
     `
 }
@@ -121,23 +133,19 @@ LEFT JOIN node_references rref on rref.id = nodes_for_version.id
  * @param nodeidlist
  * @param depthLimit
  */
-export const makeQueryNodeTreeForIdList = (nodeidlist: string[], depthLimit: number, repoVersion: number): string => {
-    const sqlArray = sqlArrayFromNodeIdArray(nodeidlist)
-    return `-- Recursively retrieve node tree
-            DROP VIEW IF EXISTS nodes;
-            CREATE TEMPORARY VIEW nodes AS
-                SELECT * FROM nodesForVersion(${repoVersion});
-            
-            WITH RECURSIVE tmp AS (
-                SELECT id, parent, 0 as depth
-                FROM nodes
-                WHERE id IN ${sqlArray}    
-                UNION
-                    SELECT nn.id, nn.parent, tmp.depth + 1
-                    FROM nodes as nn
-                    INNER JOIN tmp ON tmp.id = nn.parent
-                    WHERE tmp.depth < ${depthLimit} -- AND nn.id NOT in ${"otherArray"}
-            )
-            SELECT * FROM tmp;
-    `
-}
+// export const makeQueryNodeTreeForIdList = (nodeidlist: string[], depthLimit: number): string => {
+//     const sqlArray = sqlArrayFromNodeIdArray(nodeidlist)
+//     return `-- Recursively retrieve node tree
+//             WITH RECURSIVE tmp AS (
+//                 SELECT id, parent, 0 as depth
+//                 FROM ${NODES_TABLE}
+//                 WHERE id IN ${sqlArray}    
+//                 UNION
+//                     SELECT nn.id, nn.parent, tmp.depth + 1
+//                     FROM ${NODES_TABLE} as nn
+//                     INNER JOIN tmp ON tmp.id = nn.parent
+//                     WHERE tmp.depth < ${depthLimit} -- AND nn.id NOT in ${"otherArray"}
+//             )
+//             SELECT * FROM tmp;
+//     `
+// }

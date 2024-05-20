@@ -131,7 +131,7 @@ export class QueryMaker {
         return query
     }
 
-    public makeSelectNodesIdsWithoutParent(): string {
+    public selectNodesIdsWithoutParentQuery(): string {
         return `SELECT id FROM ${NODES_TABLE} WHERE parent is null`
     }
 

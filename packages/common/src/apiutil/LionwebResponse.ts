@@ -63,13 +63,6 @@ export interface IdsResponse extends LionwebResponse {
 }
 
 export function lionwebResponse<T extends LionwebResponse>(response: Response, status: number, body: T): void {
-    // TODO need to get the version at one place, now it is defined repeatedly.
-    // body.messages.push({
-    //     kind: "Info",
-    //     message: "RepositoryVersion at end of Transaction",
-    //     // TODO This is now incorrect as the value has to be fetched from the database.
-    //     data: { "repository_version": `TODO Fetch from table`} 
-    // })
     response.status(status)
     response.send(body)
 }

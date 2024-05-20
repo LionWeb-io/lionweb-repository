@@ -231,21 +231,38 @@ VALUES
 -- The table currenbt_data should reflect the new repo.version and
 -- The new repo.version should be added to the repo_versions table 
 --------------------------------------------------------------------        
-CREATE OR REPLACE FUNCTION repoVersionPlusPlus(client text)
+CREATE OR REPLACE FUNCTION nextRepoVersion(client text)
     RETURNS integer
 AS
 $$
+DECLARE nextVersion integer;
 BEGIN
+    nextVersion := (SELECT value FROM current_data WHERE key = 'repo.version')::integer + 1;
     INSERT INTO repo_versions (version, date, client_id) 
     VALUES (
-        (SELECT value FROM current_data WHERE key = 'repo.version')::integer + 1,
+        nextVersion,
         NOW(),
         client
     );
     UPDATE current_data
-        SET value = (SELECT value FROM current_data WHERE key = 'repo.version')::integer + 1
+        SET value = nextVersion
     WHERE key = 'repo.version';
-    RETURN 42;
+    
+    RETURN nextVersion;
+END;
+$$ LANGUAGE plpgsql;
+
+--------------------------------------------------------------------        
+-- Function get current repo version
+--------------------------------------------------------------------        
+CREATE OR REPLACE FUNCTION currentRepoVersion()
+    RETURNS integer
+AS
+$$
+DECLARE version integer;
+BEGIN
+    version := (SELECT value FROM current_data WHERE key = 'repo.version')::integer;
+    RETURN version;
 END;
 $$ LANGUAGE plpgsql;
 

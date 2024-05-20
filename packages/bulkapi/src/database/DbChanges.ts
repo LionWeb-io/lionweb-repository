@@ -256,7 +256,7 @@ export class DbChanges {
                 `
         }
         
-        logger.requestLog("DATABASE INSERT " + result)
+        logger.dbLog("DATABASE INSERT " + result)
         return result
     }
 

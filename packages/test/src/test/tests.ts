@@ -40,21 +40,22 @@ describe("Repository tests", () => {
             console.log(JSON.stringify(initialPartition))
         }
         // console.log("CREATE PARTITIONS RESULT " + JSON.stringify(partResult))
-        initialPartitionVersion = Number.parseInt(partResult.body.messages.find(m => m.data["repository_version"] !== undefined).data["repository_version"])
+        initialPartitionVersion = Number.parseInt(partResult.body.messages.find(m => m.data["version"] !== undefined).data["version"])
         const result = await t.testStore(baseFullChunk)
         if (result.status !== HttpSuccessCodes.Ok) {
             console.log("Cannot store initial chunk: " + JSON.stringify(result.body))
         }
         // console.log("STORE PARTITIONS RESULT " + JSON.stringify(result.body.messages))
-        const tmp2 = result.body.messages.find(m => m.data["repository_version"] !== undefined).data["repository_version"]
+        const tmp2 = result.body.messages.find(m => m.data["version"] !== undefined).data["version"]
         console.log("TMP 2 [" + tmp2 + "]")
-        baseFullChunkVersion = Number.parseInt(result.body.messages.find(m => m.data["repository_version"] !== undefined).data["repository_version"])
+        baseFullChunkVersion = Number.parseInt(result.body.messages.find(m => m.data["version"] !== undefined).data["version"])
         console.log("repoVersionAfterPartitionCreated " + initialPartitionVersion + "repoVersionAfterPartitionFilled " + baseFullChunkVersion)
     })
 
     describe("Partition tests", () => {
         it("retrieve nodes", async () => {
             const retrieve = await t.testRetrieve(["ID-2"])
+            console.log("Retrieve Result: " + JSON.stringify(JSON.stringify(retrieve.body.messages)))
             console.log("JSON MODEL ORIGINAL")
             printChunk(baseFullChunk)
             console.log("JSON MODEL RETRIEVED")
@@ -69,6 +70,7 @@ describe("Repository tests", () => {
             const model = structuredClone(baseFullChunk)
             model.nodes = model.nodes.filter(node => node.parent === null)
             const partitions = await t.testPartitions()
+            console.log("Retrieve partitions Result: " + JSON.stringify(JSON.stringify(partitions.messages)))
             const diff = new LionWebJsonDiff()
             diff.diffLwChunk(model, partitions.chunk)
             deepEqual(diff.diffResult.changes, [])
@@ -78,6 +80,7 @@ describe("Repository tests", () => {
             const prePartitions = await t.testPartitions()
             console.log("PRe partitions: " + JSON.stringify(prePartitions))
             const deleteResult = await t.testDeletePartitions(["ID-2"])
+            console.log("Retrieve partitions Result: " + JSON.stringify(JSON.stringify(deleteResult.body.messages)))
             console.log("test Delete partitions: " + JSON.stringify(deleteResult))
             const partitions = await t.testPartitions()
             console.log("Test  partitions: " + JSON.stringify(partitions))
@@ -375,20 +378,20 @@ describe("Repository tests", () => {
         diff.diffResult.changes.forEach(change => console.log(change.changeMsg()))
 
         const result = await t.testStore(changesChunk)
-        console.log("Result: \n" + JSON.stringify(result.body))
+        console.log("Store Result: " + JSON.stringify(result.body.messages.filter(m => m.kind !== "QueryFromStore" && m.kind !== "QueryFromApi")))
         assert(result.status === HttpSuccessCodes.Ok)
 
         const jsonModelFull = t.readModel(originalJsonFile) as LionWebJsonChunk
         const afterRetrieve = await t.testRetrieve(["ID-2"])
         console.log("JSON MODEL ")
-        printChunk(jsonModelFull)
-        console.log("Retrieved with status " + afterRetrieve.status)
+        // printChunk(jsonModelFull)
+        console.log("Retrieve Result: " + afterRetrieve.status + " messages " + JSON.stringify(afterRetrieve.body.messages))
         const retrieveResponse = afterRetrieve.body as RetrieveResponse
         if (!retrieveResponse.success) {
             console.log(retrieveResponse.messages)
             deepEqual(afterRetrieve.status, HttpSuccessCodes.Ok)
         } else {
-            printChunk(retrieveResponse.chunk)
+            // printChunk(retrieveResponse.chunk)
             const diff2 = new LionWebJsonDiff()
             diff2.diffLwChunk(jsonModelFull, retrieveResponse.chunk)
             deepEqual(

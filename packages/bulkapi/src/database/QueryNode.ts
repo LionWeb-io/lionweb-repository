@@ -1,4 +1,4 @@
-import { CONTAINMENTS_TABLE, NODES_TABLE, PROPERTIES_TABLE, REFERENCES_TABLE } from "@lionweb/repository-common";
+import { CONTAINMENTS_TABLE, NODES_TABLE, PROPERTIES_TABLE, REFERENCES_TABLE, ResponseMessage } from "@lionweb/repository-common";
 
 export function sqlArrayFromNodeIdArray(strings: string[]): string {
     return `(${strings.map(id => `'${id}'`).join(", ")})`
@@ -8,11 +8,131 @@ export function postgresArrayFromStringArray(strings: string[]): string {
     return `{${strings.map(id => `"${id}"`).join(", ")}}`
 }
 
+export function nextRepoVersionQuery(clientId: string) {
+    return `SELECT nextRepoVersion('${clientId}');\n`
+}
+
+export function currentRepoVersionQuery(): string {
+    return `SELECT currentRepoVersion();\n`
+}
+
+/**
+ * Converts the result of queries using Postgres function nextRepoVersion or currentRepoVersion to the version number
+ * @param versionResult
+ */
+export function versionResultToResponse(versionResult: any): ResponseMessage {
+    const version = (versionResult[0]?.currentrepoversion ?? versionResult[0]?.nextrepoversion) as number
+    return {
+        kind: "RepoVersion",
+        message: "RepositoryVersion at end of Transaction",
+        data: { "version": `${version}`}
+    }
+}
+
 /**
  * Query to retrieve the full LionWeb nodes from the database.
- * @param nodeid string[] The node ids for which the full node needs to be retrieved.
+ * @param nodesQuery string SQL query to select the sub set of nodes to retrieve.
  * @constructor
  */
+export const nodesForQueryQuery = (nodesQuery: string): string => {
+    return `-- Get the nodes for the nodes query
+    WITH relevant_nodes AS (
+        ${nodesQuery}
+    ),
+        node_properties AS ( 
+        SELECT
+            n1.id ,
+            array_remove(
+                array_agg(
+                    CASE
+                      WHEN prop.property_key IS NOT NULL THEN
+                        jsonb_build_object(
+                            'property', 
+                            json_build_object(
+                                'version', prop.property_version,
+                                'language', prop.property_language,
+                                'key', prop.property_key
+                            ),
+                            'value', prop.value
+                        )
+                      WHEN TRUE THEN
+                        null
+                    END
+                ),
+                null
+            ) properties
+        FROM relevant_nodes n1 
+        left join ${PROPERTIES_TABLE} prop  on prop.node_id  = n1.id 
+        group by n1.id, prop.node_id
+    ),
+    node_containments AS (
+        select    
+            n1.id ,
+            array_remove(
+                array_agg(
+                    CASE 
+                        WHEN con.containment_key IS NOT NULL THEN
+                            jsonb_build_object(
+                                'containment',
+                                json_build_object(
+                                    'version', con.containment_version,
+                                    'language', con.containment_language,
+                                    'key', con.containment_key
+                                ),     
+                                'children', con.children
+                            )
+                        WHEN TRUE THEN
+                            null
+                    END
+                ),
+                null
+            )
+        containments
+        FROM node_properties n1
+        left join ${CONTAINMENTS_TABLE} con  on con.node_id  = n1.id 
+        group by n1.id, con.node_id
+    ),
+    node_references AS (
+        select    
+            n1.id ,
+            array_remove(array_agg(
+                CASE 
+                    WHEN rref.reference_key IS NOT NULL THEN
+                        jsonb_build_object(
+                            'reference',
+                                json_build_object(
+                                    'version', rref.reference_version,
+                                    'language', rref.reference_language,
+                                    'key', rref.reference_key
+                                ),     
+                              'targets', rref.targets
+                          )
+                    WHEN TRUE THEN
+                        null
+                END), null)        rreferences
+        from node_properties n1
+        left join ${REFERENCES_TABLE} rref  on rref.node_id  = n1.id 
+        group by n1.id, rref.node_id
+    )
+
+select 
+    relevant_nodes.id,
+    jsonb_build_object(
+            'key', relevant_nodes.classifier_key,
+            'language', relevant_nodes.classifier_language,
+            'version', relevant_nodes.classifier_version) classifier,
+    relevant_nodes.parent,
+    array_to_json(prop.properties) properties,
+    array_to_json(containments) containments,
+    array_to_json(rreferences) references,
+    annotations annotations
+from relevant_nodes
+left join node_properties prop on prop.id = relevant_nodes.id
+left join node_containments con on con.id = relevant_nodes.id
+left join node_references rref on rref.id = relevant_nodes.id
+`
+}
+
 export const QueryNodeForIdList = (nodeid: string[]): string => {
     const sqlNodeCollection = sqlArrayFromNodeIdArray(nodeid)
     return `-- get full nodes from node id's

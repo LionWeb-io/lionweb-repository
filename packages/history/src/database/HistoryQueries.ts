@@ -53,9 +53,7 @@ export class HistoryQueries {
             return []
         }
         const query = QueryNodeForIdList(nodeIdList, repoVersion)
-        logger.requestLog("getNodesFromIdList " + query)
         const result = await this.context.dbConnection.query(query)
-        logger.requestLog("getNodesFromIdList " + JSON.stringify(result))
         return result
     }
 
@@ -64,11 +62,11 @@ export class HistoryQueries {
      */
     getPartitions = async (repoVersion: number): Promise<QueryReturnType<PartitionsResponse>> => {
         logger.requestLog("HistoryQueries.getPartitions for version " + repoVersion)
-        // TODO Possible Optimization?: combine both queries
+        // TODO Combine both queries
         const query = `SELECT id FROM nodesForVersion(${repoVersion}) WHERE parent is null`
         const partitionIds = await await this.context.dbConnection.query(query) as { id: string }[]
 
-        logger.requestLog("HistoryQueries.getPartitions.Result: " + JSON.stringify(partitionIds))
+        logger.dbLog("HistoryQueries.getPartitions.Result: " + JSON.stringify(partitionIds))
         const nodes = await this.getNodesFromIdList(partitionIds.map(n => n.id), repoVersion)
         return {
             status: HttpSuccessCodes.Ok,
