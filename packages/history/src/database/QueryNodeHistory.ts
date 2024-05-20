@@ -12,7 +12,6 @@ export function postgresArrayFromStringArray(strings: string[]): string {
  * @constructor
  */
 export const QueryNodeForIdList = (nodeid: string[], repoVersion: number): string => {
-    const sqlNodeCollection = sqlArrayFromNodeIdArray(nodeid)
     return `-- get full nodes from node id's
 WITH nodes_for_version AS (
     SELECT * FROM nodesForVersion(${repoVersion})

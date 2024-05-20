@@ -34,7 +34,7 @@ export class BulkApiWorker {
         logger.requestLog("BulkApiWorker.createPartitions")
         // TODO Optimize: This esues the "getNodesFromIdList", but that retrieves full nodes, which is not needed here
         return await this.context.dbConnection.tx(async task => {
-            const existingNodes = await this.context.queries.getNodesFromIdList(chunk.nodes.map(n => n.id))
+            const existingNodes = await this.context.queries.getNodesFromIdList(task, chunk.nodes.map(n => n.id))
             if (existingNodes.length > 0) {
                 return { 
                     status: HttpClientErrors.PreconditionFailed, 
@@ -48,7 +48,7 @@ export class BulkApiWorker {
                     } 
                 }
             }
-            return await this.context.queries.createPartitions(clientId, chunk)
+            return await this.context.queries.createPartitions(task, clientId, chunk)
         })
     }
 
@@ -59,7 +59,7 @@ export class BulkApiWorker {
     deletePartitions = async(clientId: string, idList: string[]): Promise<QueryReturnType<DeletePartitionsResponse>> => {
         // TODO Optimize: only need parent, all features are not needed, can be optimized.
         return await this.context.dbConnection.tx(async task => {
-            const partitions = await this.context.queries.getNodesFromIdList(idList)
+            const partitions = await this.context.queries.getNodesFromIdList(task, idList)
             const issues: ResponseMessage[] = []
             partitions.forEach(part => {
                 if (part.parent !== null) {
@@ -76,13 +76,15 @@ export class BulkApiWorker {
                     }
                 }
             }
-            await this.context.queries.deletePartitions(clientId, idList)
+            await this.context.queries.deletePartitions(task, clientId, idList)
             return { status: HttpSuccessCodes.Ok, query: "", queryResult: EMPTY_SUCCES_RESPONSE }
         })
     }
       
     bulkStore = async (clientId: string, chunk: LionWebJsonChunk): Promise<QueryReturnType<StoreResponse>> => {
-        return await this.context.queries.store(clientId, chunk)
+        return await this.context.dbConnection.tx(async task => {
+            return this.context.queries.store(task, clientId, chunk)
+        })
     }
 
     /**
@@ -132,7 +134,7 @@ export class BulkApiWorker {
                     result.push(createId(id))
                 }
                 // Check for already used or reserved ids and remove them if needed
-                const reservedByOtherClient = await this.context.queries.reservedNodeIdsByOtherClient(clientId, result)
+                const reservedByOtherClient = await this.context.queries.reservedNodeIdsByOtherClient(task, clientId, result)
                 if (reservedByOtherClient.length > 0) {
                     reservedByOtherClient.forEach(reservedId => {
                         const index = result.indexOf(reservedId.node_id)
@@ -140,7 +142,7 @@ export class BulkApiWorker {
                     })
                 }
                 // Remove ids that are already in use
-                const usedIds = await this.context.queries.nodeIdsInUse(result)
+                const usedIds = await this.context.queries.nodeIdsInUse(task, result)
                 if (usedIds.length > 0) {
                     usedIds.forEach(usedId => {
                         const index = result.indexOf(usedId.id)
@@ -151,7 +153,7 @@ export class BulkApiWorker {
                     done = true
                 }
             }
-            const returnValue = await this.context.queries.makeNodeIdsReservation(clientId, result)
+            const returnValue = await this.context.queries.makeNodeIdsReservation(task, clientId, result)
 
             return {
                 status: HttpSuccessCodes.Ok,

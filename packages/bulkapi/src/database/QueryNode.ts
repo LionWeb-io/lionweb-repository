@@ -20,7 +20,7 @@ export function currentRepoVersionQuery(): string {
  * Converts the result of queries using Postgres function nextRepoVersion or currentRepoVersion to the version number
  * @param versionResult
  */
-export function versionResultToResponse(versionResult: any): ResponseMessage {
+export function versionResultToResponse(versionResult: object): ResponseMessage {
     const version = (versionResult[0]?.currentrepoversion ?? versionResult[0]?.nextrepoversion) as number
     return {
         kind: "RepoVersion",

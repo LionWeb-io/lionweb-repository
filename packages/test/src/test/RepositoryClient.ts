@@ -54,7 +54,7 @@ export class RepositoryClient {
 
     async testRetrieveHistory(version: number, nodeIds: string[], depth?: number): Promise<ClientResponse<RetrieveResponse>> {
         console.log(`test.testRetrieveHistory ${nodeIds} with depth ${depth}`)
-        let params = ((depth === undefined) ? "" : `depthLimit=${depth}`) + `&repoVersion=${version}`
+        const params = ((depth === undefined) ? "" : `depthLimit=${depth}`) + `&repoVersion=${version}`
         const x = await this.postWithTimeout(`history/retrieve`, { body: { ids: nodeIds }, params: `${params}` })
         return x as ClientResponse<RetrieveResponse>
     }
