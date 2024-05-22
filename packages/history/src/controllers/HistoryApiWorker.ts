@@ -18,7 +18,7 @@ export class HistoryApiWorker {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async bulkPartitions(clientId: string, repoVersion: number): Promise<QueryReturnType<PartitionsResponse>> {
-        return await this.context.queries.getPartitions(repoVersion)
+        return await this.context.queries.getPartitionsForVersion(repoVersion)
     }
     
     /**

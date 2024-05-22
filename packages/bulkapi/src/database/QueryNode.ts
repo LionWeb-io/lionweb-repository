@@ -39,9 +39,9 @@ export const nodesForQueryQuery = (nodesQuery: string): string => {
     WITH relevant_nodes AS (
         ${nodesQuery}
     ),
-        node_properties AS ( 
+    node_properties AS ( 
         SELECT
-            n1.id ,
+            relevant_nodes.id ,
             array_remove(
                 array_agg(
                     CASE
@@ -61,12 +61,12 @@ export const nodesForQueryQuery = (nodesQuery: string): string => {
                 ),
                 null
             ) properties
-        FROM relevant_nodes n1 
-        left join ${PROPERTIES_TABLE} prop  on prop.node_id  = n1.id 
-        group by n1.id, prop.node_id
+        FROM relevant_nodes
+        left join ${PROPERTIES_TABLE} prop  on prop.node_id  = relevant_nodes.id 
+        group by relevant_nodes.id, prop.node_id
     ),
     node_containments AS (
-        select    
+        SELECT    
             n1.id ,
             array_remove(
                 array_agg(
@@ -89,11 +89,11 @@ export const nodesForQueryQuery = (nodesQuery: string): string => {
             )
         containments
         FROM node_properties n1
-        left join ${CONTAINMENTS_TABLE} con  on con.node_id  = n1.id 
+        LEFT JOIN ${CONTAINMENTS_TABLE} con  ON con.node_id  = n1.id 
         group by n1.id, con.node_id
     ),
     node_references AS (
-        select    
+        SELECT    
             n1.id ,
             array_remove(array_agg(
                 CASE 
@@ -135,105 +135,7 @@ left join node_references rref on rref.id = relevant_nodes.id
 
 export const QueryNodeForIdList = (nodeid: string[]): string => {
     const sqlNodeCollection = sqlArrayFromNodeIdArray(nodeid)
-    return `-- get full nodes from node id's
-WITH 
-    node_properties AS ( 
-        SELECT
-            n1.id ,
-            array_remove(
-                array_agg(
-                    CASE
-                      WHEN prop.property_key IS NOT NULL THEN
-                        jsonb_build_object(
-                            'property', 
-                            json_build_object(
-                                'version', prop.property_version,
-                                'language', prop.property_language,
-                                'key', prop.property_key
-                            ),
-                            'value', prop.value
-                        )
-                      WHEN TRUE THEN
-                        null
-                    END
-                ),
-                null
-            ) properties
-        FROM ${NODES_TABLE} n1 
-        left join ${PROPERTIES_TABLE} prop  on prop.node_id  = n1.id 
-        where n1.id IN ${sqlNodeCollection}
-        group by n1.id, prop.node_id
-    ),
-    node_containments AS (
-        select    
-            n1.id ,
-            array_remove(
-                array_agg(
-                    CASE 
-                        WHEN con.containment_key IS NOT NULL THEN
-                            jsonb_build_object(
-                                'containment',
-                                json_build_object(
-                                    'version', con.containment_version,
-                                    'language', con.containment_language,
-                                    'key', con.containment_key
-                                ),     
-                                'children', con.children
-                            )
-                        WHEN TRUE THEN
-                            null
-                    END
-                ),
-                null
-            )
-        containments
-        FROM ${NODES_TABLE} n1
-        left join ${CONTAINMENTS_TABLE} con  on con.node_id  = n1.id 
-        where n1.id IN ${sqlNodeCollection}
-        group by n1.id, con.node_id
-    ),
-    node_references AS (
-        select    
-            n1.id ,
-            array_remove(array_agg(
-                CASE 
-                    WHEN rref.reference_key IS NOT NULL THEN
-                        jsonb_build_object(
-                            'reference',
-                                json_build_object(
-                                    'version', rref.reference_version,
-                                    'language', rref.reference_language,
-                                    'key', rref.reference_key
-                                ),     
-                              'targets', rref.targets
-                          )
-                    WHEN TRUE THEN
-                        null
-                END), null)        rreferences
-        from ${NODES_TABLE} n1
-        left join ${REFERENCES_TABLE} rref  on rref.node_id  = n1.id 
-        where n1.id IN ${sqlNodeCollection}
-        group by n1.id, rref.node_id
-    )
-
-select 
-    lionweb_nodes.id,
-    jsonb_build_object(
-            'key', lionweb_nodes.classifier_key,
-            'language', lionweb_nodes.classifier_language,
-            'version', lionweb_nodes.classifier_version) classifier,
-    lionweb_nodes.parent,
-    array_to_json(prop.properties) properties,
-    array_to_json(containments) containments,
-    array_to_json(rreferences) references,
-    annotations annotations
-from ${NODES_TABLE}
-left join node_properties prop on prop.id = lionweb_nodes.id
-left join node_containments con on con.id = lionweb_nodes.id
-left join node_references rref on rref.id = lionweb_nodes.id
-where lionweb_nodes.id IN ${sqlNodeCollection}
-
-    `
+    return nodesForQueryQuery(`SELECT * FROM ${NODES_TABLE} WHERE id IN ${sqlNodeCollection}\n`)
 }
 
 /**

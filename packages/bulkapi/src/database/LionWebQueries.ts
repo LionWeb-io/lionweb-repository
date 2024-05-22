@@ -80,8 +80,8 @@ export class LionWebQueries {
         }
     }
 
-    getNodesFromIdList = async (task: ITask<object>, nodeIdList: string[]): Promise<LionWebJsonNode[]> => {
-        logger.dbLog("LionWebQueries.getNodesFromIdList: " + nodeIdList)
+    getNodesFromIdListIncludingChildren = async (task: ITask<object>, nodeIdList: string[]): Promise<LionWebJsonNode[]> => {
+        logger.dbLog("LionWebQueries.getNodesFromIdListIncludingChildren: " + nodeIdList)
         // this is necessary as otherwise the query would crash as it is not intended to be run on an empty set
         if (nodeIdList.length == 0) {
             return []
@@ -438,7 +438,7 @@ export class LionWebQueries {
     async deletePartitions(task: ITask<object>, clientId: string, idList: string[]): Promise<void> {
         logger.dbLog("LionWebQueries.deletePartitions: " + idList)
         // TODO combine in one query
-        const partitions = await this.getNodesFromIdList(task, idList)
+        const partitions = await this.getNodesFromIdListIncludingChildren(task, idList)
         // Validate that the nodes are partitions
         partitions.forEach(part => {
             if (part.parent !== null) {

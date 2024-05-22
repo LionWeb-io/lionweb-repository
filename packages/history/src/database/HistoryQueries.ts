@@ -60,7 +60,7 @@ export class HistoryQueries {
     /**
      * Get all partitions: this returns all nodes that have parent set to null or undefined
      */
-    getPartitions = async (repoVersion: number): Promise<QueryReturnType<PartitionsResponse>> => {
+    getPartitionsForVersion = async (repoVersion: number): Promise<QueryReturnType<PartitionsResponse>> => {
         logger.requestLog("HistoryQueries.getPartitions for version " + repoVersion)
         // TODO Combine both queries
         const query = `SELECT id FROM nodesForVersion(${repoVersion}) WHERE parent is null`

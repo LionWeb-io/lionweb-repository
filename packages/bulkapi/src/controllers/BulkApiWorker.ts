@@ -9,7 +9,7 @@ import {
 } from "@lionweb/repository-common";
 import { LionWebJsonChunk } from "@lionweb/validation"
 import { currentRepoVersionQuery, versionResultToResponse } from "../database/index.js";
-import { retrieveQuery } from "../database/RetrieveInOneQuery.js";
+import { retrieveWith } from "../database/RetrieveInOneQuery.js";
 import { BulkApiContext } from "../main.js"
 
 /**
@@ -34,7 +34,7 @@ export class BulkApiWorker {
         logger.requestLog("BulkApiWorker.createPartitions")
         // TODO Optimize: This reuses the "getNodesFromIdList", but that retrieves full nodes, which is not needed here
         return await this.context.dbConnection.tx(async task => {
-            const existingNodes = await this.context.queries.getNodesFromIdList(task, chunk.nodes.map(n => n.id))
+            const existingNodes = await this.context.queries.getNodesFromIdListIncludingChildren(task, chunk.nodes.map(n => n.id))
             if (existingNodes.length > 0) {
                 return { 
                     status: HttpClientErrors.PreconditionFailed, 
@@ -59,7 +59,7 @@ export class BulkApiWorker {
     deletePartitions = async(clientId: string, idList: string[]): Promise<QueryReturnType<DeletePartitionsResponse>> => {
         // TODO Optimize: only need parent, all features are not needed, can be optimized.
         return await this.context.dbConnection.tx(async task => {
-            const partitions = await this.context.queries.getNodesFromIdList(task, idList)
+            const partitions = await this.context.queries.getNodesFromIdListIncludingChildren(task, idList)
             const issues: ResponseMessage[] = []
             partitions.forEach(part => {
                 if (part.parent !== null) {
@@ -104,7 +104,7 @@ export class BulkApiWorker {
                 }
             }
         }
-        const [versionResult, nodes] = await this.context.dbConnection.multi(currentRepoVersionQuery() + retrieveQuery(nodeIdList, depthLimit))
+        const [versionResult, nodes] = await this.context.dbConnection.multi(currentRepoVersionQuery() + retrieveWith(nodeIdList, depthLimit))
         return {
             status: HttpSuccessCodes.Ok,
             query: "",
