@@ -16,12 +16,12 @@
     "url": "https://github.com/LionWeb-io/lionweb-repository/issues"
   },
   "scripts": {
-    "clean": "rm -rf dist/",
+    "clean": "rm -rf node_modules/ && rm -rf dist/",
     "build": "tsc",
     "lint": "eslint src"
   },
   "dependencies": {
-    "@lionweb/validation": "0.6.3-beta.0",
+    "@lionweb/validation": "0.6.2",
     "@types/express": "4.17.21",
     "pg": "8.11.3",
     "pg-promise": "11.7.8",
