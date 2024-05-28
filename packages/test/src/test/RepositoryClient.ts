@@ -37,6 +37,11 @@ export class RepositoryClient {
         return x
     }
 
+    async initWithoutHistory(): Promise<ClientResponse<LionwebResponse>> {
+        const x = await this.postWithTimeout("initWithoutHistory", { body: {}, params: "" })
+        return x
+    }
+
     async createDatabase(): Promise<ClientResponse<LionwebResponse>> {
         const x = await this.postWithTimeout("createDatabase", { body: {}, params: "" })
         return x

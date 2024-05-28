@@ -45,5 +45,6 @@ export function registerDBAdmin(
 
     // Add routes to app
     app.post("/init", runWithTry(dbAdminApiContext.dbAdminApi.init))
+    app.post("/initWithoutHistory", runWithTry(dbAdminApiContext.dbAdminApi.initWithoutHistory))
     app.post("/createDatabase", runWithTry(dbAdminApiContext.dbAdminApi.createDatabase))
 }

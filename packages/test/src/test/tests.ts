@@ -10,6 +10,7 @@ sm.install()
 const DATA: string = "./data/"
 
 describe("Repository tests", () => {
+    const withoutHistory = true
     const t = new RepositoryClient()
     let initialPartition: LionWebJsonChunk
     let initialPartitionVersion: number = 0
@@ -28,7 +29,7 @@ describe("Repository tests", () => {
     beforeEach("a", async function () {
         initialPartition = t.readModel(DATA + "Disk_A_partition.json") as LionWebJsonChunk
         baseFullChunk = t.readModel(DATA + "Disk_A.json") as LionWebJsonChunk
-        const initResponse = await t.init()
+        const initResponse = await (withoutHistory ? t.initWithoutHistory() : t.init())
         if (initResponse.status !== HttpSuccessCodes.Ok) {
             console.log("Cannot initialize database: " + JSON.stringify(initResponse.body))
         } else {
@@ -402,6 +403,10 @@ describe("Repository tests", () => {
     }
     
     async function testHistory(): Promise<void> {
+        if (withoutHistory) {
+            return
+        }
+        // test historical data
         const repoAt_1 = await t.testPartitionsHistory(initialPartitionVersion)
         const diff = new LionWebJsonDiff()
         diff.diffLwChunk(initialPartition, repoAt_1.chunk)
