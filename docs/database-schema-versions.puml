@@ -1,0 +1,18 @@
+@startuml
+skinparam linetype ortho
+
+entity repo_versions {
+    * version
+    timestamp
+    client_id
+}
+
+entity current_data {
+    *key
+    value
+}
+
+note bottom of current_data
+key === "repo.version" contains current repo version
+end note
+@enduml

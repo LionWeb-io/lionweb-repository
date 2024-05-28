@@ -9,25 +9,28 @@ entity lionweb_nodes {
     * parent
 }
 entity lionweb_properties {
-    * p_id <<key>>
-    --
-    * property: jsonb
-    * value: text
     * node_id <FK>
+    * property_language
+    * property_version
+    * property_key
+    --
+    value: text
 }
 entity lionweb_containments {
-    * c_id <<key>>
-    --
-    * containment: jsonb
-    * children: text[]
     * node_id <FK>
+    * containment_language
+    * containment_version
+    * containment_key
+    --
+    children: text[]
 }
 entity lionweb_references {
-    * r_id <<key>>
-    --
-    * reference: jsonb
-    * targets: jsonb[]
     * node_id <FK>
+    * reference_language
+    * reference_version
+    * reference_key
+    --
+    targets: jsonb[]
 }
 
 lionweb_nodes  ||--o{ lionweb_properties
