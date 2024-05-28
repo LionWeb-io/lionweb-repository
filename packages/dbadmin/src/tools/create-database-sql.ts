@@ -1,6 +1,8 @@
 import {PGDB, PGUSER} from "./configuration.js";
 
 export const CREATE_DATABASE_SQL: string = `
+DROP DATABASE IF EXISTS ${PGDB} WITH (FORCE);
+
 CREATE DATABASE ${PGDB}
     WITH
     OWNER = '${PGUSER}'

@@ -1,4 +1,5 @@
 import { logger } from "@lionweb/repository-common";
+import { PGDB, PGHOST, PGPASSWORD, PGPORT, PGUSER, CREATE_CONFIG, INIT_CONFIG, PostgresConfig } from "@lionweb/repository-dbadmin";
 import pgPromise from "pg-promise"
 import dotenv from "dotenv"
 
@@ -6,17 +7,16 @@ import dotenv from "dotenv"
 
 dotenv.config()
 
-const port = parseInt(process.env.PGPORT || "5432", 10)
-
-export const config = {
-    database: process.env.PGDB || "lionweb_test",
-    host: process.env.PGHOST || "postgres",
-    port: port,
-    user: process.env.PGUSER || "postgres",
-    password: process.env.PGPASSWORD || "lionweb",
+export const config: PostgresConfig = {
+    database: PGDB,
+    host: PGHOST,
+    port: PGPORT,
+    user: PGUSER,
+    password: PGPASSWORD,
 }
 
 logger.dbLog("POSTGRES CONFIG: " + JSON.stringify(config, null, 2))
 
 export const pgp = pgPromise()
-export const dbConnection = pgp(config)
+export const dbConnection = pgp(INIT_CONFIG)
+export const postgresConnection = pgp(CREATE_CONFIG)

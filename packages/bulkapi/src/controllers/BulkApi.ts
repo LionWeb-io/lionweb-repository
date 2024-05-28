@@ -13,7 +13,12 @@ import {
     lionwebResponse,
     ResponseMessage,
     DeletePartitionsResponse,
-    StoreResponse, HttpClientErrors, HttpSuccessCodes, getStringParam, getIntegerParam, isParameterError
+    StoreResponse,
+    HttpClientErrors,
+    HttpSuccessCodes,
+    getStringParam,
+    getIntegerParam,
+    isParameterError
 } from "@lionweb/repository-common"
 
 export interface BulkApi {
@@ -27,9 +32,8 @@ export interface BulkApi {
 }
 
 export class BulkApiImpl implements BulkApi {
-    
-    constructor(private ctx: BulkApiContext) {
-    }
+    constructor(private ctx: BulkApiContext) {}
+
     /**
      * Bulk API: Get all partitions (nodes without parent) from the repo
      * @param request no `parameters` or `body`
@@ -71,7 +75,10 @@ export class BulkApiImpl implements BulkApi {
                 const issues: ResponseMessage[] = []
                 for (const node of chunk.nodes) {
                     if (node.parent !== null && node.parent !== undefined) {
-                        issues.push({ kind: "PartitionHasParent", message: `Node ${node} cannot be created as partition because it has a parent.` })
+                        issues.push({
+                            kind: "PartitionHasParent",
+                            message: `Node ${node} cannot be created as partition because it has a parent.`
+                        })
                     }
                     for (const containment of node.containments) {
                         if (containment.children.length !== 0) {
@@ -82,7 +89,10 @@ export class BulkApiImpl implements BulkApi {
                         }
                     }
                     if (node.annotations.length !== 0) {
-                        issues.push({ kind: "PartitionHasAnnotations", message: `Node ${node.id} cannot be created as a partition because it has annotations` })
+                        issues.push({
+                            kind: "PartitionHasAnnotations",
+                            message: `Node ${node.id} cannot be created as a partition because it has annotations`
+                        })
                     }
                 }
                 if (issues.length !== 0) {
@@ -148,6 +158,7 @@ export class BulkApiImpl implements BulkApi {
             })
         } else {
             const result = await this.ctx.bulkApiWorker.bulkStore(clientId, chunk)
+            result.queryResult.messages.push({ kind: "QueryFromApi", message: result.query })
             lionwebResponse<StoreResponse>(response, result.status, result.queryResult)
         }
     }
@@ -163,7 +174,7 @@ export class BulkApiImpl implements BulkApi {
         const clientId = getStringParam(request, "clientId")
         const depthLimit = getIntegerParam(request, "depthLimit", Number.MAX_SAFE_INTEGER)
         const idList = request.body.ids
-        logger.requestLog("Api.getNodes: " + JSON.stringify(request.body) + " depth " + depthLimit + " clientId: " + clientId)
+        logger.dbLog("Api.getNodes: " + JSON.stringify(request.body) + " depth " + depthLimit + " clientId: " + clientId)
         if (isParameterError(depthLimit)) {
             lionwebResponse(response, HttpClientErrors.PreconditionFailed, {
                 success: false,
@@ -186,7 +197,7 @@ export class BulkApiImpl implements BulkApi {
     }
 
     /**
-     * TODO Implement this properly.
+     * Return a list of id's that are guaranteed to be free and not to be used by any other client.
      * @param request
      * @param response
      */
@@ -209,6 +220,4 @@ export class BulkApiImpl implements BulkApi {
             lionwebResponse(response, result.status, result.queryResult)
         }
     }
-
 }
-

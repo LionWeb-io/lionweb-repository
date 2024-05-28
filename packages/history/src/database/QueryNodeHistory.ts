@@ -1,5 +1,3 @@
-import { CONTAINMENTS_TABLE, NODES_TABLE, PROPERTIES_TABLE, REFERENCES_TABLE, ResponseMessage } from "@lionweb/repository-common";
-
 export function sqlArrayFromNodeIdArray(strings: string[]): string {
     return `(${strings.map(id => `'${id}'`).join(", ")})`
 }
@@ -8,40 +6,20 @@ export function postgresArrayFromStringArray(strings: string[]): string {
     return `{${strings.map(id => `"${id}"`).join(", ")}}`
 }
 
-export function nextRepoVersionQuery(clientId: string) {
-    return `SELECT nextRepoVersion('${clientId}');\n`
-}
-
-export function currentRepoVersionQuery(): string {
-    return `SELECT currentRepoVersion();\n`
-}
-
-/**
- * Converts the result of queries using Postgres function nextRepoVersion or currentRepoVersion to the version number
- * @param versionResult
- */
-export function versionResultToResponse(versionResult: object): ResponseMessage {
-    const version = (versionResult[0]?.currentrepoversion ?? versionResult[0]?.nextrepoversion) as number
-    return {
-        kind: "RepoVersion",
-        message: "RepositoryVersion at end of Transaction",
-        data: { "version": `${version}`}
-    }
-}
-
 /**
  * Query to retrieve the full LionWeb nodes from the database.
- * @param nodesQuery string SQL query to select the sub set of nodes to retrieve.
+ * @param nodeid string[] The node ids for which the full node needs to be retrieved.
  * @constructor
  */
-export const nodesForQueryQuery = (nodesQuery: string): string => {
-    return `-- Get the nodes for the nodes query
-    WITH relevant_nodes AS (
-        ${nodesQuery}
-    ),
+export const QueryNodeForIdList = (nodeid: string[], repoVersion: number): string => {
+    return `-- get full nodes from node id's
+WITH nodes_for_version AS (
+    SELECT * FROM nodesForVersion(${repoVersion})
+),
+ 
     node_properties AS ( 
         SELECT
-            relevant_nodes.id ,
+            n1.id ,
             array_remove(
                 array_agg(
                     CASE
@@ -61,12 +39,12 @@ export const nodesForQueryQuery = (nodesQuery: string): string => {
                 ),
                 null
             ) properties
-        FROM relevant_nodes
-        left join ${PROPERTIES_TABLE} prop  on prop.node_id  = relevant_nodes.id 
-        group by relevant_nodes.id, prop.node_id
+        FROM nodes_for_version n1 
+        LEFT JOIN propertiesForVersion(${repoVersion}) prop  on prop.node_id  = n1.id 
+        group by n1.id, prop.node_id
     ),
     node_containments AS (
-        SELECT    
+        select    
             n1.id ,
             array_remove(
                 array_agg(
@@ -88,8 +66,8 @@ export const nodesForQueryQuery = (nodesQuery: string): string => {
                 null
             )
         containments
-        FROM node_properties n1
-        LEFT JOIN ${CONTAINMENTS_TABLE} con  ON con.node_id  = n1.id 
+        FROM nodes_for_version n1
+        LEFT JOIN containmentsForVersion(${repoVersion}) con  on con.node_id  = n1.id 
         group by n1.id, con.node_id
     ),
     node_references AS (
@@ -110,32 +88,29 @@ export const nodesForQueryQuery = (nodesQuery: string): string => {
                     WHEN TRUE THEN
                         null
                 END), null)        rreferences
-        from node_properties n1
-        left join ${REFERENCES_TABLE} rref  on rref.node_id  = n1.id 
-        group by n1.id, rref.node_id
+        FROM nodes_for_version n1
+        LEFT JOIN referencesForVersion(${repoVersion}) rref  on rref.node_id  = n1.id 
+        GROUP BY n1.id, rref.node_id
     )
 
-select 
-    relevant_nodes.id,
+SELECT 
+    nodes_for_version.id,
     jsonb_build_object(
-            'key', relevant_nodes.classifier_key,
-            'language', relevant_nodes.classifier_language,
-            'version', relevant_nodes.classifier_version) classifier,
-    relevant_nodes.parent,
+            'key', classifier_key,
+            'language', classifier_language,
+            'version', classifier_version) classifier,
+    parent,
     array_to_json(prop.properties) properties,
     array_to_json(containments) containments,
     array_to_json(rreferences) references,
     annotations annotations
-from relevant_nodes
-left join node_properties prop on prop.id = relevant_nodes.id
-left join node_containments con on con.id = relevant_nodes.id
-left join node_references rref on rref.id = relevant_nodes.id
-`
-}
+FROM nodes_for_version
+LEFT JOIN node_properties prop on prop.id = nodes_for_version.id
+LEFT JOIN node_containments con on con.id = nodes_for_version.id
+LEFT JOIN node_references rref on rref.id = nodes_for_version.id
 
-export const QueryNodeForIdList = (nodeid: string[]): string => {
-    const sqlNodeCollection = sqlArrayFromNodeIdArray(nodeid)
-    return nodesForQueryQuery(`SELECT * FROM ${NODES_TABLE} WHERE id IN ${sqlNodeCollection}\n`)
+
+    `
 }
 
 /**
@@ -145,16 +120,20 @@ export const QueryNodeForIdList = (nodeid: string[]): string => {
  * @param nodeidlist
  * @param depthLimit
  */
-export const makeQueryNodeTreeForIdList = (nodeidlist: string[], depthLimit: number): string => {
+export const makeQueryNodeTreeForIdList = (nodeidlist: string[], depthLimit: number, repoVersion: number): string => {
     const sqlArray = sqlArrayFromNodeIdArray(nodeidlist)
     return `-- Recursively retrieve node tree
+            DROP VIEW IF EXISTS nodes;
+            CREATE TEMPORARY VIEW nodes AS
+                SELECT * FROM nodesForVersion(${repoVersion});
+            
             WITH RECURSIVE tmp AS (
                 SELECT id, parent, 0 as depth
-                FROM ${NODES_TABLE}
+                FROM nodes
                 WHERE id IN ${sqlArray}    
                 UNION
                     SELECT nn.id, nn.parent, tmp.depth + 1
-                    FROM ${NODES_TABLE} as nn
+                    FROM nodes as nn
                     INNER JOIN tmp ON tmp.id = nn.parent
                     WHERE tmp.depth < ${depthLimit} -- AND nn.id NOT in ${"otherArray"}
             )

@@ -1,11 +1,11 @@
 import { Response } from "express"
-import { LionWebJsonChunk } from "@lionweb/validation";
+import { LionWebJsonChunk } from "@lionweb/validation"
 
 // "string" is needed as MessageKind can also be any of the ValidationIssue kinds.
-export type MessageKind = 
-    "PartitionHasParent" 
+export type MessageKind =
+    | "PartitionHasParent"
     | "Info"
-    | "PartitionHasChildren" 
+    | "PartitionHasChildren"
     | "PartitionHasAnnotations"
     | "EmptyChunk"
     | "NullChunk"
@@ -20,9 +20,9 @@ export type MessageKind =
     | string
 
 export type ResponseMessage = {
-    kind   : MessageKind
+    kind: MessageKind
     message: string
-    data?  : Record<string, string>
+    data?: Record<string, string>
 }
 
 /**
@@ -30,10 +30,8 @@ export type ResponseMessage = {
  * @param object
  */
 export function isResponseMessage(object: unknown): object is ResponseMessage {
-    return object["kind"] !== undefined &&
-        typeof object["kind"] === "string"
-        object["message"] !== undefined &&
-        typeof object["message"] === "string"
+    return object["kind"] !== undefined && typeof object["kind"] === "string"
+    object["message"] !== undefined && typeof object["message"] === "string"
 }
 
 export interface LionwebResponse {
@@ -49,14 +47,11 @@ export interface PartitionsResponse extends LionwebResponse {
     chunk: LionWebJsonChunk
 }
 
-export interface StoreResponse extends LionwebResponse {
-}
+export interface StoreResponse extends LionwebResponse {}
 
-export interface CreatePartitionsResponse extends LionwebResponse {
-}
+export interface CreatePartitionsResponse extends LionwebResponse {}
 
-export interface DeletePartitionsResponse extends LionwebResponse {
-}
+export interface DeletePartitionsResponse extends LionwebResponse {}
 
 export interface IdsResponse extends LionwebResponse {
     ids: string[]
@@ -77,10 +72,8 @@ export const EMPTY_FAIL_RESPONSE: LionwebResponse = {
     messages: []
 }
 
-
 export type QueryReturnType<T> = {
     status: number
     query: string
     queryResult: T
 }
-

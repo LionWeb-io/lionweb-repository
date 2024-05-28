@@ -1,0 +1,115 @@
+@startuml
+skinparam linetype ortho
+
+entity lionweb_nodes_history {
+    * from_version
+    to_version
+    --
+    * id
+    --
+    classifier_language
+    classifier_version
+    classifier_key
+    annotations: text[]
+    parent
+}
+entity lionweb_properties_history {
+    * from_version
+    to_version
+    --
+    * node_id <FK>
+    * property_language
+    * property_version
+    * property_key
+    --
+    value: text
+}
+entity lionweb_containments_history {
+    * from_version
+    to_version
+    --
+    * node_id <FK>
+    * containment_language
+    * containment_version
+    * containment_key
+    --
+    children: text[]
+}
+entity lionweb_references_history {
+    * from_version
+    to_version
+    --
+    * node_id <FK>
+    * reference_language
+    * reference_version
+    * reference_key
+    --
+    targets: jsonb[]
+}
+
+entity lionweb_nodes <<VIEW WHERE to_version === FOREVER>> #LightYellow {
+    * id <<KEY>>
+    --
+    classifier_language
+    classifier_version
+    classifier_key
+    annotations: text[]
+    parent
+}
+
+
+lionweb_nodes_history  ||--o{ lionweb_properties_history
+lionweb_nodes_history  ||--o{ lionweb_containments_history
+lionweb_nodes_history  ||--o{ lionweb_references_history
+
+entity lionweb_properties <<VIEW WHERE to_version === FOREVER>> #LightYellow {
+    * node_id <FK>
+    * property_language
+    * property_version
+    * property_key
+    --
+    value: text
+}
+entity lionweb_containments <<VIEW WHERE to_version === FOREVER>> #LightYellow {
+    * node_id <FK>
+    * containment_language
+    * containment_version
+    * containment_key
+    --
+    children: text[]
+}
+entity lionweb_references  <<VIEW WHERE to_version === FOREVER>> #LightYellow {
+    * node_id <FK>
+    * reference_language
+    * reference_version
+    * reference_key
+    --
+    targets: jsonb[]
+}
+
+lionweb_nodes  ||--o{ lionweb_properties
+lionweb_nodes  ||--o{ lionweb_containments
+lionweb_nodes  ||--o{ lionweb_references
+
+note bottom of lionweb_properties #LightYellow
+All insert, update and delete queries on these views trigger Postgres functions that:
+First increments //current repo version//, and then
+
+**INSERT**
+* Insert in corresponding <table>_history table with 
+** //**from_version**// := //current repo version//, and
+** //**to_version**// := //FOREVER//
+
+**DELETE**
+* In corresponding <table>_history table change row with //**to_version**// === //FOREVER//
+** //**to_version**// := //current repo version// - 1
+
+**UPDATE**
+* Update existing row in corresponding <table>_history table row with //**to_version**// === //FOREVER//
+** change //**to_version**// := //current repo version// -1
+
+* Insert in corresponding <table>_history table new row with 
+** //**from_version**// := //current repo version//, and 
+** //**to_version**// := //FOREVER//
+end note
+@enduml

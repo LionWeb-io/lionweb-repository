@@ -44,6 +44,7 @@
     "./packages/languages",
     "./packages/inspection",
     "./packages/bulkapi",
+    "./packages/history",
     "./packages/additionalapi",
     "./packages/server",
     "./packages/test",
