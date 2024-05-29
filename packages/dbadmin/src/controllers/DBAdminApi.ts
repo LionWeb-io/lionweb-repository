@@ -1,11 +1,12 @@
 import e, { Request, Response } from "express"
 import { HttpSuccessCodes, lionwebResponse, logger } from "@lionweb/repository-common";
 import { DbAdminApiContext } from "../main.js";
-import { CREATE_DATABASE_SQL, INIT_TABLES_SQL } from "../tools/index.js";
+import { CREATE_DATABASE_SQL, INIT_TABLES_SQL, INIT_TABLES_SQL_WITHOUT_HISTORY } from "../tools/index.js";
 
 export interface DBAdminApi {
     createDatabase(request: Request, response: Response): void
     init(request: Request, response: Response): void
+    initWithoutHistory(request: Request, response: Response): void
 }
 
 export class DBAdminApiImpl implements DBAdminApi {
@@ -21,10 +22,19 @@ export class DBAdminApiImpl implements DBAdminApi {
             messages: [ {kind: "Info", message: result.queryResult} ]
         })
     }
-    
+
     init = async(request: e.Request, response: e.Response) => {
         logger.requestLog(` * init request received, with body of ${request.headers["content-length"]} bytes`)
         const result = await this.ctx.dbAdminApiWorker.init(removeNewlinesBetween$$(INIT_TABLES_SQL))
+        lionwebResponse(response, result.status, {
+            success: result.status === HttpSuccessCodes.Ok,
+            messages: [ {kind: "Info", message: result.queryResult} ]
+        })
+    }
+
+    initWithoutHistory = async(request: e.Request, response: e.Response) => {
+        logger.requestLog(` * initWithoutHistory request received, with body of ${request.headers["content-length"]} bytes`)
+        const result = await this.ctx.dbAdminApiWorker.init(removeNewlinesBetween$$(INIT_TABLES_SQL_WITHOUT_HISTORY))
         lionwebResponse(response, result.status, {
             success: result.status === HttpSuccessCodes.Ok,
             messages: [ {kind: "Info", message: result.queryResult} ]

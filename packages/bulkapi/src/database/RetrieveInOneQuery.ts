@@ -1,4 +1,3 @@
-import { CONTAINMENTS_TABLE, NODES_TABLE, PROPERTIES_TABLE, REFERENCES_TABLE } from "@lionweb/repository-common";
 import { nodesForQueryQuery } from "./QueryNode.js";
 
 export function sqlArrayFromNodeIdArray(strings: string[]): string {
