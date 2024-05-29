@@ -1,6 +1,6 @@
 import { InspectionContext } from "../main.js";
 
-const MAX_NUMBER_OF_IDS = 5000
+// Not used: const MAX_NUMBER_OF_IDS = 5000
 
 export interface LanguageNodes {
     language: string,

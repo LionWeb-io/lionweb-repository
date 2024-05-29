@@ -1,25 +1,26 @@
+import { RepositoryClient } from "@lionweb/repository-client";
 import { LionWebJsonChunk } from "@lionweb/validation"
-import { RepositoryClient } from "./RepositoryClient.js"
+import { readModel } from "./utils.js"
 
-const test = new RepositoryClient()
+const test = new RepositoryClient("Manual")
 
 console.log("Testing: " + process.argv[2])
 switch (process.argv[2]) {
     case "store":
-        test.testStore(test.readModel("./src/test/data/Disk_1.json") as LionWebJsonChunk)
+        test.bulk.store(readModel("./src/test/data/Disk_1.json") as LionWebJsonChunk)
         break
     case "partitions": {
-        const partitions = test.testPartitions()
+        const partitions = test.bulk.listPartitions()
         console.log("Partitions: " + JSON.stringify(partitions, null, 2))
         break
     }
     case "retrieve": {
-        const chunk = test.testRetrieve(["ID-2"])
+        const chunk = test.bulk.retrieve(["ID-2"])
         console.log("Retrieved: " + JSON.stringify(chunk, null, 2))
         break
     }
     case "nodetree":
-        test.testGetNodeTree(["ID-2"])
+        test.additional.getNodeTree(["ID-2"])
         break
     default:
         console.log("Unknown test")
