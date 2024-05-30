@@ -19,7 +19,10 @@
   "scripts": {
     "clean": "rm -rf node_modules/ && rm -rf dist/",
     "build": "tsc",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "publish-local": "npm publish --registry http://localhost:4873",
+    "unpublish-local": "npm unpublish --force --registry http://localhost:4873",
+    "republish-local": "npm run unpublish-local && npm run publish-local"
   },
   "dependencies": {
     "@lionweb/validation": "0.6.2"
