@@ -1,0 +1,41 @@
+{
+  "private": false,
+  "name": "@lionweb/repository-client",
+  "version": "0.1.1",
+  "description": "Library to access repository server from a TypeScript/JavaScript client",
+  "main": "dist/index.js",
+  "exports": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "typings": "dist/index.d.ts",
+  "type": "module",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LionWeb-io/lionweb-repository.git"
+  },
+  "bugs": {
+    "url": "https://github.com/LionWeb-io/lionweb-repository/issues"
+  },
+  "scripts": {
+    "clean": "rm -rf node_modules/ && rm -rf dist/",
+    "build": "tsc",
+    "lint": "eslint src",
+    "publish-local": "npm publish --registry http://localhost:4873",
+    "unpublish-local": "npm unpublish --force --registry http://localhost:4873",
+    "republish-local": "npm run unpublish-local && npm run publish-local"
+  },
+  "dependencies": {
+    "@lionweb/validation": "0.6.2"
+  },
+  "devDependencies": {
+    "prettier": "3.1.0",
+    "@typescript-eslint/eslint-plugin": "6.13.2",
+    "@typescript-eslint/parser": "6.13.2",
+    "@types/chai": "4.3.11",
+    "@types/mocha": "10.0.1",
+    "eslint": "8.56.0",
+    "chai": "4.3.10",
+    "mocha": "10.2.0",
+    "typescript": "5.2.2"
+  }
+}

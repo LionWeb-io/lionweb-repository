@@ -47,6 +47,7 @@
     "./packages/history",
     "./packages/additionalapi",
     "./packages/server",
+    "./packages/client",
     "./packages/test",
     "."
   ]

@@ -173,6 +173,11 @@ export class BulkApiImpl implements BulkApi {
         logger.requestLog(` * retrieve request received, with body of ${request.headers["content-length"]} bytes`)
         const clientId = getStringParam(request, "clientId")
         const depthLimit = getIntegerParam(request, "depthLimit", Number.MAX_SAFE_INTEGER)
+        let model = getStringParam(request, "model")
+        if (isParameterError(model)) {
+            // use the default 
+            model = "lionweb_test" 
+        }
         const idList = request.body.ids
         logger.dbLog("Api.getNodes: " + JSON.stringify(request.body) + " depth " + depthLimit + " clientId: " + clientId)
         if (isParameterError(depthLimit)) {

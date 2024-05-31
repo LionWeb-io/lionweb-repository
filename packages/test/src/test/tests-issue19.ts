@@ -1,20 +1,21 @@
+import { RepositoryClient } from "@lionweb/repository-client";
 import { HttpSuccessCodes, RetrieveResponse } from "@lionweb/repository-common";
 import { LionWebJsonChunk, LionWebJsonChunkWrapper } from "@lionweb/validation"
-import { assert } from "chai"
-import { RepositoryClient } from "./RepositoryClient.js"
+import { readModel } from "./utils.js"
 
+import { assert } from "chai"
 import sm from "source-map-support"
 sm.install()
 const DATA: string = "./data/"
 
 describe("Repository tests", () => {
-    const t = new RepositoryClient()
+    const t = new RepositoryClient("TestClient")
 
     beforeEach("a", async function () {
-        await t.init()
-        await t.testCreatePartitions(t.readModel(DATA + "Disk_A_partition.json") as LionWebJsonChunk)
+        await t.dbAdmin.init()
+        await t.bulk.createPartitions(readModel(DATA + "Disk_A_partition.json") as LionWebJsonChunk)
     })
-    
+
     describe("Add new node", () => {
         it("test update single node", async () => {
             await storeFiles([
@@ -27,11 +28,11 @@ describe("Repository tests", () => {
 
     async function storeFiles(files: string[]) {
         for(const file of files) {
-            const changesChunk = t.readModel(file) as LionWebJsonChunk
-            const result = await t.testStore(changesChunk)
+            const changesChunk = readModel(file) as LionWebJsonChunk
+            const result = await t.bulk.store(changesChunk)
             console.log(`Store file ${file} ` + JSON.stringify(result, null, 2))
             assert.isTrue(result.status === HttpSuccessCodes.Ok, "something wrong")
-            const afterRetrieve = await t.testRetrieve(["ID-2"])
+            const afterRetrieve = await t.bulk.retrieve(["ID-2"])
             printChunk((afterRetrieve.body as RetrieveResponse).chunk)
         }
     }

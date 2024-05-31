@@ -1,8 +1,9 @@
+import { RepositoryClient } from "@lionweb/repository-client";
 import { HttpSuccessCodes } from "@lionweb/repository-common";
 import { LionWebJsonChunk } from "@lionweb/validation"
-import { assert } from "chai"
-import { RepositoryClient } from "./RepositoryClient.js"
+import { readModel } from "./utils.js"
 
+import { assert } from "chai"
 const { deepEqual } = assert
 import sm from "source-map-support"
 
@@ -10,11 +11,11 @@ sm.install()
 const DATA: string = "./data/"
 
 describe("Repository tests for inspection APIs", () => {
-    const t = new RepositoryClient()
+    const t = new RepositoryClient("InspectionTests")
     let jsonModel: LionWebJsonChunk
 
     before("create database", async function () {
-        const initResponse = await t.createDatabase()
+        const initResponse = await t.dbAdmin.createDatabase()
         if (initResponse.status !== HttpSuccessCodes.Ok) {
             console.log("Cannot create database: " + JSON.stringify(initResponse.body))
         } else {
@@ -23,26 +24,26 @@ describe("Repository tests for inspection APIs", () => {
     })
     
     beforeEach("a", async function () {
-        const initResponse = await t.init()
+        const initResponse = await t.dbAdmin.init()
         if (initResponse.status !== HttpSuccessCodes.Ok) {
             console.log("Cannot initialize database: " + JSON.stringify(initResponse.body))
         } else {
             console.log("initialized database: " + JSON.stringify(initResponse.body))
         }
-        jsonModel = t.readModel(DATA + "Disk_A.json") as LionWebJsonChunk
-        const initialPartition = t.readModel(DATA + "Disk_A_partition.json") as LionWebJsonChunk
-        const partResult = await t.testCreatePartitions(initialPartition)
+        jsonModel = readModel(DATA + "Disk_A.json") as LionWebJsonChunk
+        const initialPartition = readModel(DATA + "Disk_A_partition.json") as LionWebJsonChunk
+        const partResult = await t.bulk.createPartitions(initialPartition)
         if (partResult.status !== HttpSuccessCodes.Ok) {
             console.log("Cannot create initial partition: " + JSON.stringify(partResult.body))
         }
-        const result = await t.testStore(jsonModel)
+        const result = await t.bulk.store(jsonModel)
         if (result.status !== HttpSuccessCodes.Ok) {
             console.log("Cannot store initial chunk: " + JSON.stringify(result.body))
         }
     })
 
     it("nodes by language", async () => {
-        const result = (await t.testNodesByLanguage())
+        const result = (await t.inspection.nodesByLanguage())
         deepEqual(result, [
                 {
                     language: '-default-key-FileSystem',
@@ -61,7 +62,7 @@ describe("Repository tests for inspection APIs", () => {
     })
 
     it("nodes by classifier", async () => {
-        const result = (await t.testNodesByClassifier())
+        const result = (await t.inspection.nodesByClassifier())
         deepEqual(result, [
                 {
                     "language": "-default-key-FileSystem",
