@@ -122,7 +122,6 @@ export class RepositoryClient {
             this.logError("putWithTimeout.ERROR " + error.message)
             this.handleError(error)
         }
-        this.log("fetching done ....")
         clearTimeout(timeoutId)
         return response
     }
