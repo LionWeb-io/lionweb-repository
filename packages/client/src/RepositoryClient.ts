@@ -23,6 +23,7 @@ export type ClientResponse<T extends LionwebResponse> = {
  *      TIMEOUT: the timeout in ms for a server call
  */      
 export class RepositoryClient {
+    loggingOn = false
     private _nodePort = process.env.NODE_PORT || 3005
     private _SERVER_IP = process.env.REPO_IP || "http://127.0.0.1"
     private _SERVER_URL = `${this._SERVER_IP}:${this._nodePort}/`
@@ -53,7 +54,7 @@ export class RepositoryClient {
         try {
             const controller = new AbortController()
             const timeoutId = setTimeout(() => controller.abort(), this.TIMEOUT)
-            console.log("getWithTimeout: " + `${this._SERVER_URL}${method}${params}`)
+            this.log("getWithTimeout: " + `${this._SERVER_URL}${method}${params}`)
             const promise = await fetch(`${this._SERVER_URL}${method}${params}`, {
                 signal: controller.signal,
                 method: "get",
@@ -75,7 +76,7 @@ export class RepositoryClient {
         try {
             const controller = new AbortController()
             const timeoutId = setTimeout(() => controller.abort(), this.TIMEOUT)
-            console.log("postWithTimeout: " + `${this._SERVER_URL}${method}${params}`)
+            this.log("postWithTimeout: " + `${this._SERVER_URL}${method}${params}`)
             const promise: Response = await fetch(`${this._SERVER_URL}${method}${params}`, {
                 signal: controller.signal,
                 method: "post",
@@ -105,7 +106,7 @@ export class RepositoryClient {
         params = this.findParams(params)
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), this.TIMEOUT)
-        console.log("putWithTimeout: " + `${this._SERVER_URL}${method}${params}`)
+        this.log("putWithTimeout: " + `${this._SERVER_URL}${method}${params}`)
         let response
         try {
             response = await fetch(`${this._SERVER_URL}${method}${params}`, {
@@ -118,10 +119,10 @@ export class RepositoryClient {
             })
         } catch (e) {
             const error = asError(e)
-            console.error("putWithTimeout.ERROR " + error.message)
+            this.logError("putWithTimeout.ERROR " + error.message)
             this.handleError(error)
         }
-        console.log("fetching done ....")
+        this.log("fetching done ....")
         clearTimeout(timeoutId)
         return response
     }
@@ -144,4 +145,24 @@ export class RepositoryClient {
         }
         console.error("handleError: " + JSON.stringify(e))
     }
+
+    /**
+     * Log wne logging turned on
+     * @param message
+     */
+    log(message: string): void {
+        if (this.loggingOn) {
+            console.log(message)
+        }
+    }
+
+    /**
+     * Alwways log errors
+     * @param message
+     */
+    logError(message: string): void {
+        console.log(message)
+    }
+
+
 }

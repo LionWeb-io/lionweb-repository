@@ -10,15 +10,14 @@ export class HistoryApi {
     }
 
     async listPartitions(version: number): Promise<PartitionsResponse> {
-        const partitionsResponse: PartitionsResponse = await this.client.getWithTimeout<PartitionsResponse>("history/listPartitions", { body: {}, params: `repoVersion=${version}` })
-        return partitionsResponse
+        this.client.log(`HistoryApi.listPartitions for version ${version}`)
+        return await this.client.getWithTimeout<PartitionsResponse>("history/listPartitions", { body: {}, params: `repoVersion=${version}` })
     }
 
     async retrieve(version: number, nodeIds: string[], depth?: number): Promise<ClientResponse<RetrieveResponse>> {
-        console.log(`HistoryApi.retrieve ${nodeIds} with depth ${depth}`)
+        this.client.log(`HistoryApi.retrieve ${nodeIds} with depth ${depth}`)
         const params = ((depth === undefined) ? "" : `depthLimit=${depth}`) + `&repoVersion=${version}`
-        const x = await this.client.postWithTimeout(`history/retrieve`, { body: { ids: nodeIds }, params: `${params}` })
-        return x as ClientResponse<RetrieveResponse>
+        return await this.client.postWithTimeout(`history/retrieve`, { body: { ids: nodeIds }, params: `${params}` }) as ClientResponse<RetrieveResponse>
     }
 
 

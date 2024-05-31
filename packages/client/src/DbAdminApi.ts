@@ -9,18 +9,15 @@ export class DbAdminApi {
     }
 
     async init(): Promise<ClientResponse<LionwebResponse>> {
-        const x = await this.client.postWithTimeout("init", { body: {}, params: "" })
-        return x
+        return await this.client.postWithTimeout("init", { body: {}, params: "" })
     }
 
     async initWithoutHistory(): Promise<ClientResponse<LionwebResponse>> {
-        const x = await this.client.postWithTimeout("initWithoutHistory", { body: {}, params: "" })
-        return x
+        return await this.client.postWithTimeout("initWithoutHistory", { body: {}, params: "" })
     }
 
     async createDatabase(): Promise<ClientResponse<LionwebResponse>> {
-        const x = await this.client.postWithTimeout("createDatabase", { body: {}, params: "" })
-        return x
+        return await this.client.postWithTimeout("createDatabase", { body: {}, params: "" })
     }
 }
 

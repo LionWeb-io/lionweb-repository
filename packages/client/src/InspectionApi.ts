@@ -8,15 +8,13 @@ export class InspectionApi {
     }
     
     async nodesByLanguage() {
-        console.log(`InspectionApi.nodesByLanguage`)
-        const result = await this.client.getWithTimeout(`inspection/nodesByLanguage`, { body: {}, params: `` })
-        return result
+        this.client.log(`InspectionApi.nodesByLanguage`)
+        return await this.client.getWithTimeout(`inspection/nodesByLanguage`, { body: {}, params: `` })
     }
 
     async nodesByClassifier() {
-        console.log(`InspectionApi.nodesByClassifier`)
-        const result = await this.client.getWithTimeout(`inspection/nodesByClassifier`, { body: {}, params: `` })
-        return result
+        this.client.log(`InspectionApi.nodesByClassifier`)
+        return await this.client.getWithTimeout(`inspection/nodesByClassifier`, { body: {}, params: `` })
     }
 }
 
