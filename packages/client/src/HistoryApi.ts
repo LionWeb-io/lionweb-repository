@@ -2,6 +2,9 @@ import { PartitionsResponse } from "@lionweb/repository-common";
 import { ClientResponse, RepositoryClient } from "./RepositoryClient.js";
 import { RetrieveResponse } from "./responses.js";
 
+/**
+ * API for accessing hostorical model data
+ */
 export class HistoryApi {
     client: RepositoryClient
     
@@ -9,11 +12,21 @@ export class HistoryApi {
         this.client = client
     }
 
+    /**
+     * When called on a database that was initialized without history, 
+     * this results in a response with body.success === false and erro message: "function nodesforversion(integer) does not exist"
+     * @param version
+     */
     async listPartitions(version: number): Promise<PartitionsResponse> {
         this.client.log(`HistoryApi.listPartitions for version ${version}`)
         return await this.client.getWithTimeout<PartitionsResponse>("history/listPartitions", { body: {}, params: `repoVersion=${version}` })
     }
 
+    /**
+     * When called on a database that was initialized without history,
+     * this results in a response with body.success === false and erro message: "function nodesforversion(integer) does not exist"
+     * @param version
+     */
     async retrieve(version: number, nodeIds: string[], depth?: number): Promise<ClientResponse<RetrieveResponse>> {
         this.client.log(`HistoryApi.retrieve ${nodeIds} with depth ${depth}`)
         const params = ((depth === undefined) ? "" : `depthLimit=${depth}`) + `&repoVersion=${version}`
