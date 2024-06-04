@@ -1,7 +1,7 @@
 import { Express } from "express"
 import pgPromise from "pg-promise"
 import pg from "pg-promise/typescript/pg-subset.js"
-import { runWithTry } from "@lionweb/repository-common";
+import { runWithTry, DbConnection } from "@lionweb/repository-common";
 import { DBAdminApi, DBAdminApiImpl } from "./controllers/DBAdminApi.js"
 import { DBAdminApiWorker } from "./database/DBAdminApiWorker.js"
 
@@ -10,7 +10,7 @@ import { DBAdminApiWorker } from "./database/DBAdminApiWorker.js"
  * Avoids using glocal variables, as they easily get mixed up between the various API packages.
  */
 export class DbAdminApiContext {
-    dbConnection: pgPromise.IDatabase<object, pg.IClient>
+    dbConnectionNew: DbConnection
     /**
      * The _postgresConnection_ has no database in the config, so this can be used to create or drop databases
      */
@@ -19,8 +19,8 @@ export class DbAdminApiContext {
     dbAdminApi: DBAdminApi
     dbAdminApiWorker: DBAdminApiWorker
 
-    constructor(dbConnection: pgPromise.IDatabase<object, pg.IClient>, pgConnection: pgPromise.IDatabase<object, pg.IClient>, pgp: pgPromise.IMain<object, pg.IClient>) {
-        this.dbConnection = dbConnection
+    constructor(dbNew: DbConnection, pgConnection: pgPromise.IDatabase<object, pg.IClient>, pgp: pgPromise.IMain<object, pg.IClient>) {
+        this.dbConnectionNew = dbNew
         this.postgresConnection = pgConnection
         this.pgp = pgp
         this.dbAdminApi = new DBAdminApiImpl(this)
@@ -36,15 +36,17 @@ export class DbAdminApiContext {
  */
 export function registerDBAdmin(
     app: Express,
-    dbConnection: pgPromise.IDatabase<object, pg.IClient>,
+    dbNew: DbConnection,
     pgConnection: pgPromise.IDatabase<object, pg.IClient>,
     pgp: pgPromise.IMain<object, pg.IClient>) {
     console.log("Registering DB Admin Module");
     // Create all objects 
-    const dbAdminApiContext = new DbAdminApiContext(dbConnection, pgConnection, pgp)
+    const dbAdminApiContext = new DbAdminApiContext(dbNew, pgConnection, pgp)
 
     // Add routes to app
     app.post("/init", runWithTry(dbAdminApiContext.dbAdminApi.init))
+    app.post("/initRepository", runWithTry(dbAdminApiContext.dbAdminApi.initRepository))
+    app.post("/initRepositoryWithoutHistory", runWithTry(dbAdminApiContext.dbAdminApi.initRepositoryWithoutHistory))
     app.post("/initWithoutHistory", runWithTry(dbAdminApiContext.dbAdminApi.initWithoutHistory))
     app.post("/createDatabase", runWithTry(dbAdminApiContext.dbAdminApi.createDatabase))
 }

@@ -4,7 +4,7 @@ import {
     DeletePartitionsResponse, EMPTY_CHUNK,
     EMPTY_SUCCES_RESPONSE, HttpClientErrors, HttpSuccessCodes, IdsResponse,
     logger, nodesToChunk,
-    PartitionsResponse, QueryReturnType,
+    PartitionsResponse, QueryReturnType, RepositoryData,
     ResponseMessage, RetrieveResponse, StoreResponse
 } from "@lionweb/repository-common";
 import { LionWebJsonChunk } from "@lionweb/validation"
@@ -23,18 +23,22 @@ export class BulkApiWorker {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    async bulkPartitions(clientId: string): Promise<QueryReturnType<PartitionsResponse>> {
-        return await this.context.queries.getPartitions()
+    async bulkPartitions(repositoryData: RepositoryData): Promise<QueryReturnType<PartitionsResponse>> {
+        const result = await this.context.queries.getPartitions(repositoryData)
+        console.log("BulkApiWorker.bulkPartitions -----------------------------")
+        console.log(JSON.stringify(result, null, 2))
+        return result
     }
 
     /**
      * @param chunk A LionWeb chunk containing all nodes that are to be created as partitions.
      */
-    createPartitions = async (clientId: string, chunk: LionWebJsonChunk): Promise<QueryReturnType<CreatePartitionsResponse>> => {
-        logger.requestLog("BulkApiWorker.createPartitions")
+    createPartitions = async (repositoryData: RepositoryData, chunk: LionWebJsonChunk): Promise<QueryReturnType<CreatePartitionsResponse>> => {
+        logger.requestLog(`BulkApiWorker.createPartitions repo [${JSON.stringify(repositoryData)}]`)
         // TODO Optimize: This reuses the "getNodesFromIdList", but that retrieves full nodes, which is not needed here
-        return await this.context.dbConnection.tx(async task => {
-            const existingNodes = await this.context.queries.getNodesFromIdListIncludingChildren(task, chunk.nodes.map(n => n.id))
+        
+        return await this.context.dbNew.tx(async task => {
+            const existingNodes = await this.context.queries.getNodesFromIdListIncludingChildren(task, repositoryData, chunk.nodes.map(n => n.id))
             if (existingNodes.length > 0) {
                 return { 
                     status: HttpClientErrors.PreconditionFailed, 
@@ -48,7 +52,7 @@ export class BulkApiWorker {
                     } 
                 }
             }
-            return await this.context.queries.createPartitions(task, clientId, chunk)
+            return await this.context.queries.createPartitions(task, repositoryData, chunk)
         })
     }
 
@@ -56,10 +60,10 @@ export class BulkApiWorker {
      * Delete all partitions 
      * @param idList The list of node id's of partition nodes that are to be removed.
      */
-    deletePartitions = async(clientId: string, idList: string[]): Promise<QueryReturnType<DeletePartitionsResponse>> => {
+    deletePartitions = async(repositoryData: RepositoryData, idList: string[]): Promise<QueryReturnType<DeletePartitionsResponse>> => {
         // TODO Optimize: only need parent, all features are not needed, can be optimized.
-        return await this.context.dbConnection.tx(async task => {
-            const partitions = await this.context.queries.getNodesFromIdListIncludingChildren(task, idList)
+        return await this.context.dbNew.tx(async task => {
+            const partitions = await this.context.queries.getNodesFromIdListIncludingChildren(task, repositoryData, idList)
             const issues: ResponseMessage[] = []
             partitions.forEach(part => {
                 if (part.parent !== null) {
@@ -76,14 +80,14 @@ export class BulkApiWorker {
                     }
                 }
             }
-            await this.context.queries.deletePartitions(task, clientId, idList)
+            await this.context.queries.deletePartitions(task, repositoryData, idList)
             return { status: HttpSuccessCodes.Ok, query: "", queryResult: EMPTY_SUCCES_RESPONSE }
         })
     }
       
-    bulkStore = async (clientId: string, chunk: LionWebJsonChunk): Promise<QueryReturnType<StoreResponse>> => {
-        return await this.context.dbConnection.tx(async task => {
-            return this.context.queries.store(task, clientId, chunk)
+    bulkStore = async (repositoryData: RepositoryData, chunk: LionWebJsonChunk): Promise<QueryReturnType<StoreResponse>> => {
+        return await this.context.dbNew.tx(async task => {
+            return await this.context.queries.store(task, repositoryData, chunk)
         })
     }
 
@@ -92,7 +96,7 @@ export class BulkApiWorker {
      * @param nodeIdList
      * @param depthLimit
      */
-    bulkRetrieve = async (clientId: string, nodeIdList: string[], depthLimit: number): Promise<QueryReturnType<RetrieveResponse>> => {
+    bulkRetrieve = async (repositoryData: RepositoryData, nodeIdList: string[], depthLimit: number): Promise<QueryReturnType<RetrieveResponse>> => {
         if (nodeIdList.length === 0) {
             return {
                 status: HttpSuccessCodes.Ok,
@@ -104,7 +108,7 @@ export class BulkApiWorker {
                 }
             }
         }
-        const [versionResult, nodes] = await this.context.dbConnection.multi(currentRepoVersionQuery() + retrieveWith(nodeIdList, depthLimit))
+        const [versionResult, nodes ] = await this.context.dbNew.multi(repositoryData, currentRepoVersionQuery() + retrieveWith(nodeIdList, depthLimit))
         return {
             status: HttpSuccessCodes.Ok,
             query: "",
@@ -121,20 +125,19 @@ export class BulkApiWorker {
      * @param clientId
      * @param count
      */
-    ids = async (clientId: string, count: number): Promise<QueryReturnType<IdsResponse>> => {
-        logger.requestLog("Reserve Count ids " + count + " for " + clientId)
-        return await this.context.dbConnection.tx(async task => {
+    ids = async (repositoryData: RepositoryData, count: number): Promise<QueryReturnType<IdsResponse>> => {
+        logger.requestLog("Reserve Count ids " + count + " for " + repositoryData.clientId)
+        return await this.context.dbNew.tx(async task => {
             const result: string[] = []
             // Create a bunch of ids, they are probably all free 
             let done = false
             while (!done) {
                 for (let i = 0; i < count; i++) {
-                    const id = createId(clientId)
-                    console.log("created id " + id)
+                    const id = createId(repositoryData.clientId)
                     result.push(createId(id))
                 }
                 // Check for already used or reserved ids and remove them if needed
-                const reservedByOtherClient = await this.context.queries.reservedNodeIdsByOtherClient(task, clientId, result)
+                const reservedByOtherClient = await this.context.queries.reservedNodeIdsByOtherClient(task, repositoryData, result)
                 if (reservedByOtherClient.length > 0) {
                     reservedByOtherClient.forEach(reservedId => {
                         const index = result.indexOf(reservedId.node_id)
@@ -142,7 +145,7 @@ export class BulkApiWorker {
                     })
                 }
                 // Remove ids that are already in use
-                const usedIds = await this.context.queries.nodeIdsInUse(task, result)
+                const usedIds = await this.context.queries.nodeIdsInUse(task, repositoryData, result)
                 if (usedIds.length > 0) {
                     usedIds.forEach(usedId => {
                         const index = result.indexOf(usedId.id)
@@ -153,7 +156,7 @@ export class BulkApiWorker {
                     done = true
                 }
             }
-            const returnValue = await this.context.queries.makeNodeIdsReservation(task, clientId, result)
+            const returnValue = await this.context.queries.makeNodeIdsReservation(task, repositoryData, result)
 
             return {
                 status: HttpSuccessCodes.Ok,

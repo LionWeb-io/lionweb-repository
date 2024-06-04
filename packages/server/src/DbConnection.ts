@@ -18,5 +18,5 @@ export const config: PostgresConfig = {
 logger.dbLog("POSTGRES CONFIG: " + JSON.stringify(config, null, 2))
 
 export const pgp = pgPromise()
-export const dbConnection = pgp(INIT_CONFIG)
+export const databaseConnection = pgp(INIT_CONFIG)
 export const postgresConnection = pgp(CREATE_CONFIG)

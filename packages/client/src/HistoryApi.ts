@@ -17,9 +17,9 @@ export class HistoryApi {
      * this results in a response with body.success === false and erro message: "function nodesforversion(integer) does not exist"
      * @param version
      */
-    async listPartitions(version: number): Promise<PartitionsResponse> {
+    async listPartitions(version: number): Promise<ClientResponse<PartitionsResponse>> {
         this.client.log(`HistoryApi.listPartitions for version ${version}`)
-        return await this.client.getWithTimeout<PartitionsResponse>("history/listPartitions", { body: {}, params: `repoVersion=${version}` })
+        return await this.client.postWithTimeout("history/listPartitions", { body: {}, params: `repoVersion=${version}` }) as ClientResponse<PartitionsResponse>
     }
 
     /**

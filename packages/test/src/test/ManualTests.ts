@@ -2,7 +2,7 @@ import { RepositoryClient } from "@lionweb/repository-client";
 import { LionWebJsonChunk } from "@lionweb/validation"
 import { readModel } from "./utils.js"
 
-const test = new RepositoryClient("Manual")
+const test = new RepositoryClient("Manual", "public")
 
 console.log("Testing: " + process.argv[2])
 switch (process.argv[2]) {

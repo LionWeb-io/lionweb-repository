@@ -11,7 +11,7 @@ sm.install()
 const DATA: string = "./data/"
 
 describe("Repository tests for inspection APIs", () => {
-    const t = new RepositoryClient("InspectionTests")
+    const t = new RepositoryClient("InspectionTests", "public")
     let jsonModel: LionWebJsonChunk
 
     before("create database", async function () {

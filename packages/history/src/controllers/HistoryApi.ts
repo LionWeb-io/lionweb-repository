@@ -8,7 +8,7 @@ import {
     logger,
     PartitionsResponse,
     lionwebResponse,
-    HttpClientErrors, getStringParam, getIntegerParam, isParameterError, StoreResponse, FOREVER
+    HttpClientErrors, getStringParam, getIntegerParam, isParameterError, StoreResponse, FOREVER, getRepositoryParameter
 } from "@lionweb/repository-common"
 
 export interface HistoryApi {
@@ -40,7 +40,7 @@ export class HistoryApiImpl implements HistoryApi {
                     messages: [repoVersion.error]
                 })
         } else {
-            const result = await this.ctx.historyApiWorker.bulkPartitions(clientId, repoVersion)
+            const result = await this.ctx.historyApiWorker.bulkPartitions({ clientId: clientId, repository: getRepositoryParameter(request) }, repoVersion)
             lionwebResponse<PartitionsResponse>(response, result.status, result.queryResult)
         }
     }
@@ -79,7 +79,7 @@ export class HistoryApiImpl implements HistoryApi {
                 messages: [repoVersion.error]
             })
         } else {
-            const result = await this.ctx.historyApiWorker.bulkRetrieve(clientId, idList, depthLimit, repoVersion)
+            const result = await this.ctx.historyApiWorker.bulkRetrieve({clientId: clientId, repository: getRepositoryParameter(request)}, idList, depthLimit, repoVersion)
             lionwebResponse(response, result.status, result.queryResult)
         }
     }

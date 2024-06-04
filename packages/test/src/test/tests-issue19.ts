@@ -1,6 +1,6 @@
 import { RepositoryClient } from "@lionweb/repository-client";
-import { HttpSuccessCodes, RetrieveResponse } from "@lionweb/repository-common";
-import { LionWebJsonChunk, LionWebJsonChunkWrapper } from "@lionweb/validation"
+import { HttpSuccessCodes } from "@lionweb/repository-common";
+import { LionWebJsonChunk } from "@lionweb/validation"
 import { readModel } from "./utils.js"
 
 import { assert } from "chai"
@@ -9,7 +9,7 @@ sm.install()
 const DATA: string = "./data/"
 
 describe("Repository tests", () => {
-    const t = new RepositoryClient("TestClient")
+    const t = new RepositoryClient("TestClient", "public")
 
     beforeEach("a", async function () {
         await t.dbAdmin.init()
@@ -30,15 +30,8 @@ describe("Repository tests", () => {
         for(const file of files) {
             const changesChunk = readModel(file) as LionWebJsonChunk
             const result = await t.bulk.store(changesChunk)
-            console.log(`Store file ${file} ` + JSON.stringify(result, null, 2))
-            assert.isTrue(result.status === HttpSuccessCodes.Ok, "something wrong")
-            const afterRetrieve = await t.bulk.retrieve(["ID-2"])
-            printChunk((afterRetrieve.body as RetrieveResponse).chunk)
+            assert.isTrue(result.status === HttpSuccessCodes.Ok, "Incorrect HTTP status: something went wrong")
         }
     }
 })
 
-function printChunk(chunk: LionWebJsonChunk): void {
-    const wrapper = new LionWebJsonChunkWrapper(chunk)
-    console.log(wrapper.asString())
-}

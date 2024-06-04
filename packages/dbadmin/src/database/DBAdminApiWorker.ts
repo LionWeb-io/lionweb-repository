@@ -1,5 +1,6 @@
-import { HttpSuccessCodes, QueryReturnType } from "@lionweb/repository-common";
+import { HttpSuccessCodes, QueryReturnType, removeNewlinesBetween$$, RepositoryData } from "@lionweb/repository-common";
 import { DbAdminApiContext } from "../main.js";
+import { initSchemaWithHistory, initSchemaWithoutHistory } from "../tools/index.js";
 
 /**
  * Implementations of the additional non-LionWeb methods for DB Administration.
@@ -11,9 +12,30 @@ export class DBAdminApiWorker {
     constructor(private ctx: DbAdminApiContext) {
     }
 
-    async init(sql: string): Promise<QueryReturnType<string>> {
-        console.log("DBAdminApiWorker.init: " + sql)
-        const queryResult = await this.ctx.dbConnection.query(sql)
+    async init(repositoryData: RepositoryData, sql: string): Promise<QueryReturnType<string>> {
+        const queryResult = await this.ctx.dbConnectionNew.createSchema(repositoryData, sql)
+        return {
+            status: HttpSuccessCodes.Ok,
+            query: "",
+            queryResult: JSON.stringify(queryResult),
+        }
+    }
+
+    async initRepository(repositoryData: RepositoryData): Promise<QueryReturnType<string>> {
+        const schemaSql = initSchemaWithHistory(repositoryData.repository)
+        const sql = removeNewlinesBetween$$(schemaSql)
+        const queryResult = await this.ctx.dbConnectionNew.createSchema(repositoryData, sql)
+        return {
+            status: HttpSuccessCodes.Ok,
+            query: "",
+            queryResult: JSON.stringify(queryResult),
+        }
+    }
+
+    async initRepositoryWithoutHistory(repositoryData: RepositoryData): Promise<QueryReturnType<string>> {
+        const schemaSql = initSchemaWithoutHistory(repositoryData.repository)
+        const sql = removeNewlinesBetween$$(schemaSql)
+        const queryResult = await this.ctx.dbConnectionNew.createSchema(repositoryData, sql)
         return {
             status: HttpSuccessCodes.Ok,
             query: "",
@@ -23,14 +45,11 @@ export class DBAdminApiWorker {
 
     async createDatabase(sql: string): Promise<QueryReturnType<string>> {
         if (!this.done) {
-            // const q = this.ctx.pgp.helpers.concat([sql])
-            console.log(sql)
-            // split the file into separate statements
+             // split the file into separate statements
             const statements = sql.split(/;\s*$/m)
             for (const statement of statements) {
                 if (statement.length > 3) {
                     // execute each of the statements
-                    console.log("STATEMENT " + statement)
                     await this.ctx.postgresConnection.none(statement)
                 }
             }
@@ -42,7 +61,6 @@ export class DBAdminApiWorker {
                 queryResult: "{}",
             }
         } else {
-            console.log("TWICE TRWICE")
             return {
                 status: HttpSuccessCodes.Ok,
                 query: sql,
