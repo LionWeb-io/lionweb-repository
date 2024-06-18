@@ -1,6 +1,12 @@
-import { HttpSuccessCodes, QueryReturnType, removeNewlinesBetween$$, RepositoryData } from "@lionweb/repository-common";
+import {
+    HttpSuccessCodes,
+    QueryReturnType,
+    removeNewlinesBetween$$,
+    RepositoryData
+} from "@lionweb/repository-common";
+import { Request, Response } from "express";
 import { DbAdminApiContext } from "../main.js";
-import { initSchemaWithHistory, initSchemaWithoutHistory } from "../tools/index.js";
+import { dropSchema, initSchemaWithHistory, initSchemaWithoutHistory } from "../tools/index.js";
 
 /**
  * Implementations of the additional non-LionWeb methods for DB Administration.
@@ -12,8 +18,8 @@ export class DBAdminApiWorker {
     constructor(private ctx: DbAdminApiContext) {
     }
 
-    async init(repositoryData: RepositoryData, sql: string): Promise<QueryReturnType<string>> {
-        const queryResult = await this.ctx.dbConnectionNew.createSchema(repositoryData, sql)
+    async deleteRepository(repositoryData: RepositoryData): Promise<QueryReturnType<string>> {
+        const queryResult = await this.ctx.dbConnectionNew.deleteSchema(repositoryData, dropSchema(repositoryData.repository) )
         return {
             status: HttpSuccessCodes.Ok,
             query: "",
@@ -21,7 +27,7 @@ export class DBAdminApiWorker {
         }
     }
 
-    async initRepository(repositoryData: RepositoryData): Promise<QueryReturnType<string>> {
+    async createRepository(repositoryData: RepositoryData): Promise<QueryReturnType<string>> {
         const schemaSql = initSchemaWithHistory(repositoryData.repository)
         const sql = removeNewlinesBetween$$(schemaSql)
         const queryResult = await this.ctx.dbConnectionNew.createSchema(repositoryData, sql)
@@ -32,7 +38,7 @@ export class DBAdminApiWorker {
         }
     }
 
-    async initRepositoryWithoutHistory(repositoryData: RepositoryData): Promise<QueryReturnType<string>> {
+    async createRepositoryWithoutHistory(repositoryData: RepositoryData): Promise<QueryReturnType<string>> {
         const schemaSql = initSchemaWithoutHistory(repositoryData.repository)
         const sql = removeNewlinesBetween$$(schemaSql)
         const queryResult = await this.ctx.dbConnectionNew.createSchema(repositoryData, sql)
@@ -41,6 +47,11 @@ export class DBAdminApiWorker {
             query: "",
             queryResult: JSON.stringify(queryResult),
         }
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async listRepositories (request: Request, response: Response) {
+        // TODO
     }
 
     async createDatabase(sql: string): Promise<QueryReturnType<string>> {

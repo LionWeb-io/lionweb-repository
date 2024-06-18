@@ -6,10 +6,13 @@ import {
     RESERVED_IDS_TABLE
 } from "@lionweb/repository-common";
 
+export function dropSchema(schema: string): string {
+        return `DROP SCHEMA IF EXISTS "${schema}" CASCADE;`
+}
 
 export function initSchemaWithHistory(schema: string): string {
         return  `-- Create schema
-        DROP SCHEMA IF EXISTS "${schema}" CASCADE;
+        DROP SCHEMA IF EXISTS "${schema}" RESTRICT;
         CREATE SCHEMA "${schema}";
         SET search_path TO "${schema}";
 

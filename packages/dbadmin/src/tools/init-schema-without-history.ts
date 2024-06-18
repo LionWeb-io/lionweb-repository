@@ -8,7 +8,7 @@ import {
 
 export function initSchemaWithoutHistory(schema: string): string {
     return `-- Create schema
-    DROP SCHEMA IF EXISTS "${schema}" CASCADE;
+    DROP SCHEMA IF EXISTS "${schema}" RESTRICT;
     CREATE SCHEMA "${schema}";
     SET search_path TO "${schema}";
     

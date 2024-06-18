@@ -54,6 +54,28 @@ export function getStringParam(request: Request, paramName: string): string | Pa
 }
 
 /**
+ * Get the query parameter named _paramName_ as a string value
+ * @param request   The request object containing the query
+ * @param paramName The name of the parameter.
+ * @returns The value of the query parameter if this is avalable and of type string,
+ * Otherwise a ParameterError containing an error.
+ */
+export function getBooleanParam(request: Request, paramName: string): boolean | ParameterError {
+    const result = request.query[paramName]
+    if (typeof result === "string") {
+        return result === "true"
+    } else {
+        return {
+            success: false,
+            error: {
+                kind: `${toFirstUpper(paramName)}Incorrect`,
+                message: `Parameter ${paramName} must be a string: [${result}]`
+            }
+        }
+    }
+}
+
+/**
  * Get the query parameter named _paramName_ as an integer value
  * @param request   The request object containing the query
  * @param paramName The name of the parameter.
@@ -95,7 +117,7 @@ export function removeNewlinesBetween$$(plpgsql: string): string {
 }
 
 /**
- * 
+ *
  */
 export function getRepositoryParameter(request: Request): string {
     let repository = getStringParam(request, "repository")
@@ -104,6 +126,30 @@ export function getRepositoryParameter(request: Request): string {
         repository = "public"
     }
     return repository
+}
+
+/**
+ *
+ */
+export function getHistoryParameter(request: Request): boolean {
+    let history = getBooleanParam(request, "history")
+    if (isParameterError(history)) {
+        // use the default
+        history = false
+    }
+    return history
+}
+
+/**
+ *
+ */
+export function getClientIdParameter(request: Request): string {
+    let clientId = getStringParam(request, "clientId")
+    if (isParameterError(clientId)) {
+        // use the default
+        clientId = "lionweb-repository"
+    }
+    return clientId
 }
 
 export function getRepositoryData(request: Request ): RepositoryData | ParameterError {

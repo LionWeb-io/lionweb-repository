@@ -9,19 +9,23 @@ export class DbAdminApi {
     }
 
     async init(): Promise<ClientResponse<LionwebResponse>> {
-        return await this.client.postWithTimeout("init", { body: {}, params: "" })
+        return await this.client.postWithTimeout("init", { body: {}, params: "history=true" })
     }
 
-    async initRepository(repository: string): Promise<ClientResponse<LionwebResponse>> {
-        return await this.client.postWithTimeout("initRepository", { body: {}, params: `repository=${repository}` })
+    async createRepository(repository: string): Promise<ClientResponse<LionwebResponse>> {
+        return await this.client.postWithTimeout("createRepository", { body: {}, params: `repository=${repository}&history=true` })
     }
 
-    async initRepositoryWithoutHistory(repository: string): Promise<ClientResponse<LionwebResponse>> {
-        return await this.client.postWithTimeout("initRepositoryWithoutHistory", { body: {}, params: `repository=${repository}` })
+    async deleteRepository(repository: string): Promise<ClientResponse<LionwebResponse>> {
+        return await this.client.postWithTimeout("deleteRepository", { body: {}, params: `repository=${repository}` })
+    }
+
+    async createRepositoryWithoutHistory(repository: string): Promise<ClientResponse<LionwebResponse>> {
+        return await this.client.postWithTimeout("createRepository", { body: {}, params: `repository=${repository}&history=false` })
     }
 
     async initWithoutHistory(): Promise<ClientResponse<LionwebResponse>> {
-        return await this.client.postWithTimeout("initWithoutHistory", { body: {}, params: "" })
+        return await this.client.postWithTimeout("init", { body: {}, params: "history=false" })
     }
 
     async createDatabase(): Promise<ClientResponse<LionwebResponse>> {

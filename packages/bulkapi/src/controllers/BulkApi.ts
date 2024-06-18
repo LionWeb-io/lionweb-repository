@@ -18,7 +18,7 @@ import {
     HttpSuccessCodes,
     getStringParam,
     getIntegerParam,
-    isParameterError, getRepositoryParameter
+    isParameterError, getRepositoryParameter, RepositoryData
 } from "@lionweb/repository-common"
 
 export interface BulkApi {
@@ -49,7 +49,7 @@ export class BulkApiImpl implements BulkApi {
                 messages: [clientId.error]
             })
         } else {
-            const repositoryData = {clientId: clientId, repository: getRepositoryParameter(request)}
+            const repositoryData: RepositoryData = {clientId: clientId, repository: getRepositoryParameter(request)}
             const result = await this.ctx.bulkApiWorker.bulkPartitions(repositoryData)
             console.log("BulkApi.listPartitions +++++++++++++++++++++++++++++++++++++")
             console.log(JSON.stringify(result, null, 2))
@@ -114,7 +114,7 @@ export class BulkApiImpl implements BulkApi {
                     })
                     return
                 }
-                const repositoryData = {clientId: clientId, repository: getRepositoryParameter(request)}
+                const repositoryData: RepositoryData = {clientId: clientId, repository: getRepositoryParameter(request)}
                 const result = await this.ctx.bulkApiWorker.createPartitions(repositoryData, chunk)
                 lionwebResponse<CreatePartitionsResponse>(response, result.status, result.queryResult)
             }
@@ -132,7 +132,7 @@ export class BulkApiImpl implements BulkApi {
                 messages: [clientId.error]
             })
         } else {
-            const repositoryData = {clientId: clientId, repository: getRepositoryParameter(request)}
+            const repositoryData: RepositoryData = {clientId: clientId, repository: getRepositoryParameter(request)}
             const x = await this.ctx.bulkApiWorker.deletePartitions(repositoryData, idList)
             lionwebResponse<DeletePartitionsResponse>(response, x.status, x.queryResult)
         }
@@ -163,7 +163,7 @@ export class BulkApiImpl implements BulkApi {
                 messages: [clientId.error]
             })
         } else {
-            const repositoryData = {clientId: clientId, repository: getRepositoryParameter(request)}
+            const repositoryData: RepositoryData = {clientId: clientId, repository: getRepositoryParameter(request)}
             const result = await this.ctx.bulkApiWorker.bulkStore(repositoryData, chunk)
             result.queryResult.messages.push({ kind: "QueryFromApi", message: result.query })
             lionwebResponse<StoreResponse>(response, result.status, result.queryResult)
@@ -203,7 +203,7 @@ export class BulkApiImpl implements BulkApi {
                 messages: [{ kind: "IdsIncorrect", message: `parameter 'ids' is not an array` }]
             })
         } else {
-            const repositoryData = {clientId: clientId, repository: getRepositoryParameter(request)}
+            const repositoryData: RepositoryData = {clientId: clientId, repository: getRepositoryParameter(request)}
             const result = await this.ctx.bulkApiWorker.bulkRetrieve(repositoryData, idList, depthLimit)
             lionwebResponse(response, result.status, result.queryResult)
         }
@@ -229,7 +229,7 @@ export class BulkApiImpl implements BulkApi {
                 messages: [clientId.error]
             })
         } else {
-            const repositoryData = {clientId: clientId, repository: getRepositoryParameter(request)}
+            const repositoryData: RepositoryData = {clientId: clientId, repository: getRepositoryParameter(request)}
             const result = await this.ctx.bulkApiWorker.ids(repositoryData, count)
             lionwebResponse(response, result.status, result.queryResult)
         }

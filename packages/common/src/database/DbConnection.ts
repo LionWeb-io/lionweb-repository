@@ -44,6 +44,10 @@ export class DbConnection {
         return await this.query(repositoryData, query)
     }
 
+    async deleteSchema(repositoryData: RepositoryData, query: string) {
+        return await this.query(repositoryData, query)
+    }
+
     /**
      * @see  pgPromise.IDatabase.query
      * @param repositoryData
