@@ -7,7 +7,7 @@ import {
     PGUSER,
     CREATE_CONFIG,
     PostgresConfig,
-    PGROOTCERT
+    pgSSLConf
 } from "@lionweb/repository-dbadmin";
 import pgPromise from "pg-promise"
 import dotenv from "dotenv"
@@ -23,9 +23,7 @@ export const config: PostgresConfig = {
     port: PGPORT,
     user: PGUSER,
     password: PGPASSWORD,
-    ssl: PGROOTCERT === undefined ? undefined : {
-        ca: fs.readFileSync(PGROOTCERT).toString(),
-    },
+    ssl: pgSSLConf
 }
 
 logger.dbLog("POSTGRES CONFIG: " + JSON.stringify(config, null, 2))
