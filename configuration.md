@@ -17,7 +17,9 @@ Environment variables can be used to configure the project:
 * **PGUSER** (default `postgres`): The username used to connect to the Postgres server
 * **PGPASSWORD** (default `lionweb`): The password used to connect to the Postgres server
 * **PGROOTCERT** (default _none_): If present, the root certificate is used to verify SSL connections. 
-  It should indicate a file.
+  It should indicate a file. It should not be used with `PGROOTCERTCONTENT`.
+* **PGROOTCERTCONTENT** (default _none_): If present, the root certificate is used to verify SSL connections.
+    It should indicate the content of the file certificate. It should not be used with `PGROOTCERT`.
 
 ## Node application configuration
 
