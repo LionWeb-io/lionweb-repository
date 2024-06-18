@@ -1,6 +1,7 @@
 import { getVersionFromResponse, RepositoryClient } from "@lionweb/repository-client";
 import { HttpClientErrors, HttpSuccessCodes, RetrieveResponse } from "@lionweb/repository-common"
 import { LanguageChange, LionWebJsonChunk, LionWebJsonDiff } from "@lionweb/validation"
+import { as } from "pg-promise";
 import { readModel } from "./utils.js"
 
 import { assert } from "chai"
@@ -22,6 +23,7 @@ collection.forEach(withoutHistory => {
             let initialPartitionVersion: number = 0
             let baseFullChunk: LionWebJsonChunk
             let baseFullChunkVersion: number = 0
+            let initError: string = ""
 
             before("create database", async function () {
                 const initResponse = await client.dbAdmin.createDatabase()
@@ -33,11 +35,16 @@ collection.forEach(withoutHistory => {
             })
 
             beforeEach("a", async function () {
+                initError = ""
                 initialPartition = readModel(DATA + "Disk_A_partition.json") as LionWebJsonChunk
                 baseFullChunk = readModel(DATA + "Disk_A.json") as LionWebJsonChunk
-                const initResponse = await (withoutHistory ? client.dbAdmin.initRepositoryWithoutHistory(repository) : client.dbAdmin.initRepository(repository))
+                const deleteResponse = await client.dbAdmin.deleteRepository(repository)
+                console.log("Delete repo: " + JSON.stringify(deleteResponse))
+                const initResponse = await (withoutHistory ? client.dbAdmin.createRepositoryWithoutHistory(repository) : client.dbAdmin.createRepository(repository))
                 if (initResponse.status !== HttpSuccessCodes.Ok) {
                     console.log("Cannot initialize database: " + JSON.stringify(initResponse.body))
+                    initError = JSON.stringify(initResponse.body)
+                    return
                 } else {
                     console.log("initialized database: " + JSON.stringify(initResponse.body))
                 }
@@ -45,12 +52,16 @@ collection.forEach(withoutHistory => {
                 if (partResult.status !== HttpSuccessCodes.Ok) {
                     console.log("Cannot create initial partition: " + JSON.stringify(partResult.body))
                     // console.log(JSON.stringify(initialPartition))
+                    initError = JSON.stringify(partResult.body)
+                    return
                 }
                 console.log("PARTITION INIYTIAL " + JSON.stringify(partResult.body.messages) )
                 initialPartitionVersion = getVersionFromResponse(partResult)
                 const result = await client.bulk.store(baseFullChunk)
                 if (result.status !== HttpSuccessCodes.Ok) {
                     console.log("Cannot store initial chunk: " + JSON.stringify(result.body))
+                    initError = JSON.stringify(result.body)
+                    return
                 }
                 baseFullChunkVersion = getVersionFromResponse(result)
                 console.log(
@@ -60,7 +71,7 @@ collection.forEach(withoutHistory => {
 
             describe("Partition tests", () => {
                 it("retrieve nodes", async () => {
-
+                    assert(initError === "", initError)
                     const retrieve = await client.bulk.retrieve(["ID-2"])
                     console.log("Retrieve Result: " + JSON.stringify(JSON.stringify(retrieve.body.messages)))
                     // console.log("Retrieve Chunk: " + JSON.stringify(JSON.stringify(retrieve.body.chunk)))
@@ -75,6 +86,7 @@ collection.forEach(withoutHistory => {
                 })
 
                 it("retrieve partitions", async () => {
+                    assert(initError === "", initError)
                     const model = structuredClone(baseFullChunk)
                     model.nodes = model.nodes.filter(node => node.parent === null)
                     const partitions = await client.bulk.listPartitions()
@@ -85,6 +97,7 @@ collection.forEach(withoutHistory => {
                 })
 
                 it("delete partitions", async () => {
+                    assert(initError === "", initError)
                     // const prePartitions = await client.bulk.listPartitions()
                     // console.log("PRe partitions: " + JSON.stringify(prePartitions))
                     const deleteResult = await client.bulk.deletePartitions(["ID-2"])
@@ -368,6 +381,7 @@ collection.forEach(withoutHistory => {
 
             async function testResult(originalJsonFile: string, changesFile: string) {
                 console.log(`TEst result of '${originalJsonFile}' with '${changesFile}'`)
+                assert(initError === "", initError)
                 const changesChunk = readModel(changesFile) as LionWebJsonChunk
                 // const diff = new LionWebJsonDiff()
                 // diff.diffLwChunk(baseFullChunk, changesChunk)
