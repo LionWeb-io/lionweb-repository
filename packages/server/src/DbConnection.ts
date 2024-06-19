@@ -11,6 +11,7 @@ import {
 } from "@lionweb/repository-dbadmin";
 import pgPromise from "pg-promise"
 import dotenv from "dotenv"
+import fs from "node:fs";
 
 // Initialize and export the database connection with configuration from _env_
 
