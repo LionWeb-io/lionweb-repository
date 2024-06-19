@@ -10,7 +10,7 @@ import { DBAdminApiWorker } from "./database/DBAdminApiWorker.js"
  * Avoids using glocal variables, as they easily get mixed up between the various API packages.
  */
 export class DbAdminApiContext {
-    dbConnectionNew: DbConnection
+    dbConnection: DbConnection
     /**
      * The _postgresConnection_ has no database in the config, so this can be used to create or drop databases
      */
@@ -20,7 +20,7 @@ export class DbAdminApiContext {
     dbAdminApiWorker: DBAdminApiWorker
 
     constructor(dbNew: DbConnection, pgConnection: pgPromise.IDatabase<object, pg.IClient>, pgp: pgPromise.IMain<object, pg.IClient>) {
-        this.dbConnectionNew = dbNew
+        this.dbConnection = dbNew
         this.postgresConnection = pgConnection
         this.pgp = pgp
         this.dbAdminApi = new DBAdminApiImpl(this)
@@ -48,4 +48,5 @@ export function registerDBAdmin(
     app.post("/createRepository", runWithTry(dbAdminApiContext.dbAdminApi.createRepository))
     app.post("/deleteRepository", runWithTry(dbAdminApiContext.dbAdminApi.deleteRepository))
     app.post("/createDatabase", runWithTry(dbAdminApiContext.dbAdminApi.createDatabase))
+    app.post("/listRepositories", runWithTry(dbAdminApiContext.dbAdminApi.listRepositories))
 }

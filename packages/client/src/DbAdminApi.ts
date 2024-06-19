@@ -1,5 +1,6 @@
+import { PartitionsResponse } from "@lionweb/repository-common";
 import { ClientResponse, RepositoryClient } from "./RepositoryClient.js";
-import { LionwebResponse } from "./responses.js"
+import { LionwebResponse, ListRepositoriesResponse } from "./responses.js"
 
 export class DbAdminApi {
     client: RepositoryClient
@@ -18,6 +19,10 @@ export class DbAdminApi {
 
     async deleteRepository(repository: string): Promise<ClientResponse<LionwebResponse>> {
         return await this.client.postWithTimeout("deleteRepository", { body: {}, params: `repository=${repository}` })
+    }
+
+    async listRepositories(): Promise<ClientResponse<ListRepositoriesResponse>> {
+        return await this.client.postWithTimeout("listRepositories", { body: {}, params: `` })  as ClientResponse<ListRepositoriesResponse>
     }
 
     async createRepositoryWithoutHistory(repository: string): Promise<ClientResponse<LionwebResponse>> {

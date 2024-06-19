@@ -25,8 +25,6 @@ export class BulkApiWorker {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async bulkPartitions(repositoryData: RepositoryData): Promise<QueryReturnType<PartitionsResponse>> {
         const result = await this.context.queries.getPartitions(repositoryData)
-        console.log("BulkApiWorker.bulkPartitions -----------------------------")
-        console.log(JSON.stringify(result, null, 2))
         return result
     }
 

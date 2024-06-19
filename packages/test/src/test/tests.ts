@@ -67,6 +67,9 @@ collection.forEach(withoutHistory => {
                 console.log(
                     "repoVersionAfterPartitionCreated " + initialPartitionVersion + "repoVersionAfterPartitionFilled " + baseFullChunkVersion
                 )
+                const repositories = await client.dbAdmin.listRepositories()
+                console.log("repositories: " + JSON.stringify(repositories))
+                console.log("repositories: " + repositories.body.repositoryNames)
             })
 
             describe("Partition tests", () => {
@@ -90,7 +93,7 @@ collection.forEach(withoutHistory => {
                     const model = structuredClone(baseFullChunk)
                     model.nodes = model.nodes.filter(node => node.parent === null)
                     const partitions = await client.bulk.listPartitions()
-                    // console.log("Retrieve partitions Result: " + JSON.stringify(JSON.stringify(partitions)))
+                    console.log("Retrieve partitions Result: " + JSON.stringify(partitions))
                     const diff = new LionWebJsonDiff()
                     diff.diffLwChunk(model, partitions.body.chunk)
                     deepEqual(diff.diffResult.changes, [])

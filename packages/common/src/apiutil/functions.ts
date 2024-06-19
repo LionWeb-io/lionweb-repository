@@ -125,7 +125,7 @@ export function getRepositoryParameter(request: Request): string {
         // use the default
         repository = "public"
     }
-    return repository
+    return "lionweb:" + repository
 }
 
 /**

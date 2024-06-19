@@ -51,8 +51,6 @@ export class BulkApiImpl implements BulkApi {
         } else {
             const repositoryData: RepositoryData = {clientId: clientId, repository: getRepositoryParameter(request)}
             const result = await this.ctx.bulkApiWorker.bulkPartitions(repositoryData)
-            console.log("BulkApi.listPartitions +++++++++++++++++++++++++++++++++++++")
-            console.log(JSON.stringify(result, null, 2))
             lionwebResponse<PartitionsResponse>(response, result.status, result.queryResult)
         }
     }

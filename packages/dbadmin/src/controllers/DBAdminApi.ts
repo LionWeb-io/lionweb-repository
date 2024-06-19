@@ -1,3 +1,4 @@
+import { ListRepositoriesResponse } from "@lionweb/repository-client";
 import e, { Request, Response } from "express"
 import {
     getRepositoryParameter,
@@ -5,7 +6,6 @@ import {
     RepositoryData,
     lionwebResponse,
     logger,
-    HttpServerErrors,
     getClientIdParameter, getHistoryParameter, QueryReturnType
 } from "@lionweb/repository-common";
 import { DbAdminApiContext } from "../main.js";
@@ -56,10 +56,13 @@ export class DBAdminApiImpl implements DBAdminApi {
 
     listRepositories = async (request: Request, response: Response)=> {
         logger.requestLog(` * listRepositories request received, with body of ${request.headers["content-length"]} bytes`)
-        const repositoryData: RepositoryData = {clientId: "Repository", repository: getRepositoryParameter(request)}
-        lionwebResponse(response, HttpServerErrors.NotImplemented, {
-            success: false,
-            messages: [ {kind: "Info", message: "Not implemented yet", data: {RepositoryData: JSON.stringify(repositoryData)}} ]
+        const result = await this.ctx.dbAdminApiWorker.listRepositories()
+        // select schemas that represent a repository
+        const repoNames = result.queryResult.filter(repo => repo.schema_name.startsWith("lionweb:")).map(repo => repo.schema_name)
+        lionwebResponse<ListRepositoriesResponse>(response, result.status, {
+            success: result.status === HttpSuccessCodes.Ok,
+            repositoryNames: repoNames,
+            messages: []
         })
     }
 

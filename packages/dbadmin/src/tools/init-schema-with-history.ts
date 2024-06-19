@@ -10,8 +10,15 @@ export function dropSchema(schema: string): string {
         return `DROP SCHEMA IF EXISTS "${schema}" CASCADE;`
 }
 
+export function listSchemas(): string {
+        return `-- select all schemas
+        SELECT schema_name
+        FROM information_schema.schemata;`
+}
+
 export function initSchemaWithHistory(schema: string): string {
         return  `-- Create schema
+        -- drop if empty, otherwise fail
         DROP SCHEMA IF EXISTS "${schema}" RESTRICT;
         CREATE SCHEMA "${schema}";
         SET search_path TO "${schema}";

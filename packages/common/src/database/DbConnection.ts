@@ -40,13 +40,21 @@ export class DbConnection {
     private constructor() {
     }
 
-    async createSchema(repositoryData: RepositoryData, query: string) {
-        return await this.query(repositoryData, query)
+    async queryWithoutRepository(query: string) {
+        return await this.dbConnection.query(query)
     }
 
-    async deleteSchema(repositoryData: RepositoryData, query: string) {
-        return await this.query(repositoryData, query)
-    }
+    // async createSchema(repositoryData: RepositoryData, query: string) {
+    //     return await this.dbConnection.query(query)
+    // }
+    //
+    // async deleteSchema(repositoryData: RepositoryData, query: string) {
+    //     return await this.dbConnection.query(query)
+    // }
+    //
+    // async listSchemas(repositoryData: RepositoryData, query: string) {
+    //     return await this.dbConnection.query(query)
+    // }
 
     /**
      * @see  pgPromise.IDatabase.query

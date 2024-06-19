@@ -67,3 +67,7 @@ export interface DeletePartitionsResponse extends LionwebResponse {
 export interface IdsResponse extends LionwebResponse {
     ids: string[]
 }
+
+export interface ListRepositoriesResponse extends LionwebResponse {
+    repositoryNames: string[]
+}
