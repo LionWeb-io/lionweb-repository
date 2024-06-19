@@ -26,14 +26,22 @@ export type ClientResponse<T extends LionwebResponse> = {
  *      TIMEOUT: the timeout in ms for a server call
  */      
 export class RepositoryClient {
+    // Server parameters
     private _nodePort = process.env.NODE_PORT || 3005
     private _SERVER_IP = process.env.REPO_IP || "http://127.0.0.1"
     private _SERVER_URL = `${this._SERVER_IP}:${this._nodePort}/`
     private TIMEOUT = Number.parseInt(process.env.TIMEOUT) || 2000
 
     loggingOn = false
+    /**
+     * The Client id that is used for all Api requests
+     */
     clientId: string
-    repository: string
+
+    /**
+     * The name of the repository used for all Api calls
+     */        
+    repository: string = "default"
     
     // The different API's that the repository provides
     dbAdmin: DbAdminApi

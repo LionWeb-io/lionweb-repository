@@ -67,7 +67,6 @@ collection.forEach(withoutHistory => {
                     "repoVersionAfterPartitionCreated " + initialPartitionVersion + "repoVersionAfterPartitionFilled " + baseFullChunkVersion
                 )
                 const repositories = await client.dbAdmin.listRepositories()
-                console.log("repositories: " + JSON.stringify(repositories))
                 console.log("repositories: " + repositories.body.repositoryNames)
             })
 
@@ -100,19 +99,10 @@ collection.forEach(withoutHistory => {
 
                 it("delete partitions", async () => {
                     assert(initError === "", initError)
-                    // const prePartitions = await client.bulk.listPartitions()
-                    // console.log("PRe partitions: " + JSON.stringify(prePartitions))
                     const deleteResult = await client.bulk.deletePartitions(["ID-2"])
-                    console.log("Retrieve partitions Result: " + JSON.stringify(deleteResult.body.messages))
-                    // console.log("test Delete partitions: " + JSON.stringify(deleteResult))
                     const partitions = await client.bulk.listPartitions()
                     // console.log("Test  partitions: " + JSON.stringify(partitions))
                     deepEqual(partitions.body.chunk, { serializationFormatVersion: "2023.1", languages: [], nodes: [] })
-                    // console.log("-------------------------------------------------------------------------------")
-                    // const partitions1 = await client.history.listPartitions(1)
-                    // console.log("Test  partitions history 1: " + JSON.stringify(partitions1, null, 2))
-                    // const partitions2 = await client.history.listPartitions(2)
-                    // console.log("Test  partitions history 2: " + JSON.stringify(partitions2, null, 2))
                 })
             })
 
@@ -379,6 +369,41 @@ collection.forEach(withoutHistory => {
                     })
                     equal(testIncorrect.status, HttpClientErrors.PreconditionFailed, "Failed reserved id")
                 })
+            })
+
+            describe("Multi-repo test", () => {
+                it("Check current repository", async () => {
+                    assert(initError === "", initError)
+                    const currentrepo = withoutHistory ? "MyFirstRepo" : "MyFirstHistoryRepo"
+                    {
+                        const repositories = await client.dbAdmin.listRepositories()
+                        assert(repositories.body.repositoryNames.length === 1, "There should be exactly one repository")
+                        assert(repositories.body.repositoryNames.includes(currentrepo), "Incorrect repository found: " + repositories.body.repositoryNames)
+                    }
+                    await client.dbAdmin.createRepository("Repo2")
+                    {
+                        const repositories = await client.dbAdmin.listRepositories()
+                        assert(repositories.body.repositoryNames.length === 2, "There should be exactly two repositories")
+                        assert(repositories.body.repositoryNames.every(repo => repo === currentrepo || repo === "Repo2"), "Incorrect repository found: " + repositories.body.repositoryNames)
+                    }
+
+                    const createResult = await client.dbAdmin.createRepository("Repo2")
+                    assert(createResult.body.success === false, "Should not be able to create existing repo")
+                    await client.dbAdmin.deleteRepository("Repo2")
+                    {
+                        const repositories = await client.dbAdmin.listRepositories()
+                        assert(repositories.body.repositoryNames.length === 1, "There should be exactly one repository")
+                        assert(repositories.body.repositoryNames.includes(currentrepo), "Incorrect repository found: " + repositories.body.repositoryNames)
+                    }
+                    await client.dbAdmin.createRepository("Repo2")
+                    {
+                        const repositories = await client.dbAdmin.listRepositories()
+                        assert(repositories.body.repositoryNames.length === 2, "There should be exactly two repositories")
+                        assert(repositories.body.repositoryNames.every(repo => repo === currentrepo || repo === "Repo2"), "Incorrect repository found: " + repositories.body.repositoryNames)
+                    }
+                })
+
+
             })
 
             async function testResult(originalJsonFile: string, changesFile: string) {

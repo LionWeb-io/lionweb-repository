@@ -9,7 +9,7 @@ sm.install()
 const DATA: string = "./data/"
 
 describe("Repository tests", () => {
-    const t = new RepositoryClient("TestClient", "public")
+    const t = new RepositoryClient("TestClient", "default")
 
     beforeEach("a", async function () {
         await t.dbAdmin.init()

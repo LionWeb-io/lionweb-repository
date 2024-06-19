@@ -123,7 +123,7 @@ export function getRepositoryParameter(request: Request): string {
     let repository = getStringParam(request, "repository")
     if (isParameterError(repository)) {
         // use the default
-        repository = "public"
+        repository = "default"
     }
     return "lionweb:" + repository
 }

@@ -11,10 +11,39 @@ import { DbAdminApiContext } from "../main.js";
 import { CREATE_DATABASE_SQL } from "../tools/index.js";
 
 export interface DBAdminApi {
+    /**
+     * Create a new database to store repositories
+     * @param request
+     * @param response
+     */
     createDatabase(request: Request, response: Response): void
+
+    /**
+     * Initialize the default repository 
+     * @param request
+     * @param response
+     */
     init(request: Request, response: Response): void
+
+    /**
+     * Create a new repository 
+     * @param request  _clientId_, _repository_
+     * @param response
+     */
     createRepository(request: Request, response: Response): void
+
+    /**
+     * Delete a repository
+     * @param request  _clientId_, _repository_
+     * @param response
+     */
     deleteRepository(request: Request, response: Response): void
+
+    /**
+     * Get a list of existing repositories
+     * @param request
+     * @param response
+     */
     listRepositories(request: Request, response: Response): void
 }
 
@@ -57,7 +86,7 @@ export class DBAdminApiImpl implements DBAdminApi {
         logger.requestLog(` * listRepositories request received, with body of ${request.headers["content-length"]} bytes`)
         const result = await this.ctx.dbAdminApiWorker.listRepositories()
         // select schemas that represent a repository
-        const repoNames = result.queryResult.filter(repo => repo.schema_name.startsWith("lionweb:")).map(repo => repo.schema_name)
+        const repoNames = result.queryResult.filter(repo => repo.schema_name.startsWith("lionweb:")).map(repo => repo.schema_name.substring(8))
         lionwebResponse<ListRepositoriesResponse>(response, result.status, {
             success: result.status === HttpSuccessCodes.Ok,
             repositoryNames: repoNames,

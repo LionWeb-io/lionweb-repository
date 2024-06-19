@@ -3,6 +3,10 @@ import { LionWebJsonChunk } from "@lionweb/validation";
 import { ClientResponse, RepositoryClient } from "./RepositoryClient.js";
 import { CreatePartitionsResponse, DeletePartitionsResponse, IdsResponse, RetrieveResponse, StoreResponse } from "./responses.js";
 
+/**
+ * Client side Api for the lionweb-repository server.
+ * Purpose is to ease thge use of the lionweb-repository server.
+ */
 export class BulkApi {
     client: RepositoryClient
     

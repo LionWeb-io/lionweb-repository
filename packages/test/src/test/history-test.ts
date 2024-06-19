@@ -17,7 +17,7 @@ type StoredAst = {
 }
 
 describe("Repository tests", () => {
-    const client = new RepositoryClient("TestHistoryClient", "public")
+    const client = new RepositoryClient("TestHistoryClient", "default")
     let initialPartition: LionWebJsonChunk
     let baseFullChunk: LionWebJsonChunk
 

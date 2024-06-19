@@ -11,7 +11,7 @@ sm.install()
 const DATA: string = "./data/"
 
 describe("Repository tests for inspection APIs", () => {
-    const client = new RepositoryClient("InspectionTests", "public")
+    const client = new RepositoryClient("InspectionTests", "default")
     let jsonModel: LionWebJsonChunk
 
     before("create database", async function () {
@@ -24,7 +24,7 @@ describe("Repository tests for inspection APIs", () => {
     })
     
     beforeEach("a", async function () {
-        await client.dbAdmin.deleteRepository("public")
+        await client.dbAdmin.deleteRepository("default")
         const initResponse = await client.dbAdmin.init()
         if (initResponse.status !== HttpSuccessCodes.Ok) {
             console.log("Cannot initialize database: " + JSON.stringify(initResponse.body))
