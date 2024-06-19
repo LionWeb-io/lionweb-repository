@@ -1,4 +1,3 @@
-import { PartitionsResponse } from "@lionweb/repository-common";
 import { ClientResponse, RepositoryClient } from "./RepositoryClient.js";
 import { LionwebResponse, ListRepositoriesResponse } from "./responses.js"
 

@@ -57,6 +57,10 @@ export interface IdsResponse extends LionwebResponse {
     ids: string[]
 }
 
+export interface ListRepositoriesResponse extends LionwebResponse {
+    repositoryNames: string[]
+}
+
 export function lionwebResponse<T extends LionwebResponse>(response: Response, status: number, body: T): void {
     response.status(status)
     response.send(body)

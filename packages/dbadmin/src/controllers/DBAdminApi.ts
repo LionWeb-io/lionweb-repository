@@ -1,4 +1,3 @@
-import { ListRepositoriesResponse } from "@lionweb/repository-client";
 import e, { Request, Response } from "express"
 import {
     getRepositoryParameter,
@@ -6,7 +5,7 @@ import {
     RepositoryData,
     lionwebResponse,
     logger,
-    getClientIdParameter, getHistoryParameter, QueryReturnType
+    getClientIdParameter, getHistoryParameter, QueryReturnType, ListRepositoriesResponse
 } from "@lionweb/repository-common";
 import { DbAdminApiContext } from "../main.js";
 import { CREATE_DATABASE_SQL } from "../tools/index.js";
