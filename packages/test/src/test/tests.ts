@@ -1,7 +1,6 @@
 import { getVersionFromResponse, RepositoryClient } from "@lionweb/repository-client";
 import { HttpClientErrors, HttpSuccessCodes, RetrieveResponse } from "@lionweb/repository-common"
 import { LanguageChange, LionWebJsonChunk, LionWebJsonDiff } from "@lionweb/validation"
-import { as } from "pg-promise";
 import { readModel } from "./utils.js"
 
 import { assert } from "chai"
