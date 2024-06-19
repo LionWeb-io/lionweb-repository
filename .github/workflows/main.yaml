@@ -47,7 +47,7 @@ jobs:
       - name: tsc
         run: npm run build
 
-      - name: Create and iniitialize Postgres database
+      - name: Create and initialize Postgres database
         # Runs a script that creates a PostgreSQL table, populates
         # the table with data, and then retrieves the data.
         run: node packages/dbadmin/dist/tools/database.js create && node packages/dbadmin/dist/tools/database.js init      
