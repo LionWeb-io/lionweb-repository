@@ -1,7 +1,7 @@
 import { Express } from "express"
 import pgPromise from "pg-promise"
 import pg from "pg-promise/typescript/pg-subset.js"
-import { runWithTry } from "@lionweb/repository-common";
+import { runWithTry, DbConnection } from "@lionweb/repository-common";
 import { DBAdminApi, DBAdminApiImpl } from "./controllers/DBAdminApi.js"
 import { DBAdminApiWorker } from "./database/DBAdminApiWorker.js"
 
@@ -10,7 +10,7 @@ import { DBAdminApiWorker } from "./database/DBAdminApiWorker.js"
  * Avoids using glocal variables, as they easily get mixed up between the various API packages.
  */
 export class DbAdminApiContext {
-    dbConnection: pgPromise.IDatabase<object, pg.IClient>
+    dbConnection: DbConnection
     /**
      * The _postgresConnection_ has no database in the config, so this can be used to create or drop databases
      */
@@ -19,7 +19,7 @@ export class DbAdminApiContext {
     dbAdminApi: DBAdminApi
     dbAdminApiWorker: DBAdminApiWorker
 
-    constructor(dbConnection: pgPromise.IDatabase<object, pg.IClient>, pgConnection: pgPromise.IDatabase<object, pg.IClient>, pgp: pgPromise.IMain<object, pg.IClient>) {
+    constructor(dbConnection: DbConnection, pgConnection: pgPromise.IDatabase<object, pg.IClient>, pgp: pgPromise.IMain<object, pg.IClient>) {
         this.dbConnection = dbConnection
         this.postgresConnection = pgConnection
         this.pgp = pgp
@@ -36,7 +36,7 @@ export class DbAdminApiContext {
  */
 export function registerDBAdmin(
     app: Express,
-    dbConnection: pgPromise.IDatabase<object, pg.IClient>,
+    dbConnection: DbConnection,
     pgConnection: pgPromise.IDatabase<object, pg.IClient>,
     pgp: pgPromise.IMain<object, pg.IClient>) {
     console.log("Registering DB Admin Module");
@@ -45,6 +45,8 @@ export function registerDBAdmin(
 
     // Add routes to app
     app.post("/init", runWithTry(dbAdminApiContext.dbAdminApi.init))
-    app.post("/initWithoutHistory", runWithTry(dbAdminApiContext.dbAdminApi.initWithoutHistory))
+    app.post("/createRepository", runWithTry(dbAdminApiContext.dbAdminApi.createRepository))
+    app.post("/deleteRepository", runWithTry(dbAdminApiContext.dbAdminApi.deleteRepository))
     app.post("/createDatabase", runWithTry(dbAdminApiContext.dbAdminApi.createDatabase))
+    app.post("/listRepositories", runWithTry(dbAdminApiContext.dbAdminApi.listRepositories))
 }

@@ -2,6 +2,7 @@
  * Copy from database side code, to define the structure of the responses.
  */
 import { LionWebJsonChunk } from "@lionweb/validation";
+import { ClientResponse } from "./RepositoryClient";
 
 export type MessageKind =
     "PartitionHasParent"
@@ -42,6 +43,10 @@ export interface LionwebResponse {
     messages: ResponseMessage[]
 }
 
+export function getVersionFromResponse(response: ClientResponse<LionwebResponse>): number {
+    return Number.parseInt(response.body.messages.find(m => m.data["version"] !== undefined).data["version"])
+}
+
 export interface RetrieveResponse extends LionwebResponse {
     chunk: LionWebJsonChunk
 }
@@ -61,4 +66,8 @@ export interface DeletePartitionsResponse extends LionwebResponse {
 
 export interface IdsResponse extends LionwebResponse {
     ids: string[]
+}
+
+export interface ListRepositoriesResponse extends LionwebResponse {
+    repositoryNames: string[]
 }

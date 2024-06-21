@@ -43,7 +43,7 @@ export interface RetrieveResponse extends LionwebResponse {
     chunk: LionWebJsonChunk
 }
 
-export interface PartitionsResponse extends LionwebResponse {
+export interface ListPartitionsResponse extends LionwebResponse {
     chunk: LionWebJsonChunk
 }
 
@@ -55,6 +55,10 @@ export interface DeletePartitionsResponse extends LionwebResponse {}
 
 export interface IdsResponse extends LionwebResponse {
     ids: string[]
+}
+
+export interface ListRepositoriesResponse extends LionwebResponse {
+    repositoryNames: string[]
 }
 
 export function lionwebResponse<T extends LionwebResponse>(response: Response, status: number, body: T): void {

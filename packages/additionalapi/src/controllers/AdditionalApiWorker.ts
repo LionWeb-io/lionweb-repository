@@ -1,4 +1,4 @@
-import { logger } from "@lionweb/repository-common";
+import { logger, RepositoryData } from "@lionweb/repository-common";
 import { AdditionalApiContext } from "../main.js";
 
 /**
@@ -7,10 +7,10 @@ import { AdditionalApiContext } from "../main.js";
 export class AdditionalApiWorker {
     constructor(private context: AdditionalApiContext) {
     }
-    getNodeTree = async (nodeIds: string[], depthLimit: number)=> {
+    getNodeTree = async (repositoryData: RepositoryData, nodeIds: string[], depthLimit: number)=> {
         
         logger.requestLog("AdditionalApiWorker.getNodeTree for " + nodeIds + " with depth " + depthLimit)
-        return await this.context.queries.getNodeTree(nodeIds, depthLimit)
+        return await this.context.queries.getNodeTree(repositoryData, nodeIds, depthLimit)
     }
 
 }

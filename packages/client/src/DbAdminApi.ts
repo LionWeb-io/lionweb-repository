@@ -1,5 +1,5 @@
 import { ClientResponse, RepositoryClient } from "./RepositoryClient.js";
-import { LionwebResponse } from "./responses.js"
+import { LionwebResponse, ListRepositoriesResponse } from "./responses.js"
 
 export class DbAdminApi {
     client: RepositoryClient
@@ -8,14 +8,24 @@ export class DbAdminApi {
         this.client = client
     }
 
-    async init(): Promise<ClientResponse<LionwebResponse>> {
-        return await this.client.postWithTimeout("init", { body: {}, params: "" })
+    async init(history: boolean): Promise<ClientResponse<LionwebResponse>> {
+        const historyParameter = history ? "true" : "false"
+        return await this.client.postWithTimeout("init", { body: {}, params: `history=${historyParameter}` })
     }
 
-    async initWithoutHistory(): Promise<ClientResponse<LionwebResponse>> {
-        return await this.client.postWithTimeout("initWithoutHistory", { body: {}, params: "" })
+    async createRepository(repository: string, history: boolean): Promise<ClientResponse<LionwebResponse>> {
+        const historyParameter = history ? "true" : "false"
+        return await this.client.postWithTimeout("createRepository", { body: {}, params: `repository=${repository}&history=${historyParameter}` })
     }
 
+    async deleteRepository(repository: string): Promise<ClientResponse<LionwebResponse>> {
+        return await this.client.postWithTimeout("deleteRepository", { body: {}, params: `repository=${repository}` })
+    }
+
+    async listRepositories(): Promise<ClientResponse<ListRepositoriesResponse>> {
+        return await this.client.postWithTimeout("listRepositories", { body: {}, params: `` })  as ClientResponse<ListRepositoriesResponse>
+    }
+    
     async createDatabase(): Promise<ClientResponse<LionwebResponse>> {
         return await this.client.postWithTimeout("createDatabase", { body: {}, params: "" })
     }

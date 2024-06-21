@@ -1,4 +1,4 @@
-import { PartitionsResponse } from "@lionweb/repository-common";
+import { ListPartitionsResponse } from "@lionweb/repository-common";
 import { ClientResponse, RepositoryClient } from "./RepositoryClient.js";
 import { RetrieveResponse } from "./responses.js";
 
@@ -17,9 +17,9 @@ export class HistoryApi {
      * this results in a response with body.success === false and erro message: "function nodesforversion(integer) does not exist"
      * @param version
      */
-    async listPartitions(version: number): Promise<PartitionsResponse> {
+    async listPartitions(version: number): Promise<ClientResponse<ListPartitionsResponse>> {
         this.client.log(`HistoryApi.listPartitions for version ${version}`)
-        return await this.client.getWithTimeout<PartitionsResponse>("history/listPartitions", { body: {}, params: `repoVersion=${version}` })
+        return await this.client.postWithTimeout("history/listPartitions", { body: {}, params: `repoVersion=${version}` }) as ClientResponse<ListPartitionsResponse>
     }
 
     /**

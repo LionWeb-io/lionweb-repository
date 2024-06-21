@@ -1,8 +1,8 @@
 import {
     logger,
-    PartitionsResponse,
+    ListPartitionsResponse,
     asError,
-    QueryReturnType, nodesToChunk, HttpSuccessCodes, HttpClientErrors,
+    QueryReturnType, nodesToChunk, HttpSuccessCodes, HttpClientErrors, RepositoryData,
 } from "@lionweb/repository-common"
 import {
     LionWebJsonNode
@@ -28,7 +28,7 @@ export class HistoryQueries {
      * @param nodeIdList
      * @param depthLimit
      */
-    getNodeTree = async (nodeIdList: string[], depthLimit: number, repoVersion: number): Promise<QueryReturnType<NodeTreeResultType[]>> => {
+    getNodeTree = async (repoData: RepositoryData, nodeIdList: string[], depthLimit: number, repoVersion: number): Promise<QueryReturnType<NodeTreeResultType[]>> => {
         logger.dbLog("LionWebQueries.getNodeTree for " + nodeIdList)
         let query = ""
         try {
@@ -36,7 +36,7 @@ export class HistoryQueries {
                 return { status: HttpClientErrors.PreconditionFailed, query: "query", queryResult: [] }
             }
             query = makeQueryNodeTreeForIdList(nodeIdList, depthLimit, repoVersion)
-            return { status: HttpSuccessCodes.Ok, query: query, queryResult: await this.context.dbConnection.query(query) }
+            return { status: HttpSuccessCodes.Ok, query: query, queryResult: await this.context.dbConnection.query(repoData, query) }
         } catch (e) {
             const error = asError(e)
             console.error("Exception catched in LionWebQueries.getNodeTree(): " + error.message)
@@ -46,28 +46,28 @@ export class HistoryQueries {
         }
     }
 
-    getNodesFromIdList = async (nodeIdList: string[], repoVersion: number): Promise<LionWebJsonNode[]> => {
+    getNodesFromIdList = async (repoData: RepositoryData, nodeIdList: string[], repoVersion: number): Promise<LionWebJsonNode[]> => {
         logger.dbLog("HistoryQueries.getNodesFromIdList: " + nodeIdList)
         // this is necessary as otherwise the query would crash as it is not intended to be run on an empty set
         if (nodeIdList.length == 0) {
             return []
         }
         const query = QueryNodeForIdList(nodeIdList, repoVersion)
-        const result = await this.context.dbConnection.query(query)
+        const result = await this.context.dbConnection.query(repoData, query)
         return result
     }
 
     /**
      * Get all partitions: this returns all nodes that have parent set to null or undefined
      */
-    getPartitionsForVersion = async (repoVersion: number): Promise<QueryReturnType<PartitionsResponse>> => {
-        logger.requestLog("HistoryQueries.getPartitions for version " + repoVersion)
+    getPartitionsForVersion = async (repoData: RepositoryData, repoVersion: number): Promise<QueryReturnType<ListPartitionsResponse>> => {
+        logger.requestLog("HistoryQueries.getPartitions for version " + JSON.stringify(repoVersion))
         // TODO Combine both queries
         const query = `SELECT id FROM nodesForVersion(${repoVersion}) WHERE parent is null`
-        const partitionIds = await await this.context.dbConnection.query(query) as { id: string }[]
+        const partitionIds = await await this.context.dbConnection.query(repoData, query) as { id: string }[]
 
         logger.dbLog("HistoryQueries.getPartitions.Result: " + JSON.stringify(partitionIds))
-        const nodes = await this.getNodesFromIdList(partitionIds.map(n => n.id), repoVersion)
+        const nodes = await this.getNodesFromIdList(repoData, partitionIds.map(n => n.id), repoVersion)
         return {
             status: HttpSuccessCodes.Ok,
             query: "query",

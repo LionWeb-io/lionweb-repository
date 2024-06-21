@@ -5,7 +5,7 @@ import {
     PROPERTIES_TABLE,
     REFERENCES_TABLE,
     logger, TableHelpers, RESERVED_IDS_TABLE,
-    ReservedIdRecord, NodeRecord, NODES_TABLE_HISTORY
+    ReservedIdRecord, NodeRecord, NODES_TABLE_HISTORY, RepositoryData
 } from "@lionweb/repository-common"
 import {
     LionWebJsonNode,
@@ -139,12 +139,12 @@ export class QueryMaker {
         return `SELECT id FROM ${NODES_TABLE_HISTORY} WHERE parent is null AND from_version <= ${repo_version} AND to_version >${repo_version}`
     }
 
-    public findReservedNodesFromIdList(clientId: string, nodeIdList: string[]): string {
+    public findReservedNodesFromIdList(repositoryData: RepositoryData, nodeIdList: string[]): string {
         const sqlArray = sqlArrayFromNodeIdArray(nodeIdList)
         return `-- Retrieve node tree
             SELECT node_id, client_id
             FROM ${RESERVED_IDS_TABLE}
-            WHERE node_id IN ${sqlArray}  AND client_id != '${clientId}'   
+            WHERE node_id IN ${sqlArray}  AND client_id != '${repositoryData.clientId}'   
     `
     }
 
@@ -163,11 +163,11 @@ export class QueryMaker {
     `
     }
 
-    public storeReservedNodeIds(clientId: string, nodeIdList: string[]): string {
+    public storeReservedNodeIds(repositoryData: RepositoryData, nodeIdList: string[]): string {
         const insertReservation: ReservedIdRecord[]  = nodeIdList.map(id =>
             ({ 
                 node_id: id,
-                client_id: clientId
+                client_id: repositoryData.clientId
             })
         )
         if (insertReservation.length !== 0) {

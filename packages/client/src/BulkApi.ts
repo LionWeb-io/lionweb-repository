@@ -1,8 +1,12 @@
-import { HttpClientErrors, PartitionsResponse } from "@lionweb/repository-common";
+import { HttpClientErrors, ListPartitionsResponse } from "@lionweb/repository-common";
 import { LionWebJsonChunk } from "@lionweb/validation";
 import { ClientResponse, RepositoryClient } from "./RepositoryClient.js";
 import { CreatePartitionsResponse, DeletePartitionsResponse, IdsResponse, RetrieveResponse, StoreResponse } from "./responses.js";
 
+/**
+ * Client side Api for the lionweb-repository server.
+ * Purpose is to ease the use of the lionweb-repository server.
+ */
 export class BulkApi {
     client: RepositoryClient
     
@@ -10,16 +14,15 @@ export class BulkApi {
         this.client = client
     }
 
-    async listPartitions(): Promise<PartitionsResponse> {
+    async listPartitions(): Promise<ClientResponse<ListPartitionsResponse>> {
         this.client.log(`BulkApi.listPartitions`)
-        const partitionsResponse: PartitionsResponse = await this.client.getWithTimeout<PartitionsResponse>("bulk/listPartitions", { body: {}, params: "" })
-        return partitionsResponse
+        return await this.client.postWithTimeout("bulk/listPartitions", { body: {}, params: "" }) as ClientResponse<ListPartitionsResponse>
     }
 
     async createPartitions(data: LionWebJsonChunk): Promise<ClientResponse<CreatePartitionsResponse>> {
         this.client.log(`BulkApi.createPartitions`)
-        if (data === null) {
-            this.client.logError("createPartitions: Cannot read json data")
+        if (data === null || data === undefined) {
+            this.client.logError(`createPartitions: json data is '${data}'`)
             return {
                 status: HttpClientErrors.PreconditionFailed, body: {
                     success: false,
@@ -34,7 +37,7 @@ export class BulkApi {
     }
 
     async deletePartitions(partitionIds: string[]): Promise<ClientResponse<DeletePartitionsResponse>> {
-        this.client.log(`BulkApi..deletePartitions`)
+        this.client.log(`BulkApi..deletePartitions '${partitionIds}'`)
         if (partitionIds === null) {
             this.client.log("deletePartitions: Cannot read partitions")
             return {
@@ -54,7 +57,7 @@ export class BulkApi {
     async store(data: LionWebJsonChunk): Promise<ClientResponse<StoreResponse>> {
         this.client.log(`BulkApi.store`)
         if (data === null) {
-            this.client.log("testStore: Cannot read json data")
+            this.client.log(`testStore: Json data is '${data}'`)
             return {
                 status: HttpClientErrors.PreconditionFailed, body: {
                     success: false,
@@ -68,13 +71,13 @@ export class BulkApi {
         return await this.client.postWithTimeout(`bulk/store`, { body: data, params: "" })
     }
 
-    async ids(clientId: string, count: number): Promise<ClientResponse<IdsResponse>> {
-        this.client.log(`BulkApi.ids`)
-        return await this.client.postWithTimeout(`bulk/ids`, { body: {}, params: `clientId=${clientId}&count=${count}` })  as ClientResponse<IdsResponse>
+    async ids(count: number): Promise<ClientResponse<IdsResponse>> {
+        this.client.log(`BulkApi.ids count '${count}'`)
+        return await this.client.postWithTimeout(`bulk/ids`, { body: {}, params: `count=${count}` })  as ClientResponse<IdsResponse>
     }
 
     async retrieve(nodeIds: string[], depth?: number): Promise<ClientResponse<RetrieveResponse>> {
-        this.client.log(`BulkApi.retrieve ${nodeIds} with depth ${depth}`)
+        this.client.log(`BulkApi.retrieve '${nodeIds}' with depth '${depth}'`)
         const params = (depth === undefined) ? "" : `depthLimit=${depth}`
         return await this.client.postWithTimeout(`bulk/retrieve`, { body: { ids: nodeIds }, params: `${params}` }) as ClientResponse<RetrieveResponse>
     }

@@ -1,4 +1,4 @@
-import { HttpSuccessCodes, logger, QueryReturnType } from "@lionweb/repository-common";
+import { HttpSuccessCodes, logger, QueryReturnType, RepositoryData } from "@lionweb/repository-common";
 import { AdditionalApiContext } from "../main.js";
 import { makeQueryNodeTreeForIdList } from "./QueryNode.js"
 
@@ -20,13 +20,13 @@ export class AdditionalQueries {
      * @param nodeIdList
      * @param depthLimit
      */
-    getNodeTree = async (nodeIdList: string[], depthLimit: number): Promise<QueryReturnType<NodeTreeResultType[]>> => {
+    getNodeTree = async (repositoryData: RepositoryData, nodeIdList: string[], depthLimit: number): Promise<QueryReturnType<NodeTreeResultType[]>> => {
         logger.requestLog("LionWebQueries.getNodeTree for " + nodeIdList)
         let query = ""
         if (nodeIdList.length === 0) {
             return { status: HttpSuccessCodes.NoContent, query: "query", queryResult: [] }
         }
         query = makeQueryNodeTreeForIdList(nodeIdList, depthLimit)
-        return { status: HttpSuccessCodes.Ok, query: query, queryResult: await this.context.dbConnection.query(query) }
+        return { status: HttpSuccessCodes.Ok, query: query, queryResult: await this.context.dbConnection.query(repositoryData, query) }
     }
 }

@@ -10,6 +10,9 @@ import {
 } from "./responses.js"
 
 export type Status = number
+/**
+ * The generic response object for all server commands
+ */
 export type ClientResponse<T extends LionwebResponse> = {
     body: T
     status: Status
@@ -23,12 +26,22 @@ export type ClientResponse<T extends LionwebResponse> = {
  *      TIMEOUT: the timeout in ms for a server call
  */      
 export class RepositoryClient {
-    loggingOn = false
+    // Server parameters
     private _nodePort = process.env.NODE_PORT || 3005
     private _SERVER_IP = process.env.REPO_IP || "http://127.0.0.1"
     private _SERVER_URL = `${this._SERVER_IP}:${this._nodePort}/`
     private TIMEOUT = Number.parseInt(process.env.TIMEOUT) || 2000
-    private clientId: string
+
+    loggingOn = false
+    /**
+     * The Client id that is used for all Api requests
+     */
+    clientId: string
+
+    /**
+     * The name of the repository used for all Api calls
+     */        
+    repository: string = "default"
     
     // The different API's that the repository provides
     dbAdmin: DbAdminApi
@@ -38,17 +51,33 @@ export class RepositoryClient {
     inspection: InspectionApi
     languages: LanguagesApi
     
-    constructor(clientid: string) {
+    constructor(clientid: string, repository: string) {
         this.clientId = clientid
+        this.repository = repository
         this.dbAdmin = new DbAdminApi(this)
         this.bulk = new BulkApi(this)
         this.additional = new AdditionalApi(this)
         this.history = new HistoryApi(this)
         this.inspection = new InspectionApi(this)
         this.languages = new LanguagesApi(this)
-        
     }
-    
+
+    withClientId(id: string): RepositoryClient {
+        this.clientId = id
+        return this
+    }
+
+    withRepository(repository: string): RepositoryClient {
+        this.repository = repository
+        return this
+    }
+
+    withClientIdAndrepository(id: string, repository: string): RepositoryClient {
+        this.clientId = id
+        this.repository = repository
+        return this
+    }
+
     async getWithTimeout<T>(method: string, parameters: { body: unknown; params: string }): Promise<T> {
         const params = this.findParams(parameters.params)
         try {
@@ -72,12 +101,12 @@ export class RepositoryClient {
     }
 
     async postWithTimeout(method: string, parameters: { body: unknown; params: string }): Promise<ClientResponse<LionwebResponse>> {
-        const params = this.findParams(parameters.params)
+        const allParams = this.findParams(parameters.params)
         try {
             const controller = new AbortController()
             const timeoutId = setTimeout(() => controller.abort(), this.TIMEOUT)
-            this.log("postWithTimeout: " + `${this._SERVER_URL}${method}${params}`)
-            const promise: Response = await fetch(`${this._SERVER_URL}${method}${params}`, {
+            this.log("postWithTimeout: " + `${this._SERVER_URL}${method}${allParams}`)
+            const promise: Response = await fetch(`${this._SERVER_URL}${method}${allParams}`, {
                 signal: controller.signal,
                 method: "post",
                 headers: {
@@ -127,12 +156,18 @@ export class RepositoryClient {
     }
 
     private findParams(params?: string): string {
+        let result = ""
         if (!!params && params.includes("clientId")) {
-            return "?" + params
+            result = "?" + params
         } else if (!!params && params.length > 0) {
-            return "?" + params + "&clientId=" + this.clientId
+            result = "?" + params + "&clientId=" + this.clientId
         } else {
-            return "?clientId=" + this.clientId
+            result = "?clientId=" + this.clientId
+        }
+        if (params.includes("repository")) {
+            return result
+        } else {
+            return result + "&repository=" + this.repository
         }
     }
 
@@ -151,7 +186,7 @@ export class RepositoryClient {
      */
     log(message: string): void {
         if (this.loggingOn) {
-            console.log(message)
+            console.log("RepositoryClient: " + message)
         }
     }
 
@@ -160,7 +195,7 @@ export class RepositoryClient {
      * @param message
      */
     logError(message: string): void {
-        console.log(message)
+        console.log("RepositoryClient error: " + message)
     }
 
 

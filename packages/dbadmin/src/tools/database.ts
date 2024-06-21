@@ -36,3 +36,4 @@ export const INIT_CONFIG: PostgresConfig = {
     password: PGPASSWORD,
     ssl: pgSSLConf
 }
+

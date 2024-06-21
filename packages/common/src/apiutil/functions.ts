@@ -1,8 +1,9 @@
+import { RepositoryData, SCHEMA_PREFIX } from "../database/index.js";
 import { HttpServerErrors } from "./httpcodes.js"
 import { collectUsedLanguages } from "./UsedLanguages.js"
 import { LionWebJsonChunk, LionWebJsonNode } from "@lionweb/validation"
 import { Request, Response } from "express"
-import { isResponseMessage, lionwebResponse, ResponseMessage } from "./LionwebResponse.js"
+import { lionwebResponse, ResponseMessage } from "./LionwebResponse.js"
 import { v4 as uuidv4 } from "uuid"
 
 export function toFirstUpper(text: string): string {
@@ -24,8 +25,7 @@ export type ParameterError = {
 export function isParameterError(object: unknown): object is ParameterError {
     return object["success"] !== undefined &&
         typeof object["success"] === "boolean" &&
-        object["message"] !== undefined &&
-        isResponseMessage(object["message"])
+        object["success"] === true 
 }
 
 
@@ -36,16 +36,42 @@ export function isParameterError(object: unknown): object is ParameterError {
  * @returns The value of the query parameter if this is avalable and of type string,
  * Otherwise a ParameterError containing an error.
  */
-export function getStringParam(request: Request, paramName: string): string | ParameterError {
+export function getStringParam(request: Request, paramName: string, defaultValue?: string): string | ParameterError {
     const result = request.query[paramName]
     if (typeof result === "string") {
         return result as string
+    } else {
+        if (defaultValue !== undefined) {
+            return defaultValue
+        } else {
+            return {
+                success: false,
+                error: {
+                    kind: `${toFirstUpper(paramName)}Incorrect`,
+                    message: `Parameter ${paramName} must be a string: [${result}]`
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Get the query parameter named _paramName_ as a string value
+ * @param request   The request object containing the query
+ * @param paramName The name of the parameter.
+ * @returns The value of the query parameter if this is avalable and of type string,
+ * Otherwise a ParameterError containing an error.
+ */
+export function getBooleanParam(request: Request, paramName: string): boolean | ParameterError {
+    const result = request.query[paramName]
+    if (typeof result === "string") {
+        return result === "true"
     } else {
         return {
             success: false,
             error: {
                 kind: `${toFirstUpper(paramName)}Incorrect`,
-                message: `Parameter ${paramName} must be a string`
+                message: `Parameter ${paramName} must be a string: [${result}]`
             }
         }
     }
@@ -78,6 +104,65 @@ export function getIntegerParam(request: Request, paramName: string, defaultValu
     } else {
         // In case of undefined return the default value
         return defaultValue
+    }
+}
+
+
+export function removeNewlinesBetween$$(plpgsql: string): string {
+    let result = plpgsql
+    // Match all substrings between $$ and $$ markers (PLPGSQL specific)
+    const first = plpgsql.match(/\$\$[^$]*\$\$/g) ?? []
+    first.forEach((text) => {
+        result = result.replace(text.substring(2, text.length-3), text.substring(2, text.length-3).replaceAll("\n", " "))
+    })
+    return result
+}
+
+/**
+ *
+ */
+export function getRepositoryParameter(request: Request): string {
+    let repository = getStringParam(request, "repository")
+    if (isParameterError(repository)) {
+        // use the default
+        repository = "default"
+    }
+    return SCHEMA_PREFIX + repository
+}
+
+/**
+ *
+ */
+export function getHistoryParameter(request: Request): boolean {
+    let history = getBooleanParam(request, "history")
+    if (isParameterError(history)) {
+        // use the default
+        history = false
+    }
+    return history
+}
+
+/**
+ *
+ */
+export function getClientIdParameter(request: Request): string {
+    let clientId = getStringParam(request, "clientId")
+    if (isParameterError(clientId)) {
+        // use the default
+        clientId = "lionweb-repository"
+    }
+    return clientId
+}
+
+export function getRepositoryData(request: Request ): RepositoryData | ParameterError {
+    const clientId = getStringParam(request, "clientId")
+    if (isParameterError(clientId)) {
+        return clientId
+    } else {
+        return {
+            clientId: clientId,
+            repository: getRepositoryParameter(request)
+        }
     }
 }
 

@@ -11,11 +11,11 @@ sm.install()
 const DATA: string = "./data/"
 
 describe("Repository tests for inspection APIs", () => {
-    const t = new RepositoryClient("InspectionTests")
+    const client = new RepositoryClient("InspectionTests", "default")
     let jsonModel: LionWebJsonChunk
 
     before("create database", async function () {
-        const initResponse = await t.dbAdmin.createDatabase()
+        const initResponse = await client.dbAdmin.createDatabase()
         if (initResponse.status !== HttpSuccessCodes.Ok) {
             console.log("Cannot create database: " + JSON.stringify(initResponse.body))
         } else {
@@ -24,7 +24,8 @@ describe("Repository tests for inspection APIs", () => {
     })
     
     beforeEach("a", async function () {
-        const initResponse = await t.dbAdmin.init()
+        await client.dbAdmin.deleteRepository("default")
+        const initResponse = await client.dbAdmin.init(true)
         if (initResponse.status !== HttpSuccessCodes.Ok) {
             console.log("Cannot initialize database: " + JSON.stringify(initResponse.body))
         } else {
@@ -32,18 +33,18 @@ describe("Repository tests for inspection APIs", () => {
         }
         jsonModel = readModel(DATA + "Disk_A.json") as LionWebJsonChunk
         const initialPartition = readModel(DATA + "Disk_A_partition.json") as LionWebJsonChunk
-        const partResult = await t.bulk.createPartitions(initialPartition)
+        const partResult = await client.bulk.createPartitions(initialPartition)
         if (partResult.status !== HttpSuccessCodes.Ok) {
             console.log("Cannot create initial partition: " + JSON.stringify(partResult.body))
         }
-        const result = await t.bulk.store(jsonModel)
+        const result = await client.bulk.store(jsonModel)
         if (result.status !== HttpSuccessCodes.Ok) {
             console.log("Cannot store initial chunk: " + JSON.stringify(result.body))
         }
     })
 
     it("nodes by language", async () => {
-        const result = (await t.inspection.nodesByLanguage())
+        const result = (await client.inspection.nodesByLanguage())
         deepEqual(result, [
                 {
                     language: '-default-key-FileSystem',
@@ -62,7 +63,7 @@ describe("Repository tests for inspection APIs", () => {
     })
 
     it("nodes by classifier", async () => {
-        const result = (await t.inspection.nodesByClassifier())
+        const result = (await client.inspection.nodesByClassifier())
         deepEqual(result, [
                 {
                     "language": "-default-key-FileSystem",

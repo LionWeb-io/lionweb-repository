@@ -2,7 +2,7 @@ import { LanguageRegistry } from "@lionweb/validation";
 import { Express } from "express"
 import pgPromise from "pg-promise"
 import pg from "pg-promise/typescript/pg-subset.js"
-import { runWithTry } from "@lionweb/repository-common";
+import { DbConnection, runWithTry } from "@lionweb/repository-common";
 import { LanguageApiWorker } from "./controllers/LanguageApiWorker.js";
 import { LanguageApiImpl } from "./controllers/index.js";
 
@@ -11,12 +11,12 @@ import { LanguageApiImpl } from "./controllers/index.js";
  * Avoids using glocal variables, as they easily get mixed up between the various API packages.
  */
 export class LanguageApiContext {
-    dbConnection: pgPromise.IDatabase<object, pg.IClient>
+    dbConnection: DbConnection
     pgp: pgPromise.IMain<object, pg.IClient>
     languageApiWorker: LanguageApiWorker
     languageApi: LanguageApiImpl
 
-    constructor(dbConnection: pgPromise.IDatabase<object, pg.IClient>, pgp: pgPromise.IMain<object, pg.IClient>) {
+    constructor(dbConnection: DbConnection, pgp: pgPromise.IMain<object, pg.IClient>) {
         this.dbConnection = dbConnection
         this.pgp = pgp
         this.languageApi = new LanguageApiImpl(this)
@@ -30,7 +30,7 @@ export class LanguageApiContext {
  * @param dbConnection  The database connection to be used by this API
  * @param pgp           The pg-promise object to gain access to the pg helpers
  */
-export function registerLanguagesApi(app: Express, dbConnection: pgPromise.IDatabase<object, pg.IClient>, pgp: pgPromise.IMain<object, pg.IClient>) {
+export function registerLanguagesApi(app: Express, dbConnection: DbConnection, pgp: pgPromise.IMain<object, pg.IClient>) {
     console.log("Registering Additional API Module");
     // Create all objects 
     const context = new LanguageApiContext(dbConnection, pgp)
