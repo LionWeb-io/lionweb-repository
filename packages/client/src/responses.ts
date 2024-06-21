@@ -2,7 +2,7 @@
  * Copy from database side code, to define the structure of the responses.
  */
 import { LionWebJsonChunk } from "@lionweb/validation";
-import { ClientResponse } from "./RepositoryClient";
+import { ClientResponse } from "./RepositoryClient.js";
 
 export type MessageKind =
     "PartitionHasParent"

@@ -1,4 +1,4 @@
-import { asError, HttpClientErrors } from "@lionweb/repository-common"
+import { HttpClientErrors } from "./httpcodes.js"
 import { AdditionalApi } from "./AdditionalApi.js";
 import { BulkApi } from "./BulkApi.js";
 import { DbAdminApi } from "./DbAdminApi.js";
@@ -199,4 +199,14 @@ export class RepositoryClient {
     }
 
 
+}
+
+// NB Copy from repository-common
+/**
+ * Return _error_ as en Error, just return itself if it already is.
+ * @param error
+ */
+export function asError(error: unknown): Error {
+    if (error instanceof Error) return error;
+    return new Error(JSON.stringify(error));
 }
