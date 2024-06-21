@@ -2,11 +2,11 @@ import { Request, Response } from "express"
 import { AdditionalApiContext } from "../main.js"
 import {
     EMPTY_SUCCES_RESPONSE,
-    getIntegerParam,
+    getIntegerParam, getRepositoryParameter, getStringParam,
     HttpClientErrors,
     HttpSuccessCodes, isParameterError,
     lionwebResponse,
-    logger
+    logger, RepositoryData
 } from "@lionweb/repository-common"
 
 export interface AdditionalApi {
@@ -23,6 +23,12 @@ export class AdditionalApiImpl implements AdditionalApi {
      */
     getNodeTree = async (request: Request, response: Response): Promise<void> => {
         const idList = request.body.ids
+        let clientId = getStringParam(request, "clientId")
+        if (isParameterError(clientId)) {
+            // Allow call without client id
+            clientId = "Dummy"
+        }
+        const repositoryData: RepositoryData = { clientId: clientId, repository: getRepositoryParameter(request) }
         const depthLimit = getIntegerParam(request, "depthLimit", Number.MAX_SAFE_INTEGER)
         if (isParameterError(depthLimit)) {
             lionwebResponse(response, HttpClientErrors.PreconditionFailed, {
@@ -31,7 +37,7 @@ export class AdditionalApiImpl implements AdditionalApi {
             })
         } else {
             logger.dbLog("API.getNodeTree is " + idList)
-            const result = await this.context.additionalApiWorker.getNodeTree(idList, depthLimit)
+            const result = await this.context.additionalApiWorker.getNodeTree(repositoryData, idList, depthLimit)
             lionwebResponse(response, HttpSuccessCodes.Ok, EMPTY_SUCCES_RESPONSE)
             response.send(result)
         }

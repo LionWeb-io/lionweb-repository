@@ -39,7 +39,7 @@ collection.forEach(withoutHistory => {
                 baseFullChunk = readModel(DATA + "Disk_A.json") as LionWebJsonChunk
                 const deleteResponse = await client.dbAdmin.deleteRepository(repository)
                 console.log("Delete repo: " + JSON.stringify(deleteResponse))
-                const initResponse = await (withoutHistory ? client.dbAdmin.createRepositoryWithoutHistory(repository) : client.dbAdmin.createRepository(repository))
+                const initResponse = await client.dbAdmin.createRepository(repository, !withoutHistory)
                 if (initResponse.status !== HttpSuccessCodes.Ok) {
                     console.log("Cannot initialize database: " + JSON.stringify(initResponse.body))
                     initError = JSON.stringify(initResponse.body)
@@ -99,7 +99,7 @@ collection.forEach(withoutHistory => {
 
                 it("delete partitions", async () => {
                     assert(initError === "", initError)
-                    const deleteResult = await client.bulk.deletePartitions(["ID-2"])
+                    await client.bulk.deletePartitions(["ID-2"])
                     const partitions = await client.bulk.listPartitions()
                     // console.log("Test  partitions: " + JSON.stringify(partitions))
                     deepEqual(partitions.body.chunk, { serializationFormatVersion: "2023.1", languages: [], nodes: [] })
@@ -380,14 +380,14 @@ collection.forEach(withoutHistory => {
                         assert(repositories.body.repositoryNames.length === 1, "There should be exactly one repository")
                         assert(repositories.body.repositoryNames.includes(currentrepo), "Incorrect repository found: " + repositories.body.repositoryNames)
                     }
-                    await client.dbAdmin.createRepository("Repo2")
+                    await client.dbAdmin.createRepository("Repo2", false)
                     {
                         const repositories = await client.dbAdmin.listRepositories()
                         assert(repositories.body.repositoryNames.length === 2, "There should be exactly two repositories")
                         assert(repositories.body.repositoryNames.every(repo => repo === currentrepo || repo === "Repo2"), "Incorrect repository found: " + repositories.body.repositoryNames)
                     }
 
-                    const createResult = await client.dbAdmin.createRepository("Repo2")
+                    const createResult = await client.dbAdmin.createRepository("Repo2", true)
                     assert(createResult.body.success === false, "Should not be able to create existing repo")
                     await client.dbAdmin.deleteRepository("Repo2")
                     {
@@ -395,7 +395,7 @@ collection.forEach(withoutHistory => {
                         assert(repositories.body.repositoryNames.length === 1, "There should be exactly one repository")
                         assert(repositories.body.repositoryNames.includes(currentrepo), "Incorrect repository found: " + repositories.body.repositoryNames)
                     }
-                    await client.dbAdmin.createRepository("Repo2")
+                    await client.dbAdmin.createRepository("Repo2", true)
                     {
                         const repositories = await client.dbAdmin.listRepositories()
                         assert(repositories.body.repositoryNames.length === 2, "There should be exactly two repositories")

@@ -1,3 +1,9 @@
+import {
+    getRepositoryParameter,
+    getStringParam,
+    isParameterError,
+    RepositoryData
+} from "@lionweb/repository-common";
 import e, { Request, Response } from "express"
 import { InspectionContext } from "../main.js";
 import {ClassifierNodes, LanguageNodes} from "../database/InspectionApiWorker";
@@ -85,8 +91,14 @@ class InspectionApiImpl implements InspectionApi {
     }
 
     nodesByClassifier = async (request: e.Request, response: e.Response)=> {
+        let clientId = getStringParam(request, "clientId")
+        if (isParameterError(clientId)) {
+            // Allow call without client id
+            clientId = "Dummy"
+        } 
+        const repositoryData: RepositoryData = { clientId: clientId, repository: getRepositoryParameter(request) }
         const sql = this.context.inspectionQueries.nodesByClassifier();
-        const queryResult = await this.context.inspectionApiWorker.nodesByClassifier(sql)
+        const queryResult = await this.context.inspectionApiWorker.nodesByClassifier(repositoryData, sql)
         const limitStr = request.query.limit
         // TODO handle the case in which multiple query parameters are specified
         const limit: number = limitStr === undefined ? -1 : parseInt(limitStr as string, 10)
@@ -94,8 +106,14 @@ class InspectionApiImpl implements InspectionApi {
     }
 
     nodesByLanguage = async (request: e.Request, response: e.Response) => {
+        let clientId = getStringParam(request, "clientId")
+        if (isParameterError(clientId)) {
+            // Allow call without client id
+            clientId = "Dummy"
+        }
+        const repositoryData: RepositoryData = { clientId: clientId, repository: getRepositoryParameter(request) }
         const sql = this.context.inspectionQueries.nodesByLanguage();
-        const queryResult = await this.context.inspectionApiWorker.nodesByLanguage(sql)
+        const queryResult = await this.context.inspectionApiWorker.nodesByLanguage(repositoryData, sql)
         const limitStr = request.query.limit
         // TODO handle the case in which multiple query parameters are specified
         const limit: number = limitStr === undefined ? -1 : parseInt(limitStr as string, 10)

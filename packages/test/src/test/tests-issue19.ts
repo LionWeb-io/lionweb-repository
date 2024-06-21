@@ -12,7 +12,7 @@ describe("Repository tests", () => {
     const t = new RepositoryClient("TestClient", "default")
 
     beforeEach("a", async function () {
-        await t.dbAdmin.init()
+        await t.dbAdmin.init(true)
         await t.bulk.createPartitions(readModel(DATA + "Disk_A_partition.json") as LionWebJsonChunk)
     })
 

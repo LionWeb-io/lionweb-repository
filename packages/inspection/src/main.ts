@@ -2,7 +2,7 @@ import { Express } from "express"
 import pgPromise from "pg-promise"
 import pg from "pg-promise/typescript/pg-subset.js"
 
-import { runWithTry, } from "@lionweb/repository-common";
+import { DbConnection, runWithTry, } from "@lionweb/repository-common";
 import { createInspectionApiWorker, InspectionApiWorker } from "./database/InspectionApiWorker.js"
 import { createInspectionApi, InspectionApi } from "./controllers/InspectionApi.js"
 import { InspectionQueries } from "./database/InspectionQueries.js";
@@ -12,13 +12,13 @@ import { InspectionQueries } from "./database/InspectionQueries.js";
  * Avoids using glocal variables, as they easily get mixed up between the various API packages.
  */
 export class InspectionContext {
-    dbConnection: pgPromise.IDatabase<object, pg.IClient>
+    dbConnection: DbConnection
     pgp: pgPromise.IMain<object, pg.IClient>
     inspectionApi: InspectionApi
     inspectionQueries: InspectionQueries
     inspectionApiWorker: InspectionApiWorker
 
-    constructor(dbConnection: pgPromise.IDatabase<object, pg.IClient>, pgp: pgPromise.IMain<object, pg.IClient>) {
+    constructor(dbConnection: DbConnection, pgp: pgPromise.IMain<object, pg.IClient>) {
         this.dbConnection = dbConnection
         this.pgp = pgp
         this.inspectionApi = createInspectionApi(this)
@@ -34,7 +34,7 @@ export class InspectionContext {
  * @param pgp           The pg-promise object to gain access to the pg helpers
  */
 
-export function registerInspection(app: Express, dbConnection: pgPromise.IDatabase<object, pg.IClient>, pgp: pgPromise.IMain<object, pg.IClient>) {
+export function registerInspection(app: Express, dbConnection: DbConnection, pgp: pgPromise.IMain<object, pg.IClient>) {
     console.log("Registering Inspection Module");
     // Create all objects 
     const context = new InspectionContext(dbConnection, pgp)

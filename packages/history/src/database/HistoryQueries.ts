@@ -1,6 +1,6 @@
 import {
     logger,
-    PartitionsResponse,
+    ListPartitionsResponse,
     asError,
     QueryReturnType, nodesToChunk, HttpSuccessCodes, HttpClientErrors, RepositoryData,
 } from "@lionweb/repository-common"
@@ -36,7 +36,7 @@ export class HistoryQueries {
                 return { status: HttpClientErrors.PreconditionFailed, query: "query", queryResult: [] }
             }
             query = makeQueryNodeTreeForIdList(nodeIdList, depthLimit, repoVersion)
-            return { status: HttpSuccessCodes.Ok, query: query, queryResult: await this.context.dbNew.query(repoData, query) }
+            return { status: HttpSuccessCodes.Ok, query: query, queryResult: await this.context.dbConnection.query(repoData, query) }
         } catch (e) {
             const error = asError(e)
             console.error("Exception catched in LionWebQueries.getNodeTree(): " + error.message)
@@ -53,18 +53,18 @@ export class HistoryQueries {
             return []
         }
         const query = QueryNodeForIdList(nodeIdList, repoVersion)
-        const result = await this.context.dbNew.query(repoData, query)
+        const result = await this.context.dbConnection.query(repoData, query)
         return result
     }
 
     /**
      * Get all partitions: this returns all nodes that have parent set to null or undefined
      */
-    getPartitionsForVersion = async (repoData: RepositoryData, repoVersion: number): Promise<QueryReturnType<PartitionsResponse>> => {
+    getPartitionsForVersion = async (repoData: RepositoryData, repoVersion: number): Promise<QueryReturnType<ListPartitionsResponse>> => {
         logger.requestLog("HistoryQueries.getPartitions for version " + JSON.stringify(repoVersion))
         // TODO Combine both queries
         const query = `SELECT id FROM nodesForVersion(${repoVersion}) WHERE parent is null`
-        const partitionIds = await await this.context.dbNew.query(repoData, query) as { id: string }[]
+        const partitionIds = await await this.context.dbConnection.query(repoData, query) as { id: string }[]
 
         logger.dbLog("HistoryQueries.getPartitions.Result: " + JSON.stringify(partitionIds))
         const nodes = await this.getNodesFromIdList(repoData, partitionIds.map(n => n.id), repoVersion)

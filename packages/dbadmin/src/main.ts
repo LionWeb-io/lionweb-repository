@@ -19,8 +19,8 @@ export class DbAdminApiContext {
     dbAdminApi: DBAdminApi
     dbAdminApiWorker: DBAdminApiWorker
 
-    constructor(dbNew: DbConnection, pgConnection: pgPromise.IDatabase<object, pg.IClient>, pgp: pgPromise.IMain<object, pg.IClient>) {
-        this.dbConnection = dbNew
+    constructor(dbConnection: DbConnection, pgConnection: pgPromise.IDatabase<object, pg.IClient>, pgp: pgPromise.IMain<object, pg.IClient>) {
+        this.dbConnection = dbConnection
         this.postgresConnection = pgConnection
         this.pgp = pgp
         this.dbAdminApi = new DBAdminApiImpl(this)
@@ -36,12 +36,12 @@ export class DbAdminApiContext {
  */
 export function registerDBAdmin(
     app: Express,
-    dbNew: DbConnection,
+    dbConnection: DbConnection,
     pgConnection: pgPromise.IDatabase<object, pg.IClient>,
     pgp: pgPromise.IMain<object, pg.IClient>) {
     console.log("Registering DB Admin Module");
     // Create all objects 
-    const dbAdminApiContext = new DbAdminApiContext(dbNew, pgConnection, pgp)
+    const dbAdminApiContext = new DbAdminApiContext(dbConnection, pgConnection, pgp)
 
     // Add routes to app
     app.post("/init", runWithTry(dbAdminApiContext.dbAdminApi.init))

@@ -11,7 +11,7 @@ import { LionWebQueries, QueryMaker } from "./database/index.js";
  * Avoids using glocal variables, as they easily get mixed up between the various API packages.
  */
 export class BulkApiContext {
-    dbNew: DbConnection
+    dbConnection: DbConnection
     pgp: pgPromise.IMain<object, pg.IClient>
     bulkApiWorker: BulkApiWorker
     bulkApi: BulkApi
@@ -23,8 +23,8 @@ export class BulkApiContext {
      * @param dbConnection  The database connection to be used by this API
      * @param pgp           The pg-promise object to gain access to the pg helpers
      */
-    constructor(dbNew: DbConnection, pgp: pgPromise.IMain<object, pg.IClient>) {
-        this.dbNew = dbNew
+    constructor(dbConnection: DbConnection, pgp: pgPromise.IMain<object, pg.IClient>) {
+        this.dbConnection = dbConnection
         this.pgp = pgp
         this.bulkApi = new BulkApiImpl(this)
         this.bulkApiWorker = new BulkApiWorker(this)
@@ -39,10 +39,10 @@ export class BulkApiContext {
  * @param dbConnection  The database connection to be used by this API
  * @param pgp           The pg-promise object to gain access to the pg helpers
  */
-export function registerBulkApi(app: Express, dbNew: DbConnection, pgp: pgPromise.IMain<object, pg.IClient>) {
+export function registerBulkApi(app: Express, dbConnection: DbConnection, pgp: pgPromise.IMain<object, pg.IClient>) {
     console.log("Registering Bulk API Module");
     // Create all objects 
-    const context = new BulkApiContext(dbNew, pgp)
+    const context = new BulkApiContext(dbConnection, pgp)
 
     // Add routes to application
     app.post("/bulk/createPartitions", runWithTry(context.bulkApi.createPartitions))

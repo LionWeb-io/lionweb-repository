@@ -6,7 +6,7 @@ import { Request, Response } from "express"
 import { HistoryContext } from "../main.js"
 import {
     logger,
-    PartitionsResponse,
+    ListPartitionsResponse,
     lionwebResponse,
     HttpClientErrors, getStringParam, getIntegerParam, isParameterError, StoreResponse, FOREVER, getRepositoryParameter
 } from "@lionweb/repository-common"
@@ -41,7 +41,7 @@ export class HistoryApiImpl implements HistoryApi {
                 })
         } else {
             const result = await this.ctx.historyApiWorker.bulkPartitions({ clientId: clientId, repository: getRepositoryParameter(request) }, repoVersion)
-            lionwebResponse<PartitionsResponse>(response, result.status, result.queryResult)
+            lionwebResponse<ListPartitionsResponse>(response, result.status, result.queryResult)
         }
     }
     

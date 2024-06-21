@@ -1,11 +1,11 @@
-import { HttpClientErrors, PartitionsResponse } from "@lionweb/repository-common";
+import { HttpClientErrors, ListPartitionsResponse } from "@lionweb/repository-common";
 import { LionWebJsonChunk } from "@lionweb/validation";
 import { ClientResponse, RepositoryClient } from "./RepositoryClient.js";
 import { CreatePartitionsResponse, DeletePartitionsResponse, IdsResponse, RetrieveResponse, StoreResponse } from "./responses.js";
 
 /**
  * Client side Api for the lionweb-repository server.
- * Purpose is to ease thge use of the lionweb-repository server.
+ * Purpose is to ease the use of the lionweb-repository server.
  */
 export class BulkApi {
     client: RepositoryClient
@@ -14,9 +14,9 @@ export class BulkApi {
         this.client = client
     }
 
-    async listPartitions(): Promise<ClientResponse<PartitionsResponse>> {
+    async listPartitions(): Promise<ClientResponse<ListPartitionsResponse>> {
         this.client.log(`BulkApi.listPartitions`)
-        return await this.client.postWithTimeout("bulk/listPartitions", { body: {}, params: "" }) as ClientResponse<PartitionsResponse>
+        return await this.client.postWithTimeout("bulk/listPartitions", { body: {}, params: "" }) as ClientResponse<ListPartitionsResponse>
     }
 
     async createPartitions(data: LionWebJsonChunk): Promise<ClientResponse<CreatePartitionsResponse>> {

@@ -5,7 +5,7 @@ import {
     RepositoryData,
     lionwebResponse,
     logger,
-    getClientIdParameter, getHistoryParameter, QueryReturnType, ListRepositoriesResponse
+    getClientIdParameter, getHistoryParameter, QueryReturnType, ListRepositoriesResponse, SCHEMA_PREFIX
 } from "@lionweb/repository-common";
 import { DbAdminApiContext } from "../main.js";
 import { CREATE_DATABASE_SQL } from "../tools/index.js";
@@ -85,8 +85,8 @@ export class DBAdminApiImpl implements DBAdminApi {
     listRepositories = async (request: Request, response: Response)=> {
         logger.requestLog(` * listRepositories request received, with body of ${request.headers["content-length"]} bytes`)
         const result = await this.ctx.dbAdminApiWorker.listRepositories()
-        // select schemas that represent a repository
-        const repoNames = result.queryResult.filter(repo => repo.schema_name.startsWith("lionweb:")).map(repo => repo.schema_name.substring(8))
+        // select schemas that represent a repository, make sure to remove the SCHEMA_PREFIX
+        const repoNames = result.queryResult.filter(repo => repo.schema_name.startsWith(SCHEMA_PREFIX)).map(repo => repo.schema_name.substring(SCHEMA_PREFIX.length))
         lionwebResponse<ListRepositoriesResponse>(response, result.status, {
             success: result.status === HttpSuccessCodes.Ok,
             repositoryNames: repoNames,

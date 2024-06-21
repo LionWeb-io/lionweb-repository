@@ -23,7 +23,8 @@ function addRepositorySchema(query: string, repositoryData: RepositoryData) {
 
 /**
  * All database queries will go through an instance of this class.
- * This enables logging, but also tweaking queries (as in _addRepositorySchema(...)_  when needed.
+ * This enables logging, but also tweaking queries  when needed.
+ * Current tweak: add the repository schema for each query 
  */
 export class DbConnection {
     postgresConnection: pgPromise.IDatabase<object, pg.IClient>
@@ -43,18 +44,6 @@ export class DbConnection {
     async queryWithoutRepository(query: string) {
         return await this.dbConnection.query(query)
     }
-
-    // async createSchema(repositoryData: RepositoryData, query: string) {
-    //     return await this.dbConnection.query(query)
-    // }
-    //
-    // async deleteSchema(repositoryData: RepositoryData, query: string) {
-    //     return await this.dbConnection.query(query)
-    // }
-    //
-    // async listSchemas(repositoryData: RepositoryData, query: string) {
-    //     return await this.dbConnection.query(query)
-    // }
 
     /**
      * @see  pgPromise.IDatabase.query
@@ -107,6 +96,10 @@ export class DbConnection {
 /**
  * All database transactions will go through an instance of this class.
  * This enables logging, but also tweaking queries when needed.
+ * Current tweak: add the repository schema for each query 
+ * 
+ * This is a wrapper for a pg-promise task.
+ * @see pgPromise.ITask
  */
 export class LionwebTask {
     task:  pgPromise.ITask<object> & object

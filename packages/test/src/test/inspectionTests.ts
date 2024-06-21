@@ -25,7 +25,7 @@ describe("Repository tests for inspection APIs", () => {
     
     beforeEach("a", async function () {
         await client.dbAdmin.deleteRepository("default")
-        const initResponse = await client.dbAdmin.init()
+        const initResponse = await client.dbAdmin.init(true)
         if (initResponse.status !== HttpSuccessCodes.Ok) {
             console.log("Cannot initialize database: " + JSON.stringify(initResponse.body))
         } else {

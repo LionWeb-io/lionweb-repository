@@ -1,7 +1,7 @@
 import { Express } from "express"
 import pgPromise from "pg-promise"
 import pg from "pg-promise/typescript/pg-subset.js"
-import { logger, runWithTry } from "@lionweb/repository-common";
+import { DbConnection, logger, runWithTry } from "@lionweb/repository-common";
 import { AdditionalApiWorker } from "./controllers/AdditionalApiWorker.js";
 import { AdditionalApiImpl } from "./controllers/index.js";
 import { AdditionalQueries } from "./database/index.js";
@@ -11,13 +11,13 @@ import { AdditionalQueries } from "./database/index.js";
  * Avoids using glocal variables, as they easily get mixed up between the various API packages.
  */
 export class AdditionalApiContext {
-    dbConnection: pgPromise.IDatabase<object, pg.IClient>
+    dbConnection: DbConnection
     pgp: pgPromise.IMain<object, pg.IClient>
     additionalApiWorker: AdditionalApiWorker
     additionalApi: AdditionalApiImpl
     queries: AdditionalQueries
 
-    constructor(dbConnection: pgPromise.IDatabase<object, pg.IClient>, pgp: pgPromise.IMain<object, pg.IClient>) {
+    constructor(dbConnection: DbConnection, pgp: pgPromise.IMain<object, pg.IClient>) {
         this.dbConnection = dbConnection
         this.pgp = pgp
         this.additionalApi = new AdditionalApiImpl(this)
@@ -32,7 +32,7 @@ export class AdditionalApiContext {
  * @param dbConnection  The database connection to be used by this API
  * @param pgp           The pg-promise object to gain access to the pg helpers
  */
-export function registerAdditionalApi(app: Express, dbConnection: pgPromise.IDatabase<object, pg.IClient>, pgp: pgPromise.IMain<object, pg.IClient>) {
+export function registerAdditionalApi(app: Express, dbConnection: DbConnection, pgp: pgPromise.IMain<object, pg.IClient>) {
     logger.requestLog("Registering Additional API Module");
     // Create all objects 
     const context = new AdditionalApiContext(dbConnection, pgp)

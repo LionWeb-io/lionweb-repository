@@ -1,6 +1,9 @@
 {
   "private": false,
   "name": "@lionweb/repository-client",
+  "publishConfig": {
+    "access": "public"
+  },
   "version": "0.1.1",
   "description": "Library to access repository server from a TypeScript/JavaScript client",
   "main": "dist/index.js",

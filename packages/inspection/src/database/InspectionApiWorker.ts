@@ -1,3 +1,4 @@
+import { RepositoryData } from "@lionweb/repository-common";
 import { InspectionContext } from "../main.js";
 
 export interface LanguageNodes {
@@ -25,8 +26,8 @@ export class InspectionApiWorker {
     constructor(private context: InspectionContext) {
     }
 
-    async nodesByLanguage(sql: string) {
-        return (await this.context.dbConnection.query(sql) as [object]).map(el => {
+    async nodesByLanguage(repositoryData: RepositoryData, sql: string) {
+        return (await this.context.dbConnection.query(repositoryData, sql) as [object]).map(el => {
             const ids = el["ids"].split(",");
             return {
                 "language": el["classifier_language"],
@@ -36,8 +37,8 @@ export class InspectionApiWorker {
         })
     }
 
-    async nodesByClassifier(sql: string) {
-        return (await this.context.dbConnection.query(sql) as [object]).map(el => {
+    async nodesByClassifier(repositoryData: RepositoryData, sql: string) {
+        return (await this.context.dbConnection.query(repositoryData, sql) as [object]).map(el => {
             const ids = el["ids"].split(",");
             return {
                 "language": el["classifier_language"],

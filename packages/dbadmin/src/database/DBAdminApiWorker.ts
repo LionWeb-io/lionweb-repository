@@ -72,7 +72,7 @@ export class DBAdminApiWorker {
                 }
             }
 
-            // const queryResult = this.ctx.postgresConnection.query(sql)
+            // const queryResult = this.ctx.postgresConnectionWithoutDatabase.query(sql)
             return {
                 status: HttpSuccessCodes.Ok,
                 query: sql,

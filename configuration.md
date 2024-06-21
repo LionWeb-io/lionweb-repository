@@ -6,7 +6,7 @@ Environment variables can be used to configure the project:
 
 * **PGHOST** (default `postgres`): The address at which the Postgres server can be reached
 * **PGPORT** (default `5432`): The port at which the Postgres server can be reached
-* **PGDB** (default `lionweb_test`): The name of the Postgres database to be used within the Postgres server. 
+* **PGDB** (default `lionweb`): The name of the Postgres database to be used within the Postgres server. 
   Please note that the variable **PGDATABASE** is instead _directly_ accessed by Postgres 
   (see [Postrgres references](https://www.postgresql.org/docs/current/libpq-envars.html). 
   This is an issue when running the database create script. In that case Postgress would use the **PGDATABASE**

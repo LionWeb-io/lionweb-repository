@@ -1,6 +1,6 @@
 import {
     logger,
-    PartitionsResponse,
+    ListPartitionsResponse,
     CreatePartitionsResponse,
     StoreResponse,
     asError,
@@ -69,7 +69,7 @@ export class LionWebQueries {
                 return { status: HttpClientErrors.PreconditionFailed, query: "query", queryResult: [] }
             }
             query = makeQueryNodeTreeForIdList(nodeIdList, depthLimit)
-            return { status: HttpSuccessCodes.Ok, query: query, queryResult: await this.context.dbNew.query(repositoryData, query) }
+            return { status: HttpSuccessCodes.Ok, query: query, queryResult: await this.context.dbConnection.query(repositoryData, query) }
         } catch (e) {
             const error = asError(e)
             console.error("Exception catched in LionWebQueries.getNodeTree(): " + error.message)
@@ -91,11 +91,11 @@ export class LionWebQueries {
     /**
      * Get all partitions: this returns all nodes that have parent set to null or undefined
      */
-    getPartitions = async (repositoryData: RepositoryData): Promise<QueryReturnType<PartitionsResponse>> => {
+    getPartitions = async (repositoryData: RepositoryData): Promise<QueryReturnType<ListPartitionsResponse>> => {
         logger.requestLog("LionWebQueries.getPartitions")
         let query = currentRepoVersionQuery()
         query += nodesForQueryQuery(`SELECT * FROM ${NODES_TABLE} WHERE parent is null`)
-        const [versionResult, result] = await this.context.dbNew.multi(repositoryData, query)
+        const [versionResult, result] = await this.context.dbConnection.multi(repositoryData, query)
         return {
             status: HttpSuccessCodes.Ok,
             query: "query",
@@ -112,7 +112,7 @@ export class LionWebQueries {
      * Should only be used by non-changing queries, as otherwise the _nextRepoVersion_ function should be used..
      */
     getRepoVersion = async (repositoryData: RepositoryData): Promise<number> => {
-        const v = await this.context.dbNew.query(repositoryData, "SELECT value FROM current_data WHERE key = 'repo.version'")
+        const v = await this.context.dbConnection.query(repositoryData, "SELECT value FROM current_data WHERE key = 'repo.version'")
         return Number.parseInt(v.value)
     }
 

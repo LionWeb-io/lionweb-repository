@@ -30,7 +30,7 @@ describe("Repository tests", () => {
         }
         initialPartition = readModel(DATA + "Disk_A_partition.json") as LionWebJsonChunk
         baseFullChunk = readModel(DATA + "Disk_A.json") as LionWebJsonChunk
-        const initResponse = await client.dbAdmin.init()
+        const initResponse = await client.dbAdmin.init(true)
         if (initResponse.status !== HttpSuccessCodes.Ok) {
             console.log("Cannot initialize database: " + JSON.stringify(initResponse.body))
         } else {
@@ -45,10 +45,6 @@ describe("Repository tests", () => {
         if (result.status !== HttpSuccessCodes.Ok) {
             console.log("Cannot store initial chunk: " + JSON.stringify(result.body))
         }
-    })
-
-    beforeEach("a", async function () {
-    
     })
 
     describe("History", () => {

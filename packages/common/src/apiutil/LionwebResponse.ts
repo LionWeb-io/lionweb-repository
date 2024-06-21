@@ -43,7 +43,7 @@ export interface RetrieveResponse extends LionwebResponse {
     chunk: LionWebJsonChunk
 }
 
-export interface PartitionsResponse extends LionwebResponse {
+export interface ListPartitionsResponse extends LionwebResponse {
     chunk: LionWebJsonChunk
 }
 

@@ -1,7 +1,7 @@
 import {
     EMPTY_CHUNK,
     HttpSuccessCodes, nodesToChunk,
-    PartitionsResponse, QueryReturnType, RepositoryData,
+    ListPartitionsResponse, QueryReturnType, RepositoryData,
     RetrieveResponse
 } from "@lionweb/repository-common";
 import { HistoryContext } from "../main.js"
@@ -17,7 +17,7 @@ export class HistoryApiWorker {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    async bulkPartitions(repoData: RepositoryData, repoVersion: number): Promise<QueryReturnType<PartitionsResponse>> {
+    async bulkPartitions(repoData: RepositoryData, repoVersion: number): Promise<QueryReturnType<ListPartitionsResponse>> {
         return await this.context.queries.getPartitionsForVersion(repoData, repoVersion)
     }
     

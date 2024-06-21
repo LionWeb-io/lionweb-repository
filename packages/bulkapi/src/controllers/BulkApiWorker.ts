@@ -4,7 +4,7 @@ import {
     DeletePartitionsResponse, EMPTY_CHUNK,
     EMPTY_SUCCES_RESPONSE, HttpClientErrors, HttpSuccessCodes, IdsResponse,
     logger, nodesToChunk,
-    PartitionsResponse, QueryReturnType, RepositoryData,
+    ListPartitionsResponse, QueryReturnType, RepositoryData,
     ResponseMessage, RetrieveResponse, StoreResponse
 } from "@lionweb/repository-common";
 import { LionWebJsonChunk } from "@lionweb/validation"
@@ -23,7 +23,7 @@ export class BulkApiWorker {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    async bulkPartitions(repositoryData: RepositoryData): Promise<QueryReturnType<PartitionsResponse>> {
+    async bulkPartitions(repositoryData: RepositoryData): Promise<QueryReturnType<ListPartitionsResponse>> {
         const result = await this.context.queries.getPartitions(repositoryData)
         return result
     }
@@ -35,7 +35,7 @@ export class BulkApiWorker {
         logger.requestLog(`BulkApiWorker.createPartitions repo [${JSON.stringify(repositoryData)}]`)
         // TODO Optimize: This reuses the "getNodesFromIdList", but that retrieves full nodes, which is not needed here
         
-        return await this.context.dbNew.tx(async task => {
+        return await this.context.dbConnection.tx(async task => {
             const existingNodes = await this.context.queries.getNodesFromIdListIncludingChildren(task, repositoryData, chunk.nodes.map(n => n.id))
             if (existingNodes.length > 0) {
                 return { 
@@ -60,7 +60,7 @@ export class BulkApiWorker {
      */
     deletePartitions = async(repositoryData: RepositoryData, idList: string[]): Promise<QueryReturnType<DeletePartitionsResponse>> => {
         // TODO Optimize: only need parent, all features are not needed, can be optimized.
-        return await this.context.dbNew.tx(async task => {
+        return await this.context.dbConnection.tx(async task => {
             const partitions = await this.context.queries.getNodesFromIdListIncludingChildren(task, repositoryData, idList)
             const issues: ResponseMessage[] = []
             partitions.forEach(part => {
@@ -84,7 +84,7 @@ export class BulkApiWorker {
     }
       
     bulkStore = async (repositoryData: RepositoryData, chunk: LionWebJsonChunk): Promise<QueryReturnType<StoreResponse>> => {
-        return await this.context.dbNew.tx(async task => {
+        return await this.context.dbConnection.tx(async task => {
             return await this.context.queries.store(task, repositoryData, chunk)
         })
     }
@@ -106,7 +106,7 @@ export class BulkApiWorker {
                 }
             }
         }
-        const [versionResult, nodes ] = await this.context.dbNew.multi(repositoryData, currentRepoVersionQuery() + retrieveWith(nodeIdList, depthLimit))
+        const [versionResult, nodes ] = await this.context.dbConnection.multi(repositoryData, currentRepoVersionQuery() + retrieveWith(nodeIdList, depthLimit))
         return {
             status: HttpSuccessCodes.Ok,
             query: "",
@@ -125,7 +125,7 @@ export class BulkApiWorker {
      */
     ids = async (repositoryData: RepositoryData, count: number): Promise<QueryReturnType<IdsResponse>> => {
         logger.requestLog("Reserve Count ids " + count + " for " + repositoryData.clientId)
-        return await this.context.dbNew.tx(async task => {
+        return await this.context.dbConnection.tx(async task => {
             const result: string[] = []
             // Create a bunch of ids, they are probably all free 
             let done = false

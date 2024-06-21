@@ -5,7 +5,7 @@ import express, {Express, NextFunction, Response, Request} from "express"
 import bodyParser from "body-parser"
 import cors from "cors"
 import pgPromise from "pg-promise";
-import { databaseConnection, pgp, postgresConnection } from "./DbConnection.js"
+import { postgresConnectionWithDatabase, pgp, postgresConnectionWithoutDatabase } from "./DbConnection.js"
 import { DbConnection } from "@lionweb/repository-common"
 import { initializeCommons } from "@lionweb/repository-common"
 import { registerDBAdmin } from "@lionweb/repository-dbadmin"
@@ -50,16 +50,16 @@ function verifyToken(request: Request, response: Response, next: NextFunction) {
 app.use(verifyToken)
 
 const dbConnection = DbConnection.getInstance()
-dbConnection.postgresConnection = postgresConnection
-dbConnection.dbConnection = databaseConnection
+dbConnection.postgresConnection = postgresConnectionWithoutDatabase
+dbConnection.dbConnection = postgresConnectionWithDatabase
 dbConnection.pgp = pgPromise()
 // Must be first to initialize
 initializeCommons(pgp)
-registerDBAdmin(app, DbConnection.getInstance(), postgresConnection, pgp)
+registerDBAdmin(app, DbConnection.getInstance(), postgresConnectionWithoutDatabase, pgp)
 registerBulkApi(app, DbConnection.getInstance(), pgp)
-registerInspection(app, databaseConnection, pgp)
-registerAdditionalApi(app, databaseConnection, pgp)
-registerLanguagesApi(app, databaseConnection, pgp)
+registerInspection(app, DbConnection.getInstance(), pgp)
+registerAdditionalApi(app, DbConnection.getInstance(), pgp)
+registerLanguagesApi(app, DbConnection.getInstance(), pgp)
 registerHistoryApi(app, DbConnection.getInstance(), pgp)
 
 const httpServer = http.createServer(app)

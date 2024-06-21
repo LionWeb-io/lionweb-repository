@@ -1,4 +1,4 @@
-import { RepositoryData } from "../database/index";
+import { RepositoryData, SCHEMA_PREFIX } from "../database/index.js";
 import { HttpServerErrors } from "./httpcodes.js"
 import { collectUsedLanguages } from "./UsedLanguages.js"
 import { LionWebJsonChunk, LionWebJsonNode } from "@lionweb/validation"
@@ -26,8 +26,6 @@ export function isParameterError(object: unknown): object is ParameterError {
     return object["success"] !== undefined &&
         typeof object["success"] === "boolean" &&
         object["success"] === true 
-        // object["error"] !== undefined &&
-        // isResponseMessage(object["message"])
 }
 
 
@@ -38,16 +36,20 @@ export function isParameterError(object: unknown): object is ParameterError {
  * @returns The value of the query parameter if this is avalable and of type string,
  * Otherwise a ParameterError containing an error.
  */
-export function getStringParam(request: Request, paramName: string): string | ParameterError {
+export function getStringParam(request: Request, paramName: string, defaultValue?: string): string | ParameterError {
     const result = request.query[paramName]
     if (typeof result === "string") {
         return result as string
     } else {
-        return {
-            success: false,
-            error: {
-                kind: `${toFirstUpper(paramName)}Incorrect`,
-                message: `Parameter ${paramName} must be a string: [${result}]`
+        if (defaultValue !== undefined) {
+            return defaultValue
+        } else {
+            return {
+                success: false,
+                error: {
+                    kind: `${toFirstUpper(paramName)}Incorrect`,
+                    message: `Parameter ${paramName} must be a string: [${result}]`
+                }
             }
         }
     }
@@ -125,7 +127,7 @@ export function getRepositoryParameter(request: Request): string {
         // use the default
         repository = "default"
     }
-    return "lionweb:" + repository
+    return SCHEMA_PREFIX + repository
 }
 
 /**

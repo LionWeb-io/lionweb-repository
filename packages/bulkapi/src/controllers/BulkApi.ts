@@ -9,7 +9,7 @@ import { BulkApiContext } from "../main.js"
 import {
     CreatePartitionsResponse,
     logger,
-    PartitionsResponse,
+    ListPartitionsResponse,
     lionwebResponse,
     ResponseMessage,
     DeletePartitionsResponse,
@@ -43,7 +43,7 @@ export class BulkApiImpl implements BulkApi {
         logger.requestLog(` * listPartitions request received, with body of ${request.headers["content-length"]} bytes`)
         const clientId = getStringParam(request, "clientId")
         if (isParameterError(clientId)) {
-            lionwebResponse<PartitionsResponse>(response, HttpClientErrors.PreconditionFailed, {
+            lionwebResponse<ListPartitionsResponse>(response, HttpClientErrors.PreconditionFailed, {
                 success: false,
                 chunk: null,
                 messages: [clientId.error]
@@ -51,7 +51,7 @@ export class BulkApiImpl implements BulkApi {
         } else {
             const repositoryData: RepositoryData = {clientId: clientId, repository: getRepositoryParameter(request)}
             const result = await this.ctx.bulkApiWorker.bulkPartitions(repositoryData)
-            lionwebResponse<PartitionsResponse>(response, result.status, result.queryResult)
+            lionwebResponse<ListPartitionsResponse>(response, result.status, result.queryResult)
         }
     }
 
@@ -178,11 +178,6 @@ export class BulkApiImpl implements BulkApi {
         logger.requestLog(` * retrieve request received, with body of ${request.headers["content-length"]} bytes`)
         const clientId = getStringParam(request, "clientId")
         const depthLimit = getIntegerParam(request, "depthLimit", Number.MAX_SAFE_INTEGER)
-        let model = getStringParam(request, "model")
-        if (isParameterError(model)) {
-            // use the default 
-            model = "lionweb_test" 
-        }
         const idList = request.body.ids
         logger.dbLog("Api.getNodes: " + JSON.stringify(request.body) + " depth " + depthLimit + " clientId: " + clientId)
         if (isParameterError(depthLimit)) {
