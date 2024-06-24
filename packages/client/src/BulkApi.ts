@@ -1,7 +1,7 @@
-import { HttpClientErrors, ListPartitionsResponse } from "@lionweb/repository-common";
+import { HttpClientErrors} from "./httpcodes.js";
 import { LionWebJsonChunk } from "@lionweb/validation";
 import { ClientResponse, RepositoryClient } from "./RepositoryClient.js";
-import { CreatePartitionsResponse, DeletePartitionsResponse, IdsResponse, RetrieveResponse, StoreResponse } from "./responses.js";
+import { CreatePartitionsResponse, DeletePartitionsResponse, IdsResponse, ListPartitionsResponse, RetrieveResponse, StoreResponse } from "./responses.js";
 
 /**
  * Client side Api for the lionweb-repository server.
