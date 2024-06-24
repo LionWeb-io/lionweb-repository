@@ -1,5 +1,4 @@
-import { RepositoryClient } from "@lionweb/repository-client";
-import { HttpSuccessCodes } from "@lionweb/repository-common";
+import { RepositoryClient, HttpSuccessCodes } from "@lionweb/repository-client"
 import { LionWebJsonChunk } from "@lionweb/validation"
 import { readModel } from "./utils.js"
 
