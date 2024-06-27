@@ -21,6 +21,7 @@ export function currentRepoVersionQuery(): string {
  * @param versionResult
  */
 export function versionResultToResponse(versionResult: object): ResponseMessage {
+    // @ts-expect-error TS5703
     const version = (versionResult[0]?.currentrepoversion ?? versionResult[0]?.nextrepoversion) as number
     return {
         kind: "RepoVersion",

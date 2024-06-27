@@ -164,7 +164,7 @@ export class RepositoryClient {
         } else {
             result = "?clientId=" + this.clientId
         }
-        if (params.includes("repository")) {
+        if (result.includes("repository")) {
             return result
         } else {
             return result + "&repository=" + this.repository

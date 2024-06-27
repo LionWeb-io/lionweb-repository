@@ -16,7 +16,8 @@ export type RepositoryData = {
  */
 function addRepositorySchema(query: string, repositoryData: RepositoryData) {
     if (!query.startsWith("SET search_path TO")) {
-        query = `SET search_path TO "${repositoryData.repository}";\n` + query
+        query = `SET search_path TO '${repositoryData.repository}', 'public';
+                select public.existsschema('${repositoryData.repository}'::text);\n` + query
     }
     return query
 }
@@ -64,7 +65,8 @@ export class DbConnection {
     async multi(repositoryData: RepositoryData, query: string) {
         query = addRepositorySchema(query, repositoryData)
         const multiResult = await this.dbConnection.multi(query)
-        // Remove first element since that is the result of the inserted search_path
+        // Remove first two elements since these are the result of the inserted search_path and schema existence check
+        multiResult.shift()
         multiResult.shift()
         return multiResult
     }
@@ -76,6 +78,7 @@ export class DbConnection {
      */
     async one(repositoryData: RepositoryData, query: string) {
         query = addRepositorySchema(query, repositoryData)
+        console.log("query: ", query)
         return await this.dbConnection.one(query)
     }
 
@@ -140,7 +143,8 @@ export class LionwebTask {
     async multi(repositoryData: RepositoryData, query: string) {
         query = addRepositorySchema(query, repositoryData)
         const multiResult = await this.task.multi(query)
-        // Remove first element since that is the result of the inserted search_path
+        // Remove first two elements since these are the result of the inserted search_path and schema existence check
+        multiResult.shift()
         multiResult.shift()
         return multiResult
    }

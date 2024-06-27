@@ -32,9 +32,13 @@ export type ResponseMessage = {
  * @param object
  */
 export function isResponseMessage(object: unknown): object is ResponseMessage {
+    // @ts-expect-error TS7053
     return object["kind"] !== undefined &&
-        typeof object["kind"] === "string"
+    // @ts-expect-error TS7053
+    typeof object["kind"] === "string" &&
+    // @ts-expect-error TS7053
     object["message"] !== undefined &&
+    // @ts-expect-error TS7053
     typeof object["message"] === "string"
 }
 

@@ -26,7 +26,7 @@ class BufferHolder {
         return this.buffer.subarray(0, this.usedSize)
     }
 
-    write(string: string) {
+    write(string: string): void {
         const stringLength = Buffer.byteLength(string)
         const remainingSize = this.buffer.length - this.usedSize
         if (remainingSize < stringLength) {
