@@ -118,7 +118,13 @@ export function getIntegerParam(request: Request, paramName: string, defaultValu
     }
 }
 
-
+/**
+ * Postgres PLPGSQL complains about a function declaration unless it is on one line.
+ * This method finds all declarations (between $$ and $$) in the `plpsql` query
+ * and jpoins the function declaration on one line.
+ * @param plpgsql The query that needs processed
+ * @returns The same query but all function declarations merged into a single line.
+ */
 export function removeNewlinesBetween$$(plpgsql: string): string {
     let result = plpgsql
     // Match all substrings between $$ and $$ markers (PLPGSQL specific)
@@ -130,7 +136,7 @@ export function removeNewlinesBetween$$(plpgsql: string): string {
 }
 
 /**
- *
+ * 
  */
 export function getRepositoryParameter(request: Request): string {
     let repository = getStringParam(request, "repository")

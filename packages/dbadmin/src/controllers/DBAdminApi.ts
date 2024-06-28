@@ -54,12 +54,8 @@ export class DBAdminApiImpl implements DBAdminApi {
 
     createDatabase = async(request: e.Request, response: e.Response) => {
         logger.requestLog(` * createDatabase request received, with body of ${request.headers["content-length"]} bytes`)
-        const result = await this.ctx.dbAdminApiWorker.createDatabase(CREATE_DATABASE_SQL)
-        // lionwebResponse(response, result.status, {
-        //     success: result.status === HttpSuccessCodes.Ok,
-        //     messages: [ {kind: "Info", message: result.queryResult} ]
-        // })
-        const result2 = await this.ctx.dbConnection.query({clientId: "Repository", repository: "public"}, removeNewlinesBetween$$(CREATE_GLOBALS_SQL))
+        await this.ctx.dbAdminApiWorker.createDatabase(CREATE_DATABASE_SQL)
+        await this.ctx.dbConnection.query({clientId: "Repository", repository: "public"}, removeNewlinesBetween$$(CREATE_GLOBALS_SQL))
         lionwebResponse(response, HttpSuccessCodes.Ok, {
             success: result.status === HttpSuccessCodes.Ok,
             messages: [ {kind: "Info", message: result.queryResult} ]
