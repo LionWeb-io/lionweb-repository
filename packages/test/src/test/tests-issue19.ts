@@ -1,5 +1,4 @@
-import { RepositoryClient } from "@lionweb/repository-client";
-import { HttpSuccessCodes } from "@lionweb/repository-common";
+import { RepositoryClient, HttpSuccessCodes } from "@lionweb/repository-client"
 import { LionWebJsonChunk } from "@lionweb/validation"
 import { readModel } from "./utils.js"
 
@@ -12,11 +11,12 @@ describe("Repository tests", () => {
     const t = new RepositoryClient("TestClient", "default")
 
     beforeEach("a", async function () {
+        await t.dbAdmin.deleteRepository("default")
         await t.dbAdmin.init(true)
         await t.bulk.createPartitions(readModel(DATA + "Disk_A_partition.json") as LionWebJsonChunk)
     })
 
-    describe("Add new node", () => {
+    describe("Add new node", async () => {
         it("test update single node", async () => {
             await storeFiles([
                 "./data/Disk_A.json",

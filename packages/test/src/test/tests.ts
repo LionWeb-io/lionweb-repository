@@ -50,7 +50,6 @@ collection.forEach(withoutHistory => {
                 const partResult = await client.bulk.createPartitions(initialPartition)
                 if (partResult.status !== HttpSuccessCodes.Ok) {
                     console.log("Cannot create initial partition: " + JSON.stringify(partResult.body))
-                    // console.log(JSON.stringify(initialPartition))
                     initError = JSON.stringify(partResult.body)
                     return
                 }
@@ -86,18 +85,13 @@ collection.forEach(withoutHistory => {
                     assert(retrieve.body.success === false, "Non exiting repsoitory should fail")
                 })
             })
-            
+
             describe("Partition tests", () => {
                 it("retrieve nodes", async () => {
                     assert(initError === "", initError)
                     const retrieve = await client.bulk.retrieve(["ID-2"])
                     console.log("Retrieve Result: " + JSON.stringify(JSON.stringify(retrieve.body.messages)))
-                    // console.log("Retrieve Chunk: " + JSON.stringify(JSON.stringify(retrieve.body.chunk)))
-                    // console.log("JSON MODEL ORIGINAL")
-                    // printChunk(baseFullChunk)
-                    // console.log("JSON MODEL RETRIEVED")
                     const retrieveResponse = retrieve.body as RetrieveResponse
-                    // printChunk(retrieveResponse.chunk)
                     const diff = new LionWebJsonDiff()
                     diff.diffLwChunk(baseFullChunk, retrieveResponse.chunk)
                     deepEqual(diff.diffResult.changes, [])
@@ -118,7 +112,6 @@ collection.forEach(withoutHistory => {
                     assert(initError === "", initError)
                     await client.bulk.deletePartitions(["ID-2"])
                     const partitions = await client.bulk.listPartitions()
-                    // console.log("Test  partitions: " + JSON.stringify(partitions))
                     deepEqual(partitions.body.chunk, { serializationFormatVersion: "2023.1", languages: [], nodes: [] })
                 })
             })
@@ -329,7 +322,7 @@ collection.forEach(withoutHistory => {
                     console.log("Reserving ids " + JSON.stringify(reservedIds))
                 })
                 it("test using ids reserved by other client", async () => {
-                    // Reserve ids by oither client 
+                    // Reserve ids by other client 
                     client.clientId = "OtherClient"
                     const reservedIds = await client.bulk.ids(10)
                     // Use other client ids with test client
@@ -391,28 +384,34 @@ collection.forEach(withoutHistory => {
             describe("Multi-repo test", () => {
                 it("Check current repository", async () => {
                     assert(initError === "", initError)
+                    console.log("1")
                     const currentrepo = withoutHistory ? "MyFirstRepo" : "MyFirstHistoryRepo"
                     {
                         const repositories = await client.dbAdmin.listRepositories()
                         assert(repositories.body.repositoryNames.length === 1, "There should be exactly one repository")
                         assert(repositories.body.repositoryNames.includes(currentrepo), "Incorrect repository found: " + repositories.body.repositoryNames)
                     }
-                    await client.dbAdmin.createRepository("Repo2", false)
+                    console.log("2")
+                    await client.dbAdmin.createRepository("Repo2", !withoutHistory)
+                    console.log("3")
                     {
                         const repositories = await client.dbAdmin.listRepositories()
                         assert(repositories.body.repositoryNames.length === 2, "There should be exactly two repositories")
                         assert(repositories.body.repositoryNames.every(repo => repo === currentrepo || repo === "Repo2"), "Incorrect repository found: " + repositories.body.repositoryNames)
                     }
+                    console.log("4")
 
                     const createResult = await client.dbAdmin.createRepository("Repo2", true)
                     assert(createResult.body.success === false, "Should not be able to create existing repo")
+                    console.log("5")
                     await client.dbAdmin.deleteRepository("Repo2")
                     {
                         const repositories = await client.dbAdmin.listRepositories()
                         assert(repositories.body.repositoryNames.length === 1, "There should be exactly one repository")
                         assert(repositories.body.repositoryNames.includes(currentrepo), "Incorrect repository found: " + repositories.body.repositoryNames)
                     }
-                    await client.dbAdmin.createRepository("Repo2", true)
+                    console.log("6")
+                    await client.dbAdmin.createRepository("Repo2", !withoutHistory)
                     {
                         const repositories = await client.dbAdmin.listRepositories()
                         assert(repositories.body.repositoryNames.length === 2, "There should be exactly two repositories")
@@ -427,29 +426,18 @@ collection.forEach(withoutHistory => {
                 console.log(`TEst result of '${originalJsonFile}' with '${changesFile}'`)
                 assert(initError === "", initError)
                 const changesChunk = readModel(changesFile) as LionWebJsonChunk
-                // const diff = new LionWebJsonDiff()
-                // diff.diffLwChunk(baseFullChunk, changesChunk)
-                // console.log("DIFF number of changes: " + diff.diffResult.changes.length)
-                // diff.diffResult.changes.forEach(change => console.log(change.changeMsg()))
 
                 const result = await client.bulk.store(changesChunk)
-                // console.log(
-                //     "Store Result: " +
-                //     JSON.stringify(result.body.messages.filter(m => m.kind !== "QueryFromStore" && m.kind !== "QueryFromApi"))
-                // )
                 assert(result.status === HttpSuccessCodes.Ok)
 
                 const jsonModelFull = readModel(originalJsonFile) as LionWebJsonChunk
                 const afterRetrieve = await client.bulk.retrieve(["ID-2"])
-                // console.log("JSON MODEL ")
-                // printChunk(jsonModelFull)
                 console.log("Retrieve Result: " + afterRetrieve.status + " messages " + JSON.stringify(afterRetrieve.body.messages))
                 const retrieveResponse = afterRetrieve.body as RetrieveResponse
                 if (!retrieveResponse.success) {
                     console.log(retrieveResponse.messages)
                     deepEqual(afterRetrieve.status, HttpSuccessCodes.Ok)
                 } else {
-                    // printChunk(retrieveResponse.chunk)
                     const diff2 = new LionWebJsonDiff()
                     diff2.diffLwChunk(jsonModelFull, retrieveResponse.chunk)
                     deepEqual(
@@ -472,8 +460,6 @@ collection.forEach(withoutHistory => {
                     []
                 )
                 const repoAt_2 = await client.history.retrieve(baseFullChunkVersion, ["ID-2"])
-                // console.log("TEST RETRIEVE HISTORY")
-                // console.log(JSON.stringify(repoAt_2, null, 2))
                 const diff2 = new LionWebJsonDiff()
                 diff2.diffLwChunk(baseFullChunk, repoAt_2.body.chunk)
                 deepEqual(
