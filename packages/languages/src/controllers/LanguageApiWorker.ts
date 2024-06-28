@@ -1,3 +1,4 @@
+import { requestLogger } from "@lionweb/repository-common";
 import { LanguageApiContext } from "../main.js";
 
 /**
@@ -7,7 +8,7 @@ export class LanguageApiWorker {
     constructor(private context: LanguageApiContext) {
     }
     registerLanguage = async (nodeIds: string[], depthLimit: number)=> {
-        console.log("TODO: 'registerLanguage' not implemented yet " + nodeIds + " " + depthLimit)
+        requestLogger.info("TODO: 'registerLanguage' not implemented yet " + nodeIds + " " + depthLimit)
     }
 
 }

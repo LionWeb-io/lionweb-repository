@@ -1,6 +1,5 @@
 import {
-    ContainmentRowData, CONTAINMENTS_TABLE,
-    logger,
+    ContainmentRowData, CONTAINMENTS_TABLE, dbLogger,
     NODES_TABLE,
     PROPERTIES_TABLE,
     PropertyRowData,
@@ -256,7 +255,7 @@ export class DbChanges {
                 `
         }
         
-        logger.dbLog("DATABASE INSERT " + result)
+        dbLogger.debug("DATABASE INSERT " + result)
         return result
     }
 

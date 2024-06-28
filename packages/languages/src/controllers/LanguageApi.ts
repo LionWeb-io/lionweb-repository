@@ -1,4 +1,4 @@
-import { lionwebResponse } from "@lionweb/repository-common";
+import { lionwebResponse, requestLogger } from "@lionweb/repository-common";
 import { Request, Response } from "express"
 import { LanguageApiContext } from "../main.js";
 
@@ -15,7 +15,7 @@ export class LanguageApiImpl implements LanguageApi {
      * @param response
      */
     registerLanguage = async (request: Request, response: Response)=> {
-        console.log("TODO: 'registerLanguage' not implemented yet " + request + " " + response)
+        requestLogger.info("TODO: 'registerLanguage' not implemented yet " + request + " " + response)
         lionwebResponse(response, 501, {
             success: false,
             messages: [{kind: "NotImplemented", message: "TODO: 'registerLanguage' not implemented yet " + request + " " + response}]

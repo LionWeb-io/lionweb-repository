@@ -1,12 +1,11 @@
 import { registerHistoryApi } from "@lionweb/repository-history";
-import dotenv from "dotenv"
 import http from "http"
 import express, {Express, NextFunction, Response, Request} from "express"
 import bodyParser from "body-parser"
 import cors from "cors"
 import pgPromise from "pg-promise";
 import { postgresConnectionWithDatabase, pgp, postgresConnectionWithoutDatabase } from "./DbConnection.js"
-import { DbConnection } from "@lionweb/repository-common"
+import { DbConnection, expressLogger, requestLogger, ServerConfig } from "@lionweb/repository-common"
 import { initializeCommons } from "@lionweb/repository-common"
 import { registerDBAdmin } from "@lionweb/repository-dbadmin"
 import { registerInspection } from "@lionweb/repository-inspection"
@@ -14,8 +13,7 @@ import { registerBulkApi } from "@lionweb/repository-bulkapi"
 import { registerAdditionalApi } from "@lionweb/repository-additionalapi"
 import { registerLanguagesApi } from "@lionweb/repository-languages"
 import { HttpClientErrors } from "@lionweb/repository-common"
-
-dotenv.config()
+import { pinoHttp } from "pino-http";
 
 export const app: Express = express()
 
@@ -29,10 +27,17 @@ app.use(
         origin: "*",
     }),
 )
+// Setup automatic logging of request/result pairs
+app.use(
+    pinoHttp({
+        logger: expressLogger,
+        useLevel: ServerConfig.getInstance().expressLog()
+    })
+)
 app.use(bodyParser.urlencoded({ extended: false }))
-app.use(bodyParser.json({limit: process.env.BODY_LIMIT || '50mb'}))
+app.use(bodyParser.json({limit: ServerConfig.getInstance().bodyLimit()}))
 
-const expectedToken = process.env.EXPECTED_TOKEN
+const expectedToken = ServerConfig.getInstance().expectedToken()
 
 function verifyToken(request: Request, response: Response, next: NextFunction) {
     if (expectedToken != null) {
@@ -64,14 +69,14 @@ registerHistoryApi(app, DbConnection.getInstance(), pgp)
 
 const httpServer = http.createServer(app)
 
-const serverPort = parseInt(process.env.NODE_PORT || "3005")
+const serverPort = ServerConfig.getInstance().serverPort()
 
 httpServer.listen(serverPort, () => {
-    console.log(`Server is running at port ${serverPort} =========================================================`)
+    requestLogger.info(`Server is running at port ${serverPort} =========================================================`)
     if (expectedToken == null) {
-        console.log("WARNING! The server is not protected by a token. It can be accessed freely. " +
+        requestLogger.warn("WARNING! The server is not protected by a token. It can be accessed freely. " +
             "If that is NOT your intention act accordingly.")
     } else if (expectedToken.length < 24) {
-        console.log("WARNING! The used token is quite short. Consider using a token of 24 characters or more.")
+        requestLogger.warn("WARNING! The used token is quite short. Consider using a token of 24 characters or more.")
     }
 })

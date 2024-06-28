@@ -1,12 +1,13 @@
 import { Request, Response } from "express"
 import { AdditionalApiContext } from "../main.js"
 import {
+    dbLogger,
     EMPTY_SUCCES_RESPONSE,
     getIntegerParam, getRepositoryParameter, getStringParam,
     HttpClientErrors,
     HttpSuccessCodes, isParameterError,
     lionwebResponse,
-    logger, RepositoryData
+    RepositoryData
 } from "@lionweb/repository-common"
 
 export interface AdditionalApi {
@@ -36,7 +37,7 @@ export class AdditionalApiImpl implements AdditionalApi {
                 messages: [depthLimit.error]
             })
         } else {
-            logger.dbLog("API.getNodeTree is " + idList)
+            dbLogger.info("API.getNodeTree is " + idList)
             const result = await this.context.additionalApiWorker.getNodeTree(repositoryData, idList, depthLimit)
             lionwebResponse(response, HttpSuccessCodes.Ok, EMPTY_SUCCES_RESPONSE)
             response.send(result)

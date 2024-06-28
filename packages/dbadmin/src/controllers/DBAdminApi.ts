@@ -4,8 +4,7 @@ import {
     HttpSuccessCodes,
     RepositoryData,
     lionwebResponse,
-    logger,
-    getClientIdParameter, getHistoryParameter, QueryReturnType, ListRepositoriesResponse, SCHEMA_PREFIX, removeNewlinesBetween$$
+    getClientIdParameter, getHistoryParameter, QueryReturnType, ListRepositoriesResponse, SCHEMA_PREFIX, removeNewlinesBetween$$, requestLogger
 } from "@lionweb/repository-common";
 import { DbAdminApiContext } from "../main.js";
 import { CREATE_DATABASE_SQL, CREATE_GLOBALS_SQL } from "../tools/index.js";
@@ -53,7 +52,7 @@ export class DBAdminApiImpl implements DBAdminApi {
     }
 
     createDatabase = async(request: e.Request, response: e.Response) => {
-        logger.requestLog(` * createDatabase request received, with body of ${request.headers["content-length"]} bytes`)
+        requestLogger.info(` * createDatabase request received, with body of ${request.headers["content-length"]} bytes`)
         await this.ctx.dbAdminApiWorker.createDatabase(CREATE_DATABASE_SQL)
         await this.ctx.dbConnection.query({clientId: "Repository", repository: "public"}, removeNewlinesBetween$$(CREATE_GLOBALS_SQL))
         lionwebResponse(response, HttpSuccessCodes.Ok, {
@@ -63,12 +62,12 @@ export class DBAdminApiImpl implements DBAdminApi {
     }
 
     init = async(request: e.Request, response: e.Response) => {
-        logger.requestLog(` * init request received, with body of ${request.headers["content-length"]} bytes`)
+        requestLogger.info(` * init request received, with body of ${request.headers["content-length"]} bytes`)
         await this.createRepository(request, response)
     }
 
     createRepository = async(request: e.Request, response: e.Response) => {
-        logger.requestLog(` * createRepository request received, with body of ${request.headers["content-length"]} bytes`)
+        requestLogger.info(` * createRepository request received, with body of ${request.headers["content-length"]} bytes`)
         const repositoryData: RepositoryData = {clientId: getClientIdParameter(request), repository: getRepositoryParameter(request)}
         const history = getHistoryParameter(request)
         let result: QueryReturnType<string>
@@ -84,7 +83,7 @@ export class DBAdminApiImpl implements DBAdminApi {
     }
 
     listRepositories = async (request: Request, response: Response)=> {
-        logger.requestLog(` * listRepositories request received, with body of ${request.headers["content-length"]} bytes`)
+        requestLogger.info(` * listRepositories request received, with body of ${request.headers["content-length"]} bytes`)
         const result = await this.ctx.dbAdminApiWorker.listRepositories()
         // select schemas that represent a repository, make sure to remove the SCHEMA_PREFIX
         const repoNames = result.queryResult.filter(repo => repo.schema_name.startsWith(SCHEMA_PREFIX)).map(repo => repo.schema_name.substring(SCHEMA_PREFIX.length))
@@ -96,7 +95,7 @@ export class DBAdminApiImpl implements DBAdminApi {
     }
 
     deleteRepository = async (request: e.Request, response: e.Response): Promise<void> => {
-        logger.requestLog(` * deleteRepository request received, with body of ${request.headers["content-length"]} bytes`)
+        requestLogger.info(` * deleteRepository request received, with body of ${request.headers["content-length"]} bytes`)
         const repositoryData: RepositoryData = {clientId: "Repository", repository: getRepositoryParameter(request)}
         const result = await this.ctx.dbAdminApiWorker.deleteRepository(repositoryData)
         lionwebResponse(response, result.status, {

@@ -1,7 +1,7 @@
 import { Express } from "express"
 import pgPromise from "pg-promise"
 import pg from "pg-promise/typescript/pg-subset.js"
-import { DbConnection, runWithTry } from "@lionweb/repository-common";
+import { DbConnection, requestLogger, runWithTry } from "@lionweb/repository-common";
 import { BulkApiWorker } from "./controllers/BulkApiWorker.js";
 import { BulkApi, BulkApiImpl } from "./controllers/index.js";
 import { LionWebQueries, QueryMaker } from "./database/index.js";
@@ -40,7 +40,7 @@ export class BulkApiContext {
  * @param pgp           The pg-promise object to gain access to the pg helpers
  */
 export function registerBulkApi(app: Express, dbConnection: DbConnection, pgp: pgPromise.IMain<object, pg.IClient>) {
-    console.log("Registering Bulk API Module");
+    requestLogger.info("Registering Bulk API Module");
     // Create all objects 
     const context = new BulkApiContext(dbConnection, pgp)
 

@@ -1,7 +1,7 @@
 import { Express } from "express"
 import pgPromise from "pg-promise"
 import pg from "pg-promise/typescript/pg-subset.js"
-import { runWithTry, DbConnection } from "@lionweb/repository-common";
+import { runWithTry, DbConnection, requestLogger } from "@lionweb/repository-common";
 import { DBAdminApi, DBAdminApiImpl } from "./controllers/DBAdminApi.js"
 import { DBAdminApiWorker } from "./database/DBAdminApiWorker.js"
 
@@ -39,7 +39,7 @@ export function registerDBAdmin(
     dbConnection: DbConnection,
     pgConnection: pgPromise.IDatabase<object, pg.IClient>,
     pgp: pgPromise.IMain<object, pg.IClient>) {
-    console.log("Registering DB Admin Module");
+    requestLogger.info("Registering DB Admin Module");
     // Create all objects 
     const dbAdminApiContext = new DbAdminApiContext(dbConnection, pgConnection, pgp)
 

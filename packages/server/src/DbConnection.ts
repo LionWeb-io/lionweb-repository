@@ -1,4 +1,4 @@
-import { logger } from "@lionweb/repository-common";
+import { dbLogger } from "@lionweb/repository-common";
 import {
     PGDB,
     PGHOST,
@@ -25,7 +25,7 @@ export const config: PostgresConfig = {
     ssl: pgSSLConf
 }
 
-logger.dbLog("POSTGRES CONFIG: " + JSON.stringify(config, null, 2))
+dbLogger.info("POSTGRES CONFIG: " + JSON.stringify(config, null, 2))
 
 export const pgp = pgPromise()
 /**

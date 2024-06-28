@@ -2,7 +2,7 @@ import { Express } from "express"
 import pgPromise from "pg-promise"
 import pg from "pg-promise/typescript/pg-subset.js"
 
-import { DbConnection, runWithTry, } from "@lionweb/repository-common";
+import { DbConnection, requestLogger, runWithTry, } from "@lionweb/repository-common";
 import { createInspectionApiWorker, InspectionApiWorker } from "./database/InspectionApiWorker.js"
 import { createInspectionApi, InspectionApi } from "./controllers/InspectionApi.js"
 import { InspectionQueries } from "./database/InspectionQueries.js";
@@ -35,7 +35,7 @@ export class InspectionContext {
  */
 
 export function registerInspection(app: Express, dbConnection: DbConnection, pgp: pgPromise.IMain<object, pg.IClient>) {
-    console.log("Registering Inspection Module");
+    requestLogger.info("Registering Inspection Module");
     // Create all objects 
     const context = new InspectionContext(dbConnection, pgp)
 

@@ -1,5 +1,6 @@
 import { RepositoryData, SCHEMA_PREFIX } from "../database/index.js";
 import { HttpServerErrors } from "./httpcodes.js"
+import { requestLogger } from "./logging.js";
 import { collectUsedLanguages } from "./UsedLanguages.js"
 import { LionWebJsonChunk, LionWebJsonNode } from "@lionweb/validation"
 import { Request, Response } from "express"
@@ -193,8 +194,8 @@ export function runWithTry(func: (request: Request, response: Response) => void)
             await func(request, response)
         } catch (e) {
             const error = asError(e)
-            console.log(`Exception while serving request for ${request.url}: ${error.message}`)
-            console.log(e.stack);
+            requestLogger.error(`Exception while serving request for ${request.url}: ${error.message}`)
+            requestLogger.error(error)
             lionwebResponse(response, HttpServerErrors.InternalServerError, {
                 success: false,
                 messages: [{ kind: error.name, message: `Exception while serving request for ${request.url}: ${error.message}` }]

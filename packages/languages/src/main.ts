@@ -2,7 +2,7 @@ import { LanguageRegistry } from "@lionweb/validation";
 import { Express } from "express"
 import pgPromise from "pg-promise"
 import pg from "pg-promise/typescript/pg-subset.js"
-import { DbConnection, runWithTry } from "@lionweb/repository-common";
+import { DbConnection, requestLogger, runWithTry } from "@lionweb/repository-common";
 import { LanguageApiWorker } from "./controllers/LanguageApiWorker.js";
 import { LanguageApiImpl } from "./controllers/index.js";
 
@@ -31,7 +31,7 @@ export class LanguageApiContext {
  * @param pgp           The pg-promise object to gain access to the pg helpers
  */
 export function registerLanguagesApi(app: Express, dbConnection: DbConnection, pgp: pgPromise.IMain<object, pg.IClient>) {
-    console.log("Registering Additional API Module");
+    requestLogger.info("Registering Additional API Module");
     // Create all objects 
     const context = new LanguageApiContext(dbConnection, pgp)
 
