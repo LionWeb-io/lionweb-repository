@@ -28,8 +28,10 @@ export class InspectionApiWorker {
 
     async nodesByLanguage(repositoryData: RepositoryData, sql: string) {
         return (await this.context.dbConnection.query(repositoryData, sql) as [object]).map(el => {
+            // @ts-expect-error TS7503
             const ids = el["ids"].split(",");
             return {
+                // @ts-expect-error TS7503
                 "language": el["classifier_language"],
                 "ids": ids,
                 "size": ids.length
@@ -39,9 +41,12 @@ export class InspectionApiWorker {
 
     async nodesByClassifier(repositoryData: RepositoryData, sql: string) {
         return (await this.context.dbConnection.query(repositoryData, sql) as [object]).map(el => {
+            // @ts-expect-error TS7503
             const ids = el["ids"].split(",");
             return {
+                // @ts-expect-error TS7503
                 "language": el["classifier_language"],
+                // @ts-expect-error TS7503
                 "classifier": el["classifier_key"],
                 "ids": ids,
                 "size": ids.length

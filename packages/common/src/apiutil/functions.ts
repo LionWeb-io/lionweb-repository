@@ -6,6 +6,8 @@ import { Request, Response } from "express"
 import { lionwebResponse, ResponseMessage } from "./LionwebResponse.js"
 import { v4 as uuidv4 } from "uuid"
 
+export type UnknownObjectType = { [key: string]: unknown }
+
 export function toFirstUpper(text: string): string {
     return text[0].toUpperCase().concat(text.substring(1))
 }
@@ -23,9 +25,18 @@ export type ParameterError = {
  * @param object
  */
 export function isParameterError(object: unknown): object is ParameterError {
+    // @ts-expect-error TS7053
     return object["success"] !== undefined &&
+        // @ts-expect-error TS7053
         typeof object["success"] === "boolean" &&
-        object["success"] === true 
+        // @ts-expect-error TS7053
+        object["error"] !== undefined &&
+        // @ts-expect-error TS7053
+        object["error"]["kind"] !== undefined &&
+        // @ts-expect-error TS7053
+        typeof object["error"]["kind"] === "string" &&
+        // @ts-expect-error TS7053
+        object["error"]["kind"].endsWith("-ParameterIncorrect")
 }
 
 
@@ -47,7 +58,7 @@ export function getStringParam(request: Request, paramName: string, defaultValue
             return {
                 success: false,
                 error: {
-                    kind: `${toFirstUpper(paramName)}Incorrect`,
+                    kind: `${toFirstUpper(paramName)}-ParameterIncorrect`,
                     message: `Parameter ${paramName} must be a string: [${result}]`
                 }
             }
@@ -107,7 +118,13 @@ export function getIntegerParam(request: Request, paramName: string, defaultValu
     }
 }
 
-
+/**
+ * Postgres PLPGSQL complains about a function declaration unless it is on one line.
+ * This method finds all declarations (between $$ and $$) in the `plpsql` query
+ * and jpoins the function declaration on one line.
+ * @param plpgsql The query that needs processed
+ * @returns The same query but all function declarations merged into a single line.
+ */
 export function removeNewlinesBetween$$(plpgsql: string): string {
     let result = plpgsql
     // Match all substrings between $$ and $$ markers (PLPGSQL specific)
@@ -119,7 +136,7 @@ export function removeNewlinesBetween$$(plpgsql: string): string {
 }
 
 /**
- *
+ * 
  */
 export function getRepositoryParameter(request: Request): string {
     let repository = getStringParam(request, "repository")

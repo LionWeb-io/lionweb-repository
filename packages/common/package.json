@@ -20,6 +20,9 @@
     "build": "tsc",
     "lint": "eslint src"
   },
+  "devDependencies": {
+    "@types/uuid": "^10.0.0"
+  },
   "dependencies": {
     "@lionweb/validation": "0.6.2",
     "@types/express": "4.17.21",

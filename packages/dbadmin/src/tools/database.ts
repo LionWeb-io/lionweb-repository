@@ -21,7 +21,7 @@ export const CREATE_CONFIG: PostgresConfig = {
 if (PGROOTCERT && PGROOTCERTCONTENT) {
     throw Error("PGROOTCERT and PGROOTCERTCONTENT should not be set at the same time")
 }
-export let pgSSLConf = undefined
+export let pgSSLConf: { ca: string } | undefined = undefined
 if (PGROOTCERTCONTENT) {
     pgSSLConf = {ca: PGROOTCERTCONTENT}
 } else if (PGROOTCERT) {

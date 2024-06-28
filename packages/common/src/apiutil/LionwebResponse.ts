@@ -30,8 +30,9 @@ export type ResponseMessage = {
  * @param object
  */
 export function isResponseMessage(object: unknown): object is ResponseMessage {
-    return object["kind"] !== undefined && typeof object["kind"] === "string"
-    object["message"] !== undefined && typeof object["message"] === "string"
+    const castObject = object as ResponseMessage
+    return castObject.kind !== undefined && typeof castObject.kind === "string" &&
+        castObject.message !== undefined && typeof castObject.message === "string"
 }
 
 export interface LionwebResponse {
