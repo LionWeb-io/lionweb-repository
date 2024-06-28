@@ -57,8 +57,8 @@ export class DBAdminApiImpl implements DBAdminApi {
         await this.ctx.dbAdminApiWorker.createDatabase(CREATE_DATABASE_SQL)
         await this.ctx.dbConnection.query({clientId: "Repository", repository: "public"}, removeNewlinesBetween$$(CREATE_GLOBALS_SQL))
         lionwebResponse(response, HttpSuccessCodes.Ok, {
-            success: result.status === HttpSuccessCodes.Ok,
-            messages: [ {kind: "Info", message: result.queryResult} ]
+            success: true,
+            messages: [ ]
         })
     }
 
