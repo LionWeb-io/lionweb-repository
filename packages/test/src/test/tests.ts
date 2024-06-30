@@ -88,6 +88,23 @@ collection.forEach(withoutHistory => {
                 })
             })
 
+            describe("No repository given", () => {
+                it("repository null", async () => {
+                    assert(initError === "", initError)
+                    client.repository = null
+                    const retrieve = await client.bulk.retrieve(["ID-2"])
+                    console.log("Retrieve Result: " + JSON.stringify(JSON.stringify(retrieve.body.messages)))
+                    assert(retrieve.body.success === false, "Repository === nulll failed")
+                })
+                it("repository null", async () => {
+                    assert(initError === "", initError)
+                    client.repository = "nothing"
+                    const retrieve = await client.bulk.retrieve(["ID-2"])
+                    console.log("Retrieve Result: " + JSON.stringify(JSON.stringify(retrieve.body.messages)))
+                    assert(retrieve.body.success === false, "Non exiting repsoitory should fail")
+                })
+            })
+            
             describe("Partition tests", () => {
                 it("retrieve nodes", async () => {
                     assert(initError === "", initError)
