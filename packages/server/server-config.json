@@ -1,18 +1,25 @@
 {
   "server": {
-    "serverPort": 3005
+    "serverPort": 3005,
+    "expectedToken": null
   },
   "startup": {
     "createDatabase": true,
     "createRepositories": [
-      "public",
-      "test-repository"
+      {
+        "name": "one",
+        "history": false
+      },
+      {
+        "name": "two",
+        "history": true
+      }
     ]
   },
   "logging": {
-    "request": "info",
+    "request": "silent",
     "database": "silent",
-    "express": "info"
+    "express": "silent"
   },
   "postgres": {
     "database": {

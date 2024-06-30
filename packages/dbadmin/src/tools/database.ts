@@ -1,5 +1,5 @@
 // import pgPromise from "pg-promise"
-import {PGDB, PGHOST, PGPASSWORD, PGPORT, PGUSER, PGROOTCERT, PGROOTCERTCONTENT} from "./configuration.js";
+import { ServerConfig } from "@lionweb/repository-common";
 import * as fs from "node:fs";
 
 export type PostgresConfig = {
@@ -12,28 +12,28 @@ export type PostgresConfig = {
 }
 
 export const CREATE_CONFIG: PostgresConfig = {
-    host: PGHOST,
-    port: PGPORT,
-    user: PGUSER,
-    password: PGPASSWORD
+    host: ServerConfig.getInstance().pgHost(),
+    port: ServerConfig.getInstance().pgPort(),
+    user: ServerConfig.getInstance().pgUser(),
+    password: ServerConfig.getInstance().pgPassword()
 }
 
-if (PGROOTCERT && PGROOTCERTCONTENT) {
+if (ServerConfig.getInstance().pgRootcert() && ServerConfig.getInstance().pgRootcertcontents()) {
     throw Error("PGROOTCERT and PGROOTCERTCONTENT should not be set at the same time")
 }
 export let pgSSLConf: { ca: string } | undefined = undefined
-if (PGROOTCERTCONTENT) {
-    pgSSLConf = {ca: PGROOTCERTCONTENT}
-} else if (PGROOTCERT) {
-    pgSSLConf = {ca: fs.readFileSync(PGROOTCERT).toString()}
+if (ServerConfig.getInstance().pgRootcertcontents()) {
+    pgSSLConf = {ca: ServerConfig.getInstance().pgRootcertcontents()}
+} else if (ServerConfig.getInstance().pgRootcert()) {
+    pgSSLConf = {ca: fs.readFileSync(ServerConfig.getInstance().pgRootcert()).toString()}
 }
 
 export const INIT_CONFIG: PostgresConfig = {
-    host: PGHOST,
-    database: PGDB,
-    port: PGPORT,
-    user: PGUSER,
-    password: PGPASSWORD,
+    host: ServerConfig.getInstance().pgHost(),
+    port: ServerConfig.getInstance().pgPort(),
+    user: ServerConfig.getInstance().pgUser(),
+    password: ServerConfig.getInstance().pgPassword(),
+    database: ServerConfig.getInstance().pgDb(),
     ssl: pgSSLConf
 }
 

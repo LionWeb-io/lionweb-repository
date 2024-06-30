@@ -37,8 +37,6 @@ collection.forEach(withoutHistory => {
                 initError = ""
                 initialPartition = readModel(DATA + "Disk_A_partition.json") as LionWebJsonChunk
                 baseFullChunk = readModel(DATA + "Disk_A.json") as LionWebJsonChunk
-                const deleteResponse = await client.dbAdmin.deleteRepository(repository)
-                console.log("Delete repo: " + JSON.stringify(deleteResponse))
                 const initResponse = await client.dbAdmin.createRepository(repository, !withoutHistory)
                 if (initResponse.status !== HttpSuccessCodes.Ok) {
                     console.log("Cannot initialize database: " + JSON.stringify(initResponse.body))
@@ -67,6 +65,10 @@ collection.forEach(withoutHistory => {
                 )
                 const repositories = await client.dbAdmin.listRepositories()
                 console.log("repositories: " + repositories.body.repositoryNames)
+            })
+            
+            afterEach("a", async function () {
+                await client.dbAdmin.deleteRepository(repository)
             })
 
             describe("No repository given", () => {

@@ -10,7 +10,10 @@ export type ServerConfigJson = {
     },
     startup?: {
         createDatabase?: boolean,
-        createRepositories?: string[]
+        createRepositories?: {
+            name?: string,
+            history?: boolean
+        }[]
     },
     logging?: {
         request?: LevelWithSilent,
@@ -33,7 +36,6 @@ export type ServerConfigJson = {
 }
 
 export class ServerConfig {
-
     static instance: ServerConfig
     static getInstance(): ServerConfig {
         if (ServerConfig.instance === undefined) {
@@ -41,8 +43,8 @@ export class ServerConfig {
         }
         return ServerConfig.instance
     }
-    
-    config: ServerConfigJson;
+
+    config: ServerConfigJson
     private constructor() {
         this.readConfigFile()
     }
@@ -51,11 +53,30 @@ export class ServerConfig {
      * Reads the config file and assumes that the file contains JSON structured as ServerConfigJson
      */
     readConfigFile(): void {
-        this.config = JSON.parse(fs.readFileSync("./server-config.json").toString()) as ServerConfigJson
+        if (fs.existsSync("./server-config.json")) {
+            const stats = fs.statSync("./server-config.json")
+            if (stats.isFile()) {
+                this.config = JSON.parse(fs.readFileSync("./server-config.json").toString()) as ServerConfigJson
+            }
+        }
+    }
+
+    createDatabase(): boolean {
+        const result = this?.config?.startup?.createDatabase
+        return result === true
+    }
+
+    createRepositories(): { name?: string, history?: boolean }[] {
+        const result = this?.config?.startup?.createRepositories
+        if (result !== undefined && result !== null && Array.isArray(result)) {
+            return result
+        } else {
+            return []
+        }
     }
 
     requestLog(): LevelWithSilent {
-        const result = this.config?.logging?.request
+        const result = this?.config?.logging?.request
         return verbosity(result, "silent")
     }
 
@@ -65,27 +86,27 @@ export class ServerConfig {
     }
 
     expressLog(): LevelWithSilent {
-        const result = this.config?.logging?.express
+        const result = this?.config?.logging?.express
         return verbosity(result, "silent")
     }
 
     pgHost(): string {
-        const result = this.config?.postgres?.database?.host
+        const result = this?.config?.postgres?.database?.host
         return result || "postgres"
     }
 
     pgUser(): string {
-        const result = this.config?.postgres?.database?.user
+        const result = this?.config?.postgres?.database?.user
         return result || "postgres"
     }
 
     pgDb(): string {
-        const result = this.config?.postgres?.database?.db
+        const result = this?.config?.postgres?.database?.db
         return result || "lionweb"
     }
 
     pgPassword(): string {
-        const result = this.config?.postgres?.database?.password
+        const result = this?.config?.postgres?.database?.password
         return result || "lionweb"
     }
 
@@ -95,17 +116,17 @@ export class ServerConfig {
     }
 
     pgRootcert(): string {
-        const result = this.config?.postgres?.certificates?.rootcert
+        const result = this?.config?.postgres?.certificates?.rootcert
         return result
     }
 
     pgRootcertcontents(): string {
-        const result = this.config?.postgres?.certificates?.rootcertcontent
+        const result = this?.config?.postgres?.certificates?.rootcertcontent
         return result
     }
 
     serverPort(): number {
-        const result = this.config?.server?.serverPort
+        const result = this?.config?.server?.serverPort
         if (result !== undefined && result !== null && typeof result === "number") {
             return result
         }
@@ -113,7 +134,7 @@ export class ServerConfig {
     }
 
     bodyLimit(): string {
-        const result = this.config?.server?.body_limit
+        const result = this?.config?.server?.body_limit
         if (result !== undefined && result !== null && typeof result === "string") {
             return result
         }
@@ -121,13 +142,10 @@ export class ServerConfig {
     }
 
     expectedToken(): string {
-        const result = this.config?.server?.expectedToken
+        const result = this?.config?.server?.expectedToken
         if (result !== undefined && result !== null && typeof result === "string") {
             return result
         }
         return null
     }
-
-
-
 }
