@@ -1,35 +1,35 @@
-import fs from "node:fs";
-import { LevelWithSilent } from "pino";
-import { expressLogger, verbosity } from "./logging.js";
+import fs from "node:fs"
+import { LevelWithSilent } from "pino"
+import { expressLogger, verbosity } from "./logging.js"
 
 export type ServerConfigJson = {
     server: {
         serverPort?: number
-        expectedToken?: string,
+        expectedToken?: string
         body_limit?: string
-    },
+    }
     startup?: {
-        createDatabase?: boolean,
+        createDatabase?: boolean
         createRepositories?: {
-            name?: string,
+            name?: string
             history?: boolean
         }[]
-    },
+    }
     logging?: {
-        request?: LevelWithSilent,
-        database?: LevelWithSilent,
+        request?: LevelWithSilent
+        database?: LevelWithSilent
         express?: LevelWithSilent
-    },
+    }
     postgres: {
         database: {
-            host?: string,
-            user?: string,
-            db?: string,
-            password?: string,
+            host?: string
+            user?: string
+            db?: string
+            password?: string
             port?: number
-        },
+        }
         certificates?: {
-            rootcert? : string,
+            rootcert?: string
             rootcertcontent?: string
         }
     }
@@ -40,6 +40,7 @@ export type ServerConfigJson = {
  */
 export class ServerConfig {
     static instance: ServerConfig
+
     static getInstance(): ServerConfig {
         if (ServerConfig.instance === undefined) {
             ServerConfig.instance = new ServerConfig()
@@ -48,6 +49,7 @@ export class ServerConfig {
     }
 
     config: ServerConfigJson
+
     private constructor() {
         this.readConfigFile()
     }
@@ -63,18 +65,22 @@ export class ServerConfig {
             if (configParam !== undefined) {
                 configFile = configParam
             } else {
-                expressLogger.warn("--config <filename>  is missing <filename>")
+                expressLogger.error("--config <filename>  is missing <filename>")
             }
         }
         if (fs.existsSync(configFile)) {
             const stats = fs.statSync(configFile)
             if (stats.isFile()) {
-                this.config = JSON.parse(fs.readFileSync(configFile).toString()) as ServerConfigJson
+                try {
+                    this.config = JSON.parse(fs.readFileSync(configFile).toString()) as ServerConfigJson
+                } catch (e) {
+                    expressLogger.error(`Error parsing JSON file ${configFile}: ${(e as Error).message}`)
+                }
             } else {
-                expressLogger.warn(`Config file ${configFile} is not a file`)
+                expressLogger.error(`Config file ${configFile} is not a file`)
             }
         } else {
-            expressLogger.warn(`Config file ${configFile} does not exist`)
+            expressLogger.error(`Config file ${configFile} does not exist`)
         }
     }
 
@@ -83,7 +89,7 @@ export class ServerConfig {
         return result === true
     }
 
-    createRepositories(): { name?: string, history?: boolean }[] {
+    createRepositories(): { name?: string; history?: boolean }[] {
         const result = this?.config?.startup?.createRepositories
         if (result !== undefined && result !== null && Array.isArray(result)) {
             return result
@@ -104,7 +110,7 @@ export class ServerConfig {
 
     expressLog(): LevelWithSilent {
         const result = this?.config?.logging?.express
-        return verbosity(result, "warn")
+        return verbosity(result, "error")
     }
 
     pgHost(): string {
