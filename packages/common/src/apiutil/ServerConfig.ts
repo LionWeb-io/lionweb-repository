@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import { LevelWithSilent } from "pino";
-import { verbosity } from "./logging.js";
+import { expressLogger, verbosity } from "./logging.js";
 
 export type ServerConfigJson = {
     server: {
@@ -35,6 +35,9 @@ export type ServerConfigJson = {
     }
 }
 
+/**
+ * Class for accessing all configuration properties of the server.
+ */
 export class ServerConfig {
     static instance: ServerConfig
     static getInstance(): ServerConfig {
@@ -53,11 +56,25 @@ export class ServerConfig {
      * Reads the config file and assumes that the file contains JSON structured as ServerConfigJson
      */
     readConfigFile(): void {
-        if (fs.existsSync("./server-config.json")) {
-            const stats = fs.statSync("./server-config.json")
-            if (stats.isFile()) {
-                this.config = JSON.parse(fs.readFileSync("./server-config.json").toString()) as ServerConfigJson
+        let configFile = "./server-config.json"
+        const configFlagIndex = process.argv.indexOf("--config")
+        if (configFlagIndex > -1) {
+            const configParam = process.argv[configFlagIndex + 1]
+            if (configParam !== undefined) {
+                configFile = configParam
+            } else {
+                expressLogger.warn("--config <filename>  is missing <filename>")
             }
+        }
+        if (fs.existsSync(configFile)) {
+            const stats = fs.statSync(configFile)
+            if (stats.isFile()) {
+                this.config = JSON.parse(fs.readFileSync(configFile).toString()) as ServerConfigJson
+            } else {
+                expressLogger.warn(`Config file ${configFile} is not a file`)
+            }
+        } else {
+            expressLogger.warn(`Config file ${configFile} does not exist`)
         }
     }
 
@@ -77,17 +94,17 @@ export class ServerConfig {
 
     requestLog(): LevelWithSilent {
         const result = this?.config?.logging?.request
-        return verbosity(result, "silent")
+        return verbosity(result, "warn")
     }
 
     databaseLog(): LevelWithSilent {
         const result = this.config?.logging?.database
-        return verbosity(result, "silent")
+        return verbosity(result, "warn")
     }
 
     expressLog(): LevelWithSilent {
         const result = this?.config?.logging?.express
-        return verbosity(result, "silent")
+        return verbosity(result, "warn")
     }
 
     pgHost(): string {
