@@ -5,7 +5,7 @@ It should be in the same folder where the  server is started, if it does not exi
 
 Below is the server-config.json with all default values
 
-````json
+````json lines
 {
   "server": {
     // The port where the server can be reached
