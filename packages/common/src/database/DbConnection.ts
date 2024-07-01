@@ -1,5 +1,6 @@
 import pgPromise from "pg-promise"
 import pg from "pg-promise/typescript/pg-subset.js";
+import { dbLogger } from "../apiutil/index.js";
 
 /**
  * Data determining the repository and user for which a command should be executed.
@@ -47,13 +48,24 @@ export class DbConnection {
     }
 
     /**
+     * @see  pgPromise.IDatabase.none
+     * @param repositoryData
+     * @param query
+     */
+    async none(repositoryData: RepositoryData, query: string) {
+        query = addRepositorySchema(query, repositoryData)
+        dbLogger.debug({ query: query.split("\n", 500)})
+        return await this.dbConnection.none(query)
+    }
+
+    /**
      * @see  pgPromise.IDatabase.query
      * @param repositoryData
      * @param query
      */
     async query(repositoryData: RepositoryData, query: string) {
         query = addRepositorySchema(query, repositoryData)
-        console.log("query: ", query)
+        dbLogger.debug({ query: query.split("\n", 500)})
         return await this.dbConnection.query(query)
     }
 
@@ -78,7 +90,7 @@ export class DbConnection {
      */
     async one(repositoryData: RepositoryData, query: string) {
         query = addRepositorySchema(query, repositoryData)
-        console.log("query: ", query)
+        dbLogger.debug({ query: query.split("\n", 500)})
         return await this.dbConnection.one(query)
     }
 

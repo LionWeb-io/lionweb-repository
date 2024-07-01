@@ -1,0 +1,37 @@
+{
+  "server": {
+    "serverPort": 3009,
+    "expectedToken": null
+  },
+  "startup": {
+    "createDatabase": true,
+    "createRepositories": [
+      {
+        "name": "one",
+        "history": false
+      },
+      {
+        "name": "two", n+ app
+        "history": true
+      }
+    ]
+  },
+  "logging": {
+    "request": "silent",
+    "database": "silent",
+    "express": "silent"
+  },
+  "postgres": {
+    "database": {
+      "host": "postgres",
+      "user": "postgres",
+      "db": "lionweb",
+      "password": "lionweb",
+      "port": "5432"
+    },
+    "certificates": {
+      "rootcert": null,
+      "rootcertcontent": null
+    }
+  }
+}

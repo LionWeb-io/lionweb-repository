@@ -1,7 +1,7 @@
 import { Express } from "express"
 import pgPromise from "pg-promise"
 import pg from "pg-promise/typescript/pg-subset.js"
-import { runWithTry, DbConnection } from "@lionweb/repository-common";
+import { runWithTry, DbConnection, requestLogger } from "@lionweb/repository-common"
 import { DBAdminApi, DBAdminApiImpl } from "./controllers/DBAdminApi.js"
 import { DBAdminApiWorker } from "./database/DBAdminApiWorker.js"
 
@@ -19,7 +19,11 @@ export class DbAdminApiContext {
     dbAdminApi: DBAdminApi
     dbAdminApiWorker: DBAdminApiWorker
 
-    constructor(dbConnection: DbConnection, pgConnection: pgPromise.IDatabase<object, pg.IClient>, pgp: pgPromise.IMain<object, pg.IClient>) {
+    constructor(
+        dbConnection: DbConnection,
+        pgConnection: pgPromise.IDatabase<object, pg.IClient>,
+        pgp: pgPromise.IMain<object, pg.IClient>
+    ) {
         this.dbConnection = dbConnection
         this.postgresConnection = pgConnection
         this.pgp = pgp
@@ -33,14 +37,17 @@ export class DbAdminApiContext {
  * @param app           The app to which the api is registered
  * @param dbConnection  The database connection to be used by this API
  * @param pgp           The pg-promise object to gain access to the pg helpers
+ * 
+ * @return              The Api worker, can be usedfor internal server admin usage
  */
 export function registerDBAdmin(
     app: Express,
     dbConnection: DbConnection,
     pgConnection: pgPromise.IDatabase<object, pg.IClient>,
-    pgp: pgPromise.IMain<object, pg.IClient>) {
-    console.log("Registering DB Admin Module");
-    // Create all objects 
+    pgp: pgPromise.IMain<object, pg.IClient>
+): DBAdminApiWorker {
+    requestLogger.info("Registering DB Admin Module")
+    // Create all objects
     const dbAdminApiContext = new DbAdminApiContext(dbConnection, pgConnection, pgp)
 
     // Add routes to app
@@ -49,4 +56,10 @@ export function registerDBAdmin(
     app.post("/deleteRepository", runWithTry(dbAdminApiContext.dbAdminApi.deleteRepository))
     app.post("/createDatabase", runWithTry(dbAdminApiContext.dbAdminApi.createDatabase))
     app.post("/listRepositories", runWithTry(dbAdminApiContext.dbAdminApi.listRepositories))
+    
+    return dbAdminApiContext.dbAdminApiWorker
 }
+
+export function initDatabase(): void {}
+
+export function createRepository(): void {}

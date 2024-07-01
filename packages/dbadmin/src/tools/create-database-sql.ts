@@ -1,11 +1,11 @@
-import {PGDB, PGUSER} from "./configuration.js";
+import { ServerConfig } from "@lionweb/repository-common";
 
 export const CREATE_DATABASE_SQL: string = `
-DROP DATABASE IF EXISTS ${PGDB} WITH (FORCE);
+DROP DATABASE IF EXISTS ${ServerConfig.getInstance().pgDb()} WITH (FORCE);
 
-CREATE DATABASE ${PGDB}
+CREATE DATABASE ${ServerConfig.getInstance().pgDb()}
     WITH
-    OWNER = '${PGUSER}'
+    OWNER = '${ServerConfig.getInstance().pgUser()}'
     ENCODING = 'UTF8'
     LC_COLLATE = 'en_US.utf8'
     LC_CTYPE = 'en_US.utf8'
@@ -14,7 +14,7 @@ CREATE DATABASE ${PGDB}
     CONNECTION LIMIT = -1
     IS_TEMPLATE = False;
 
-GRANT TEMPORARY, CONNECT ON DATABASE ${PGDB} TO PUBLIC;
+GRANT TEMPORARY, CONNECT ON DATABASE ${ServerConfig.getInstance().pgDb()} TO PUBLIC;
 
-GRANT ALL ON DATABASE ${PGDB} TO ${PGUSER};
+GRANT ALL ON DATABASE ${ServerConfig.getInstance().pgDb()} TO ${ServerConfig.getInstance().pgUser()};
 `

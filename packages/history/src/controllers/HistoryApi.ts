@@ -5,10 +5,9 @@
 import { Request, Response } from "express"
 import { HistoryContext } from "../main.js"
 import {
-    logger,
     ListPartitionsResponse,
     lionwebResponse,
-    HttpClientErrors, getStringParam, getIntegerParam, isParameterError, StoreResponse, FOREVER, getRepositoryParameter
+    HttpClientErrors, getStringParam, getIntegerParam, isParameterError, StoreResponse, FOREVER, getRepositoryParameter, dbLogger, requestLogger
 } from "@lionweb/repository-common"
 
 export interface HistoryApi {
@@ -26,7 +25,7 @@ export class HistoryApiImpl implements HistoryApi {
      * @param response The list of all partition nodes, without children or annotations
      */
     listPartitions = async (request: Request, response: Response): Promise<void> => {
-        logger.requestLog(` * history listPartitions request received, with body of ${request.headers["content-length"]} bytes`)
+        requestLogger.info(` * history listPartitions request received, with body of ${request.headers["content-length"]} bytes`)
         const clientId = getStringParam(request, "clientId")
         const repoVersion = getIntegerParam(request, "repoVersion", FOREVER)
         if (isParameterError(clientId)) {
@@ -52,12 +51,12 @@ export class HistoryApiImpl implements HistoryApi {
      * @param response
      */
     retrieve = async (request: Request, response: Response): Promise<void> => {
-        logger.requestLog(` * retrieve request received, with body of ${request.headers["content-length"]} bytes`)
+        requestLogger.info(` * retrieve request received, with body of ${request.headers["content-length"]} bytes`)
         const clientId = getStringParam(request, "clientId")
         const depthLimit = getIntegerParam(request, "depthLimit", Number.MAX_SAFE_INTEGER)
         const idList = request.body.ids
         const repoVersion = getIntegerParam(request, "repoVersion", FOREVER)
-        logger.dbLog("Api.getNodes: " + JSON.stringify(request.body) + " depth " + depthLimit + " clientId: " + clientId)
+        dbLogger.debug("Api.getNodes: " + JSON.stringify(request.body) + " depth " + depthLimit + " clientId: " + clientId)
         if (isParameterError(depthLimit)) {
             lionwebResponse(response, HttpClientErrors.PreconditionFailed, {
                 success: false,

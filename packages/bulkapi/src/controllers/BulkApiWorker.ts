@@ -3,9 +3,9 @@ import {
     CreatePartitionsResponse,
     DeletePartitionsResponse, EMPTY_CHUNK,
     EMPTY_SUCCES_RESPONSE, HttpClientErrors, HttpSuccessCodes, IdsResponse,
-    logger, nodesToChunk,
+    nodesToChunk,
     ListPartitionsResponse, QueryReturnType, RepositoryData,
-    ResponseMessage, RetrieveResponse, StoreResponse
+    ResponseMessage, RetrieveResponse, StoreResponse, requestLogger
 } from "@lionweb/repository-common";
 import { LionWebJsonChunk } from "@lionweb/validation"
 import { currentRepoVersionQuery, versionResultToResponse } from "../database/index.js";
@@ -32,7 +32,7 @@ export class BulkApiWorker {
      * @param chunk A LionWeb chunk containing all nodes that are to be created as partitions.
      */
     createPartitions = async (repositoryData: RepositoryData, chunk: LionWebJsonChunk): Promise<QueryReturnType<CreatePartitionsResponse>> => {
-        logger.requestLog(`BulkApiWorker.createPartitions repo [${JSON.stringify(repositoryData)}]`)
+        requestLogger.info(`BulkApiWorker.createPartitions repo [${JSON.stringify(repositoryData)}]`)
         // TODO Optimize: This reuses the "getNodesFromIdList", but that retrieves full nodes, which is not needed here
         
         return await this.context.dbConnection.tx(async task => {
@@ -124,7 +124,7 @@ export class BulkApiWorker {
      * @param count
      */
     ids = async (repositoryData: RepositoryData, count: number): Promise<QueryReturnType<IdsResponse>> => {
-        logger.requestLog("Reserve Count ids " + count + " for " + repositoryData.clientId)
+        requestLogger.info("Reserve Count ids " + count + " for " + repositoryData.clientId)
         return await this.context.dbConnection.tx(async task => {
             const result: string[] = []
             // Create a bunch of ids, they are probably all free 

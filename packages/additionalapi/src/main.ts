@@ -1,7 +1,7 @@
 import { Express } from "express"
 import pgPromise from "pg-promise"
 import pg from "pg-promise/typescript/pg-subset.js"
-import { DbConnection, logger, runWithTry } from "@lionweb/repository-common";
+import { DbConnection, requestLogger, runWithTry } from "@lionweb/repository-common";
 import { AdditionalApiWorker } from "./controllers/AdditionalApiWorker.js";
 import { AdditionalApiImpl } from "./controllers/index.js";
 import { AdditionalQueries } from "./database/index.js";
@@ -33,7 +33,7 @@ export class AdditionalApiContext {
  * @param pgp           The pg-promise object to gain access to the pg helpers
  */
 export function registerAdditionalApi(app: Express, dbConnection: DbConnection, pgp: pgPromise.IMain<object, pg.IClient>) {
-    logger.requestLog("Registering Additional API Module");
+    requestLogger.info("Registering Additional API Module");
     // Create all objects 
     const context = new AdditionalApiContext(dbConnection, pgp)
 

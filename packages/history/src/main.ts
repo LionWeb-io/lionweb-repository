@@ -1,7 +1,7 @@
 import { Express } from "express"
 import pgPromise from "pg-promise"
 import pg from "pg-promise/typescript/pg-subset.js"
-import { DbConnection, runWithTry } from "@lionweb/repository-common";
+import { DbConnection, requestLogger, runWithTry } from "@lionweb/repository-common";
 import { HistoryApiWorker } from "./controllers/HistoryApiWorker.js";
 import { HistoryApi, HistoryApiImpl } from "./controllers/index.js";
 import { HistoryQueries } from "./database/index.js";
@@ -38,7 +38,7 @@ export class HistoryContext {
  * @param pgp           The pg-promise object to gain access to the pg helpers
  */
 export function registerHistoryApi(app: Express, dbConnection: DbConnection, pgp: pgPromise.IMain<object, pg.IClient>) {
-    console.log("Registering Bulk API Module");
+    requestLogger.info("Registering History API Module");
     // Create all objects 
     const context = new HistoryContext(dbConnection, pgp)
 

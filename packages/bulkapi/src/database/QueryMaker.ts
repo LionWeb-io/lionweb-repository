@@ -4,8 +4,8 @@ import {
     NODES_TABLE,
     PROPERTIES_TABLE,
     REFERENCES_TABLE,
-    logger, TableHelpers, RESERVED_IDS_TABLE,
-    ReservedIdRecord, NodeRecord, NODES_TABLE_HISTORY, RepositoryData
+    TableHelpers, RESERVED_IDS_TABLE,
+    ReservedIdRecord, NodeRecord, NODES_TABLE_HISTORY, RepositoryData, dbLogger
 } from "@lionweb/repository-common"
 import {
     LionWebJsonNode,
@@ -64,7 +64,7 @@ export class QueryMaker {
      * @param tbsNodesToCreate
      */
     public dbInsertNodeArray(tbsNodesToCreate: LionWebJsonNode[]): string {
-        logger.dbLog("Queries insert new nodes " + tbsNodesToCreate.map(n => n.id))
+        dbLogger.debug("Queries insert new nodes " + tbsNodesToCreate.map(n => n.id))
         {
             let query = "-- create new nodes\n"
             if (tbsNodesToCreate.length === 0) {

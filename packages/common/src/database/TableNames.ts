@@ -9,5 +9,4 @@ export const CONTAINMENTS_TABLE_HISTORY: string = CONTAINMENTS_TABLE + "_history
 export const REFERENCES_TABLE_HISTORY: string = REFERENCES_TABLE + "_history"
 export const PROPERTIES_TABLE_HISTORY: string = PROPERTIES_TABLE + "_history"
 
-export const DATABASE_NAME = "lionweb"
 export const SCHEMA_PREFIX = "repository:"
