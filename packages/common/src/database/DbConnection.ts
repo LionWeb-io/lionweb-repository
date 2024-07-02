@@ -44,7 +44,7 @@ export class DbConnection {
     }
 
     async queryWithoutRepository(query: string) {
-        return await this.dbConnection.query(query)
+        return await this.postgresConnection.query(query)
     }
 
     /**
