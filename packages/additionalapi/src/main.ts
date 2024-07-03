@@ -38,5 +38,5 @@ export function registerAdditionalApi(app: Express, dbConnection: DbConnection, 
     const context = new AdditionalApiContext(dbConnection, pgp)
 
     // Add routes to application
-    app.get("/additional/getNodeTree", runWithTry(context.additionalApi.getNodeTree))
+    app.post("/additional/getNodeTree", runWithTry(context.additionalApi.getNodeTree))
 }
