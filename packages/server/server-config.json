@@ -1,6 +1,6 @@
 {
   "server": {
-    "serverPort": 3009,
+    "serverPort": 3005,
     "expectedToken": null
   },
   "startup": {
@@ -11,13 +11,13 @@
         "history": false
       },
       {
-        "name": "two", n+ app
+        "name": "two",
         "history": true
       }
     ]
   },
   "logging": {
-    "request": "silent",
+    "request": "info",
     "database": "silent",
     "express": "silent"
   },
