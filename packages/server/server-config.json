@@ -1,6 +1,6 @@
 {
   "server": {
-    "serverPort": 3009,
+    "serverPort": 3005,
     "expectedToken": null
   },
   "startup": {
@@ -17,7 +17,7 @@
     ]
   },
   "logging": {
-    "request": "silent",
+    "request": "info",
     "database": "silent",
     "express": "silent"
   },
