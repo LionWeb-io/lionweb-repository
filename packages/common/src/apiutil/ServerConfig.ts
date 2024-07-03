@@ -66,6 +66,7 @@ export class ServerConfig {
                 configFile = configParam
             } else {
                 expressLogger.error("--config <filename>  is missing <filename>")
+                process.exit(1)
             }
         }
         if (fs.existsSync(configFile)) {
@@ -75,12 +76,15 @@ export class ServerConfig {
                     this.config = JSON.parse(fs.readFileSync(configFile).toString()) as ServerConfigJson
                 } catch (e) {
                     expressLogger.error(`Error parsing JSON file ${configFile}: ${(e as Error).message}`)
+                    process.exit(1)
                 }
             } else {
                 expressLogger.error(`Config file ${configFile} is not a file`)
+                process.exit(1)
             }
         } else {
             expressLogger.error(`Config file ${configFile} does not exist`)
+            process.exit(1)
         }
     }
 
