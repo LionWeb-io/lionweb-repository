@@ -83,8 +83,11 @@ export class ServerConfig {
                 process.exit(1)
             }
         } else {
-            expressLogger.error(`Config file ${configFile} does not exist`)
-            process.exit(1)
+            if (configFlagIndex > -1) {
+                // --config option used, given config file should exist
+                expressLogger.error(`Config file ${configFile} does not exist`)
+                process.exit(1)
+            }
         }
     }
 
