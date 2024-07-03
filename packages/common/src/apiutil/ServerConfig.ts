@@ -6,7 +6,7 @@ export type ServerConfigJson = {
     server: {
         serverPort?: number
         expectedToken?: string
-        body_limit?: string
+        bodyLimit?: string
     }
     startup?: {
         createDatabase?: boolean
@@ -157,7 +157,7 @@ export class ServerConfig {
     }
 
     bodyLimit(): string {
-        const result = this?.config?.server?.body_limit
+        const result = this?.config?.server?.bodyLimit
         if (result !== undefined && result !== null && typeof result === "string") {
             return result
         }

@@ -9,7 +9,12 @@ Below is the server-config.json with all default values
 {
   "server": {
     // The port where the server can be reached
-    "serverPort": 3005
+    "serverPort": 3005,
+    // Token to use for minimal security
+    "expectedToken": null,
+    // maximum body size
+    "bodyLimit": '50mb'
+
   },
   "startup": {
     // Whether to create a new databse at startup.
