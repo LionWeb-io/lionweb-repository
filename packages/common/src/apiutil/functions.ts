@@ -193,7 +193,6 @@ export function runWithTry(func: (request: Request, response: Response) => void)
         try {
             await func(request, response)
         } catch (e) {
-            console.log(e.stack);
             const error = asError(e)
             requestLogger.error(`Exception while serving request for ${request.url}: ${error.message}`)
             requestLogger.error(error)
