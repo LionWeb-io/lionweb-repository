@@ -6,7 +6,7 @@ import {
     getIntegerParam, getRepositoryParameter, getStringParam,
     HttpClientErrors,
     HttpSuccessCodes, isParameterError,
-    lionwebResponse,
+    lionwebResponse, ParameterError,
     RepositoryData
 } from "@lionweb/repository-common"
 
@@ -24,10 +24,13 @@ export class AdditionalApiImpl implements AdditionalApi {
      */
     getNodeTree = async (request: Request, response: Response): Promise<void> => {
         const idList = request.body.ids
-        let clientId = getStringParam(request, "clientId")
+        const clientId = getStringParam(request, "clientId", "Dummy")
         if (isParameterError(clientId)) {
-            // Allow call without client id
-            clientId = "Dummy"
+            lionwebResponse(response, HttpClientErrors.BadRequest, {
+                success: false,
+                messages: [(clientId as ParameterError).error]
+            })
+            return
         }
         const repositoryData: RepositoryData = { clientId: clientId, repository: getRepositoryParameter(request) }
         const depthLimit = getIntegerParam(request, "depthLimit", Number.MAX_SAFE_INTEGER)
