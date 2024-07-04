@@ -18,7 +18,8 @@ export class AdditionalApiImpl implements AdditionalApi {
     constructor(private context: AdditionalApiContext) {
     }
     /**
-     * Get the tree with root `id`, for one single node
+     * Get the tree with root `id`, for a list of node ids.
+     * Note that the tree could be overlapping, and the same nodes could appear multiple times in the response.
      * @param request
      * @param response
      */
