@@ -24,6 +24,17 @@ export class AdditionalApiImpl implements AdditionalApi {
      */
     getNodeTree = async (request: Request, response: Response): Promise<void> => {
         const idList = request.body.ids
+        if (idList === undefined) {
+            lionwebResponse(response, HttpClientErrors.BadRequest, {
+                success: false,
+                messages: [{
+                    kind: "EmptyIdList",
+                    message: "ids not found",
+                    data: idList
+                }]
+            })
+            return
+        }
         const clientId = getStringParam(request, "clientId", "Dummy")
         if (isParameterError(clientId)) {
             lionwebResponse(response, HttpClientErrors.BadRequest, {
@@ -42,8 +53,11 @@ export class AdditionalApiImpl implements AdditionalApi {
         } else {
             dbLogger.info("API.getNodeTree is " + idList)
             const result = await this.context.additionalApiWorker.getNodeTree(repositoryData, idList, depthLimit)
-            lionwebResponse(response, HttpSuccessCodes.Ok, EMPTY_SUCCES_RESPONSE)
-            response.send(result)
+            lionwebResponse(response, HttpSuccessCodes.Ok, {
+                success: true,
+                messages: [],
+                data: result.queryResult
+            })
         }
     }
 }
