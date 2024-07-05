@@ -60,8 +60,6 @@ export class ServerConfig {
     readConfigFile(): void {
         let configFile = "./server-config.json"
         const configFlagIndex = process.argv.indexOf("--config")
-        console.log("process.argv", process.argv)
-        console.log("configFlagIndex ", configFlagIndex)
         if (configFlagIndex > -1) {
             const configParam = process.argv[configFlagIndex + 1]
             if (configParam !== undefined) {
@@ -71,7 +69,6 @@ export class ServerConfig {
                 process.exit(1)
             }
         }
-        console.log("CHECKING CONFIGFILE", configFile)
         if (fs.existsSync(configFile)) {
             const stats = fs.statSync(configFile)
             if (stats.isFile()) {
