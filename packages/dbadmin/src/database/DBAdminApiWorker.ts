@@ -62,8 +62,10 @@ export class DBAdminApiWorker {
     }
 
     async createDatabase(): Promise<QueryReturnType<string>> {
+        console.log("About to create database")
         const sql = CREATE_DATABASE_SQL
         if (!this.done) {
+            console.log("create database - not done")
             // split the file into separate statements
             const statements = sql.split(/;\s*$/m)
             for (const statement of statements) {
@@ -73,13 +75,16 @@ export class DBAdminApiWorker {
                 }
             }
             // Add the global functions to the public schema
+            console.log("create database - about to query")
             await this.ctx.dbConnection.query({ clientId: "Repository", repository: "public" }, removeNewlinesBetween$$(CREATE_GLOBALS_SQL))
+            console.log("create database - query executed")
             return {
                 status: HttpSuccessCodes.Ok,
                 query: sql,
                 queryResult: "{}"
             }
         } else {
+            console.log("create database - Done")
             return {
                 status: HttpSuccessCodes.Ok,
                 query: sql,
