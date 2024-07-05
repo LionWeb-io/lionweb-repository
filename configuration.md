@@ -51,6 +51,8 @@ Below is the server-config.json with all default values
       "host": "postgres",
       // The username used to connect to the Postgres server
       "user": "postgres",
+      // The name of the admin database
+      maintenanceDb: "postgres" ,
       // The name of the Postgres database to be used within the Postgres server.
       "db": "lionweb",
       // The password used to connect to the Postgres server
