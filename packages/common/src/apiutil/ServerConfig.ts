@@ -25,6 +25,7 @@ export type ServerConfigJson = {
             host?: string
             user?: string
             db?: string
+            maintenanceDb?: string
             password?: string
             port?: number
         }
@@ -133,6 +134,11 @@ export class ServerConfig {
     pgDb(): string {
         const result = this?.config?.postgres?.database?.db
         return result || "lionweb"
+    }
+
+    pgMaintenanceDb(): string {
+        const result = this?.config?.postgres?.database?.maintenanceDb
+        return result || "postgres"
     }
 
     pgPassword(): string {
