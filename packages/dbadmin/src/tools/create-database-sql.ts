@@ -11,7 +11,8 @@ CREATE DATABASE ${ServerConfig.getInstance().pgDb()}
     LC_CTYPE = 'en_US.UTF-8'
     LOCALE_PROVIDER = 'libc'
     CONNECTION LIMIT = -1
-    IS_TEMPLATE = False;
+    IS_TEMPLATE = False
+    TEMPLATE template0;
 
 GRANT TEMPORARY, CONNECT ON DATABASE ${ServerConfig.getInstance().pgDb()} TO PUBLIC;
 
