@@ -1,5 +1,6 @@
 import { Response } from "express"
 import { LionWebJsonChunk } from "@lionweb/validation"
+import { JsonStreamStringify } from "json-stream-stringify"
 
 // "string" is needed as MessageKind can also be any of the ValidationIssue kinds.
 export type MessageKind =
@@ -64,7 +65,8 @@ export interface ListRepositoriesResponse extends LionwebResponse {
 
 export function lionwebResponse<T extends LionwebResponse>(response: Response, status: number, body: T): void {
     response.status(status)
-    response.send(body)
+    // response.send(body)
+    new JsonStreamStringify(body).pipe(response);
 }
 
 export const EMPTY_SUCCES_RESPONSE: LionwebResponse = {

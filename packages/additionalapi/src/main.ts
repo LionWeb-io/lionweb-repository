@@ -1,10 +1,11 @@
-import { Express } from "express"
+import {Express, raw} from "express"
 import pgPromise from "pg-promise"
 import pg from "pg-promise/typescript/pg-subset.js"
 import { DbConnection, requestLogger, runWithTry } from "@lionweb/repository-common";
 import { AdditionalApiWorker } from "./controllers/AdditionalApiWorker.js";
 import { AdditionalApiImpl } from "./controllers/index.js";
 import { AdditionalQueries } from "./database/index.js";
+import {Pool} from "pg";
 
 /**
  * Object containing 'global' contextual objects for this API.
@@ -13,13 +14,15 @@ import { AdditionalQueries } from "./database/index.js";
 export class AdditionalApiContext {
     dbConnection: DbConnection
     pgp: pgPromise.IMain<object, pg.IClient>
+    pgPool: Pool
     additionalApiWorker: AdditionalApiWorker
     additionalApi: AdditionalApiImpl
     queries: AdditionalQueries
 
-    constructor(dbConnection: DbConnection, pgp: pgPromise.IMain<object, pg.IClient>) {
+    constructor(dbConnection: DbConnection, pgp: pgPromise.IMain<object, pg.IClient>, pgPool: Pool) {
         this.dbConnection = dbConnection
         this.pgp = pgp
+        this.pgPool = pgPool
         this.additionalApi = new AdditionalApiImpl(this)
         this.additionalApiWorker = new AdditionalApiWorker(this)
         this.queries = new AdditionalQueries(this)
@@ -32,11 +35,13 @@ export class AdditionalApiContext {
  * @param dbConnection  The database connection to be used by this API
  * @param pgp           The pg-promise object to gain access to the pg helpers
  */
-export function registerAdditionalApi(app: Express, dbConnection: DbConnection, pgp: pgPromise.IMain<object, pg.IClient>) {
+export function registerAdditionalApi(app: Express, dbConnection: DbConnection, pgp: pgPromise.IMain<object, pg.IClient>, pgPool: Pool) {
     requestLogger.info("Registering Additional API Module");
     // Create all objects 
-    const context = new AdditionalApiContext(dbConnection, pgp)
+    const context = new AdditionalApiContext(dbConnection, pgp, pgPool)
 
     // Add routes to application
     app.post("/additional/getNodeTree", runWithTry(context.additionalApi.getNodeTree))
+    // app.post("/additional/bulkImport", runWithTry(context.additionalApi.bulkImport))
+    app.post("/additional/bulkImport", runWithTry(context.additionalApi.bulkImport))
 }

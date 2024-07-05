@@ -6,6 +6,7 @@ import {
 } from "@lionweb/repository-dbadmin";
 import pgPromise from "pg-promise"
 import dotenv from "dotenv"
+import pg from "pg";
 
 // Initialize and export the database connection with configuration from _env_
 
@@ -32,3 +33,5 @@ export const postgresConnectionWithDatabase = pgp(config)
  * Used for queries that create the actual database.
  */
 export const postgresConnectionWithoutDatabase = pgp(CREATE_CONFIG)
+
+export const postgresPool = new pg.Pool(config)

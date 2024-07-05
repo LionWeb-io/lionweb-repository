@@ -1,6 +1,7 @@
 import pgPromise from "pg-promise"
 import pg from "pg-promise/typescript/pg-subset.js";
 import { dbLogger } from "../apiutil/index.js";
+import {Pool} from "pg";
 
 /**
  * Data determining the repository and user for which a command should be executed.
@@ -32,6 +33,7 @@ export class DbConnection {
     postgresConnection: pgPromise.IDatabase<object, pg.IClient>
     dbConnection: pgPromise.IDatabase<object, pg.IClient>
     pgp: pgPromise.IMain<object, pg.IClient>
+    pgPool: Pool
     
     static instance: DbConnection
     static getInstance(): DbConnection {
