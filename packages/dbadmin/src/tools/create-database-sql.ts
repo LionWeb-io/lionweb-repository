@@ -7,8 +7,8 @@ CREATE DATABASE ${ServerConfig.getInstance().pgDb()}
     WITH
     OWNER = '${ServerConfig.getInstance().pgUser()}'
     ENCODING = 'UTF8'
-    LC_COLLATE = 'en_US.utf8'
-    LC_CTYPE = 'en_US.utf8'
+    LC_COLLATE = 'en_US.UTF-8'
+    LC_CTYPE = 'en_US.UTF-8'
     LOCALE_PROVIDER = 'libc'
     TABLESPACE = pg_default
     CONNECTION LIMIT = -1
