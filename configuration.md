@@ -23,8 +23,8 @@ Below is the server-config.json with all default values
 
   },
   "startup": {
-    // Whether to create a new databse at startup.
-    // Note that the new dartabase will overwrite any existing database  
+    // Whether to create a new database at startup.
+    // Note that the new database will overwrite any existing database  
     "createDatabase": true,
     // The list of repositories to be created at start uo, can be empty
     "createRepositories": [
