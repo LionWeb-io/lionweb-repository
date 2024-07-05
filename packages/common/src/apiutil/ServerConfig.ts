@@ -60,15 +60,18 @@ export class ServerConfig {
     readConfigFile(): void {
         let configFile = "./server-config.json"
         const configFlagIndex = process.argv.indexOf("--config")
+        console.log("process.argv", process.argv)
+        console.log("configFlagIndex ", configFlagIndex)
         if (configFlagIndex > -1) {
             const configParam = process.argv[configFlagIndex + 1]
             if (configParam !== undefined) {
                 configFile = configParam
             } else {
-                expressLogger.error("--config <filename>  is missing <filename>")
+                expressLogger.error("--config <filename> is missing <filename>")
                 process.exit(1)
             }
         }
+        console.log("CHECKING CONFIGFILE", configFile)
         if (fs.existsSync(configFile)) {
             const stats = fs.statSync(configFile)
             if (stats.isFile()) {

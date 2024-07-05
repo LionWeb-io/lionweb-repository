@@ -75,7 +75,7 @@ const serverPort = ServerConfig.getInstance().serverPort()
 if (ServerConfig.getInstance().createDatabase()) {
     await dbAdminApi.createDatabase()
 }
-// Initialize reppositories
+// Initialize repositories
 for (const repository of ServerConfig.getInstance().createRepositories()) {
     if (repository?.history !== undefined && repository?.history !== null && repository?.history === true) {
         await dbAdminApi.createRepository({clientId: "repository", repository: SCHEMA_PREFIX + repository.name})
