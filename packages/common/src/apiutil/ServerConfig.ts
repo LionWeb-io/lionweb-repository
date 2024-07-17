@@ -25,6 +25,7 @@ export type ServerConfigJson = {
             host?: string
             user?: string
             db?: string
+            maintenanceDb?: string
             password?: string
             port?: number
         }
@@ -65,8 +66,10 @@ export class ServerConfig {
             if (configParam !== undefined) {
                 configFile = configParam
             } else {
-                expressLogger.error("--config <filename>  is missing <filename>")
-                process.exit(1)
+                // This is not ideal, but because of how `npm run dev` works I could not think of another solution
+                // that works conveniently both to run the server specifying the configuration path and not specifying
+                // it
+                expressLogger.warn("--config <filename> is missing <filename>, using default path ${configFile}`)")
             }
         }
         if (fs.existsSync(configFile)) {
@@ -133,6 +136,11 @@ export class ServerConfig {
     pgDb(): string {
         const result = this?.config?.postgres?.database?.db
         return result || "lionweb"
+    }
+
+    pgMaintenanceDb(): string {
+        const result = this?.config?.postgres?.database?.maintenanceDb
+        return result || "postgres"
     }
 
     pgPassword(): string {
