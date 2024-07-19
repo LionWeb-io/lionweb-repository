@@ -8,23 +8,23 @@ import {
     makeQueryToCheckHowManyDoNotExist,
     makeQueryToCheckHowManyExist
 } from "./QueryNode.js";
-import {DbConnection, RepositoryData} from "@lionweb/repository-common";
-import {HttpClientErrors, HttpSuccessCodes} from "@lionweb/repository-client";
+import {DbConnection, HttpClientErrors, HttpSuccessCodes, RepositoryData} from "@lionweb/repository-common";
+
+const SEPARATOR = "\t";
 
 function prepareInputStreamNodes(nodes: LionWebJsonNode[]) : Duplex {
-    const separator = "\t";
     const read_stream_string = new Duplex();
     nodes.forEach(node => {
         read_stream_string.push(node.id);
-        read_stream_string.push(separator);
+        read_stream_string.push(SEPARATOR);
         read_stream_string.push(node.classifier.language);
-        read_stream_string.push(separator);
+        read_stream_string.push(SEPARATOR);
         read_stream_string.push(node.classifier.version);
-        read_stream_string.push(separator);
+        read_stream_string.push(SEPARATOR);
         read_stream_string.push(node.classifier.key);
-        read_stream_string.push(separator);
+        read_stream_string.push(SEPARATOR);
         read_stream_string.push("{}");
-        read_stream_string.push(separator);
+        read_stream_string.push(SEPARATOR);
         read_stream_string.push(node.parent);
         read_stream_string.push("\n");
     })
@@ -33,17 +33,15 @@ function prepareInputStreamNodes(nodes: LionWebJsonNode[]) : Duplex {
 }
 
 function prepareInputStreamProperties(nodes: LionWebJsonNode[]) : Duplex {
-    const separator = "\t";
     const read_stream_string = new Duplex();
     nodes.forEach(node => {
         node.properties.forEach(prop => {
-            try {
                 read_stream_string.push(prop.property.language);
-                read_stream_string.push(separator);
+                read_stream_string.push(SEPARATOR);
                 read_stream_string.push(prop.property.version);
-                read_stream_string.push(separator);
+                read_stream_string.push(SEPARATOR);
                 read_stream_string.push(prop.property.key);
-                read_stream_string.push(separator);
+                read_stream_string.push(SEPARATOR);
                 if (prop.value == null) {
                     read_stream_string.push("\\N");
                 } else {
@@ -51,36 +49,26 @@ function prepareInputStreamProperties(nodes: LionWebJsonNode[]) : Duplex {
                         .replaceAll('\n', '\\n')
                         .replaceAll('\r', '\\r')
                         .replaceAll('\t', '\\t'));
-                    //read_stream_string.push(JSON.stringify(prop.value));
                 }
-                read_stream_string.push(separator);
+                read_stream_string.push(SEPARATOR);
                 read_stream_string.push(node.id);
                 read_stream_string.push("\n");
-            } catch (e) {
-                throw Error(`ERROR WHEN POPULATING PROPERTIES STREAM ${e}`)
-            }
         });
     })
-    try {
-        read_stream_string.push(null);
-    }catch (e) {
-        throw Error(`ERROR WHEN Setting the null ${e}`)
-    }
+    read_stream_string.push(null);
     return read_stream_string;
 }
 
 function prepareInputStreamReferences(nodes: LionWebJsonNode[]) : Duplex {
-    const separator = "\t";
     const read_stream_string = new Duplex();
     nodes.forEach(node => {
         node.references.forEach(ref => {
-            try {
                 read_stream_string.push(ref.reference.language);
-                read_stream_string.push(separator);
+                read_stream_string.push(SEPARATOR);
                 read_stream_string.push(ref.reference.version);
-                read_stream_string.push(separator);
+                read_stream_string.push(SEPARATOR);
                 read_stream_string.push(ref.reference.key);
-                read_stream_string.push(separator);
+                read_stream_string.push(SEPARATOR);
 
                 const refValueStr = "{" + ref.targets.map(t => {
                     let refStr = "null";
@@ -91,67 +79,50 @@ function prepareInputStreamReferences(nodes: LionWebJsonNode[]) : Duplex {
                     return `"{\\\\"reference\\\\": ${refStr}, \\\\"resolveInfo\\\\": \\\\"${t.resolveInfo}\\\\"}"`
                 }).join(",") + "}";
                 read_stream_string.push(refValueStr);
-                read_stream_string.push(separator);
+                read_stream_string.push(SEPARATOR);
                 read_stream_string.push(node.id);
                 read_stream_string.push("\n");
-            } catch (e) {
-                throw Error(`ERROR WHEN POPULATING REFERENCES STREAM ${e}`)
-            }
         });
     })
-    try {
         read_stream_string.push(null);
-    }catch (e) {
-        throw Error(`ERROR WHEN Setting the null ${e}`)
-    }
     return read_stream_string;
 }
 
 function prepareInputStreamContainments(nodes: LionWebJsonNode[]) : Duplex {
-    const separator = "\t";
     const read_stream_string = new Duplex();
     nodes.forEach(node => {
         node.containments.forEach(containment => {
-            try {
                 read_stream_string.push(containment.containment.language);
-                read_stream_string.push(separator);
+                read_stream_string.push(SEPARATOR);
                 read_stream_string.push(containment.containment.version);
-                read_stream_string.push(separator);
+                read_stream_string.push(SEPARATOR);
                 read_stream_string.push(containment.containment.key);
-                read_stream_string.push(separator);
+                read_stream_string.push(SEPARATOR);
                 read_stream_string.push("{" + containment.children.join(",") + "}");
-                read_stream_string.push(separator);
+                read_stream_string.push(SEPARATOR);
                 read_stream_string.push(node.id);
                 read_stream_string.push("\n");
-            } catch (e) {
-                throw Error(`ERROR WHEN POPULATING PROPERTIES STREAM ${e}`)
-            }
         });
     })
-    try {
         read_stream_string.push(null);
-    }catch (e) {
-        throw Error(`ERROR WHEN Setting the null ${e}`)
-    }
     return read_stream_string;
 }
 
 function prepareInputStreamNodesFlatBuffers(bulkImport: FBBulkImport) : Duplex {
-    const separator = "\t";
     const read_stream_string = new Duplex();
     for (let i = 0; i < bulkImport.nodesLength(); i++) {
         const node = bulkImport.nodes(i);
         const classifier = node.classifier();
         read_stream_string.push(node.id());
-        read_stream_string.push(separator);
+        read_stream_string.push(SEPARATOR);
         read_stream_string.push(classifier.language());
-        read_stream_string.push(separator);
+        read_stream_string.push(SEPARATOR);
         read_stream_string.push(classifier.version());
-        read_stream_string.push(separator);
+        read_stream_string.push(SEPARATOR);
         read_stream_string.push(classifier.key());
-        read_stream_string.push(separator);
+        read_stream_string.push(SEPARATOR);
         read_stream_string.push("{}");
-        read_stream_string.push(separator);
+        read_stream_string.push(SEPARATOR);
         read_stream_string.push(node.parent());
         read_stream_string.push("\n");
     }
@@ -160,20 +131,18 @@ function prepareInputStreamNodesFlatBuffers(bulkImport: FBBulkImport) : Duplex {
 }
 
 function prepareInputStreamPropertiesFlatBuffers(bulkImport: FBBulkImport) : Duplex {
-    const separator = "\t";
     const read_stream_string = new Duplex();
     for (let i = 0; i < bulkImport.nodesLength(); i++) {
         const node = bulkImport.nodes(i);
         for (let j = 0; j < node.propertiesLength(); j++) {
             const prop = node.properties(j);
             const metaPointer = prop.metaPointer();
-            try {
                 read_stream_string.push(metaPointer.language());
-                read_stream_string.push(separator);
+                read_stream_string.push(SEPARATOR);
                 read_stream_string.push(metaPointer.version());
-                read_stream_string.push(separator);
+                read_stream_string.push(SEPARATOR);
                 read_stream_string.push(metaPointer.key());
-                read_stream_string.push(separator);
+                read_stream_string.push(SEPARATOR);
                 const value = prop.value();
                 if (value == null) {
                     read_stream_string.push("\\N");
@@ -182,39 +151,29 @@ function prepareInputStreamPropertiesFlatBuffers(bulkImport: FBBulkImport) : Dup
                         .replaceAll('\n', '\\n')
                         .replaceAll('\r', '\\r')
                         .replaceAll('\t', '\\t'));
-                    //read_stream_string.push(JSON.stringify(prop.value));
                 }
-                read_stream_string.push(separator);
+                read_stream_string.push(SEPARATOR);
                 read_stream_string.push(node.id());
                 read_stream_string.push("\n");
-            } catch (e) {
-                throw Error(`ERROR WHEN POPULATING PROPERTIES STREAM ${e}`)
-            }
         }
     }
-    try {
         read_stream_string.push(null);
-    }catch (e) {
-        throw Error(`ERROR WHEN Setting the null ${e}`)
-    }
     return read_stream_string;
 }
 
 function prepareInputStreamReferencesFlatBuffers(bulkImport: FBBulkImport) : Duplex {
-    const separator = "\t";
     const read_stream_string = new Duplex();
     for (let i = 0; i < bulkImport.nodesLength(); i++) {
         const node = bulkImport.nodes(i);
         for (let j = 0; j < node.referencesLength(); j++) {
             const ref = node.references(j);
             const metaPointer = ref.metaPointer();
-            try {
                 read_stream_string.push(metaPointer.language());
-                read_stream_string.push(separator);
+                read_stream_string.push(SEPARATOR);
                 read_stream_string.push(metaPointer.version());
-                read_stream_string.push(separator);
+                read_stream_string.push(SEPARATOR);
                 read_stream_string.push(metaPointer.key());
-                read_stream_string.push(separator);
+                read_stream_string.push(SEPARATOR);
 
                 const parts : string[] = new Array<string>(ref.valuesLength());
                 for (let k = 0; k < ref.valuesLength(); k++) {
@@ -229,282 +188,87 @@ function prepareInputStreamReferencesFlatBuffers(bulkImport: FBBulkImport) : Dup
 
                 const refValueStr = "{" + parts.join(",") + "}";
                 read_stream_string.push(refValueStr);
-                read_stream_string.push(separator);
+                read_stream_string.push(SEPARATOR);
                 read_stream_string.push(node.id());
                 read_stream_string.push("\n");
-            } catch (e) {
-                throw Error(`ERROR WHEN POPULATING REFERENCES STREAM ${e}`)
-            }
         }
     }
-    try {
         read_stream_string.push(null);
-    }catch (e) {
-        throw Error(`ERROR WHEN Setting the null ${e}`)
-    }
     return read_stream_string;
 }
 
 function prepareInputStreamContainmentsFlatBuffers(bulkImport: FBBulkImport) : Duplex {
-    const separator = "\t";
     const read_stream_string = new Duplex();
     for (let i = 0; i < bulkImport.nodesLength(); i++) {
         const node = bulkImport.nodes(i);
         for (let j = 0; j < node.containmentsLength(); j++) {
             const containment = node.containments(j);
             const metaPointer = containment.metaPointer();
-            try {
                 read_stream_string.push(metaPointer.language());
-                read_stream_string.push(separator);
+                read_stream_string.push(SEPARATOR);
                 read_stream_string.push(metaPointer.version());
-                read_stream_string.push(separator);
+                read_stream_string.push(SEPARATOR);
                 read_stream_string.push(metaPointer.key());
-                read_stream_string.push(separator);
+                read_stream_string.push(SEPARATOR);
                 const children : string[] = new Array<string>(containment.childrenLength());
                 for (let k = 0; k < containment.childrenLength(); k++) {
                     children[k] = containment.children(k);
                 }
                 read_stream_string.push("{" + children.join(",") + "}");
-                read_stream_string.push(separator);
+                read_stream_string.push(SEPARATOR);
                 read_stream_string.push(node.id());
                 read_stream_string.push("\n");
-            } catch (e) {
-                throw Error(`ERROR WHEN POPULATING PROPERTIES STREAM ${e}`)
-            }
         }
     }
-    try {
         read_stream_string.push(null);
-    }catch (e) {
-        throw Error(`ERROR WHEN Setting the null ${e}`)
-    }
     return read_stream_string;
 }
 
-export async function storeNodes(client: PoolClient, nodes: LionWebJsonNode[]) : Promise<void> {
+async function pipeInputIntoQueryStream(client: PoolClient, query: string, inputStream: Duplex, opDesc: string) {
     await new Promise<void>((resolve, reject) => {
         try {
-            const queryStream = client.query(copyFrom('COPY "repository:default".lionweb_nodes FROM STDIN'))
-            const inputStream = prepareInputStreamNodes(nodes);
+            const queryStream = client.query(copyFrom(query))
 
             inputStream.on('error', (err: Error) => {
-                console.error(`FAILURE 3 ${err}`)
-                reject(`Input stream error storeNodes : ${err}`)
+                reject(`Input stream error on ${opDesc}: ${err}`)
             });
 
             queryStream.on('error', (err: Error) => {
-                console.error(`FAILURE 2 ${err}`)
-                reject(`Query stream error storeNodes: ${err}`)
+                reject(`Query stream error on ${opDesc}: ${err}`)
 
             });
 
             queryStream.on('end', () => {
-                // TODO, figure out which one to keep
-                resolve();
-            });
-
-            inputStream.on('end', () => {
-                // TODO, figure out which one to keep
                 resolve();
             });
 
             inputStream.pipe(queryStream);
         } catch (e) {
-            console.error(`FAILURE 1 ${e}`)
-            reject(`Error storeNodes error storeNodes: ${e}`)
+            reject(`Error on ${opDesc}: ${e}`)
         }
     });
-    await new Promise<void>((resolve, reject) => {
-        const queryStream = client.query(copyFrom('COPY "repository:default".lionweb_containments(containment_language,containment_version,containment_key,children,node_id) FROM STDIN'))
-        const inputStream = prepareInputStreamContainments(nodes);
-
-        inputStream.on('error', (err: Error) => {
-            reject(`Input stream error storeNodes : ${err}`)
-        });
-
-        queryStream.on('error', (err: Error) => {
-            reject(`Query stream error containments: ${err}`)
-
-        });
-
-        queryStream.on('end', () => {
-            // TODO, figure out which one to keep
-            resolve();
-        });
-
-        inputStream.on('end', () => {
-            // TODO, figure out which one to keep
-            resolve();
-        });
-
-        inputStream.pipe(queryStream);
-    });
-    await new Promise<void>((resolve, reject) => {
-        const queryStream = client.query(copyFrom('COPY "repository:default".lionweb_references(reference_language,reference_version,reference_key,targets,node_id) FROM STDIN'))
-        const inputStream = prepareInputStreamReferences(nodes);
-
-        inputStream.on('error', (err: Error) => {
-            reject(`Input stream error references : ${err}`)
-        });
-
-        queryStream.on('error', (err: Error) => {
-            reject(`Query stream error references: ${err}`)
-
-        });
-
-        queryStream.on('end', () => {
-            // TODO, figure out which one to keep
-            resolve();
-        });
-
-        inputStream.on('end', () => {
-            // TODO, figure out which one to keep
-            resolve();
-        });
-
-        inputStream.pipe(queryStream);
-    });
-    await new Promise<void>((resolve, reject) => {
-        const queryStream = client.query(copyFrom('COPY "repository:default".lionweb_properties(property_language,property_version,property_key,value,node_id) FROM STDIN'))
-        const inputStream = prepareInputStreamProperties(nodes);
-
-        inputStream.on('error', (err: Error) => {
-            reject(`Input stream error  utStreamProperties: ${err}`)
-        });
-
-        queryStream.on('error', (err: Error) => {
-            reject(`Query stream error prepareInputStreamProperties: ${err}`)
-
-        });
-
-        queryStream.on('end', () => {
-            // TODO, figure out which one to keep
-            console.log("END OF STORE NODES")
-            resolve();
-        });
-
-        inputStream.on('end', () => {
-            // TODO, figure out which one to keep
-            console.log("END2 OF STORE NODES")
-            resolve();
-        });
-
-        inputStream.pipe(queryStream);
-    });
-
 }
 
-async function storeNodesThroughFlatBuffers(client: PoolClient, bulkImport: FBBulkImport) : Promise<void> {
-    await new Promise<void>((resolve, reject) => {
-        try {
-            const queryStream = client.query(copyFrom('COPY "repository:default".lionweb_nodes FROM STDIN'))
-            const inputStream = prepareInputStreamNodesFlatBuffers(bulkImport);
+export async function storeNodes(client: PoolClient, nodes: LionWebJsonNode[], repositoryName: string) : Promise<void> {
+    await pipeInputIntoQueryStream(client,`COPY "repository:${repositoryName}".lionweb_nodes FROM STDIN`,
+        prepareInputStreamNodes(nodes), "nodes insertion");
+    await pipeInputIntoQueryStream(client,`COPY "repository:${repositoryName}".lionweb_containments(containment_language,containment_version,containment_key,children,node_id) FROM STDIN`,
+        prepareInputStreamContainments(nodes), "containments insertion");
+    await pipeInputIntoQueryStream(client,`COPY "repository:${repositoryName}".lionweb_references(reference_language,reference_version,reference_key,targets,node_id) FROM STDIN`,
+        prepareInputStreamReferences(nodes), "references ${repositoryName}");
+    await pipeInputIntoQueryStream(client,`COPY "repository:${repositoryName}".lionweb_properties(property_language,property_version,property_key,value,node_id) FROM STDIN`,
+        prepareInputStreamProperties(nodes), "properties ${repositoryName}");
+}
 
-            inputStream.on('error', (err: Error) => {
-                console.error(`FAILURE 3 ${err}`)
-                reject(`Input stream error storeNodes : ${err}`)
-            });
-
-            queryStream.on('error', (err: Error) => {
-                console.error(`FAILURE 2 ${err}`)
-                reject(`Query stream error storeNodes: ${err}`)
-
-            });
-
-            queryStream.on('end', () => {
-                // TODO, figure out which one to keep
-                resolve();
-            });
-
-            inputStream.on('end', () => {
-                // TODO, figure out which one to keep
-                resolve();
-            });
-
-            inputStream.pipe(queryStream);
-        } catch (e) {
-            console.error(`FAILURE 1 ${e}`)
-            reject(`Error storeNodes error storeNodes: ${e}`)
-        }
-    });
-    await new Promise<void>((resolve, reject) => {
-        const queryStream = client.query(copyFrom('COPY "repository:default".lionweb_containments(containment_language,containment_version,containment_key,children,node_id) FROM STDIN'))
-        const inputStream = prepareInputStreamContainmentsFlatBuffers(bulkImport);
-
-        inputStream.on('error', (err: Error) => {
-            reject(`Input stream error storeNodes : ${err}`)
-        });
-
-        queryStream.on('error', (err: Error) => {
-            reject(`Query stream error containments: ${err}`)
-
-        });
-
-        queryStream.on('end', () => {
-            // TODO, figure out which one to keep
-            resolve();
-        });
-
-        inputStream.on('end', () => {
-            // TODO, figure out which one to keep
-            resolve();
-        });
-
-        inputStream.pipe(queryStream);
-    });
-    await new Promise<void>((resolve, reject) => {
-        const queryStream = client.query(copyFrom('COPY "repository:default".lionweb_references(reference_language,reference_version,reference_key,targets,node_id) FROM STDIN'))
-        const inputStream = prepareInputStreamReferencesFlatBuffers(bulkImport);
-
-        inputStream.on('error', (err: Error) => {
-            reject(`Input stream error references : ${err}`)
-        });
-
-        queryStream.on('error', (err: Error) => {
-            reject(`Query stream error references: ${err}`)
-
-        });
-
-        queryStream.on('end', () => {
-            // TODO, figure out which one to keep
-            resolve();
-        });
-
-        inputStream.on('end', () => {
-            // TODO, figure out which one to keep
-            resolve();
-        });
-
-        inputStream.pipe(queryStream);
-    });
-    await new Promise<void>((resolve, reject) => {
-        const queryStream = client.query(copyFrom('COPY "repository:default".lionweb_properties(property_language,property_version,property_key,value,node_id) FROM STDIN'))
-        const inputStream = prepareInputStreamPropertiesFlatBuffers(bulkImport);
-
-        inputStream.on('error', (err: Error) => {
-            reject(`Input stream error  utStreamProperties: ${err}`)
-        });
-
-        queryStream.on('error', (err: Error) => {
-            reject(`Query stream error prepareInputStreamProperties: ${err}`)
-
-        });
-
-        queryStream.on('end', () => {
-            // TODO, figure out which one to keep
-            console.log("END OF STORE NODES")
-            resolve();
-        });
-
-        inputStream.on('end', () => {
-            // TODO, figure out which one to keep
-            console.log("END2 OF STORE NODES")
-            resolve();
-        });
-
-        inputStream.pipe(queryStream);
-    });
-
+async function storeNodesThroughFlatBuffers(client: PoolClient, bulkImport: FBBulkImport, repositoryName: string) : Promise<void> {
+    await pipeInputIntoQueryStream(client,`COPY "repository:${repositoryName}".lionweb_nodes FROM STDIN`,
+        prepareInputStreamNodesFlatBuffers(bulkImport), "nodes insertion");
+    await pipeInputIntoQueryStream(client,`COPY "repository:${repositoryName}".lionweb_containments(containment_language,containment_version,containment_key,children,node_id) FROM STDIN`,
+        prepareInputStreamContainmentsFlatBuffers(bulkImport), "containments insertion");
+    await pipeInputIntoQueryStream(client,`COPY "repository:${repositoryName}".lionweb_references(reference_language,reference_version,reference_key,targets,node_id) FROM STDIN`,
+        prepareInputStreamReferencesFlatBuffers(bulkImport), "references ${repositoryName}");
+    await pipeInputIntoQueryStream(client,`COPY "repository:${repositoryName}".lionweb_properties(property_language,property_version,property_key,value,node_id) FROM STDIN`,
+        prepareInputStreamPropertiesFlatBuffers(bulkImport), "properties ${repositoryName}");
 }
 
 /**
@@ -516,8 +280,6 @@ export async function performImportFromFlatBuffers(client: PoolClient, dbConnect
     description?: string;
     status: number
 }> {
-    console.log("NODES LENGTH", bulkImport.nodesLength());
-
     // Check - We verify there are no duplicate IDs in the new nodes
     const newNodesSet = new Set<string>()
     const parentsSet : Set<string> = new Set<string>()
@@ -561,7 +323,7 @@ export async function performImportFromFlatBuffers(client: PoolClient, dbConnect
     }
 
     // Add all the new nodes
-    await storeNodesThroughFlatBuffers(client, bulkImport)
+    await storeNodesThroughFlatBuffers(client, bulkImport, repositoryData.repository)
 
     // Attach the root of the new nodes to existing containers
     for (let i = 0; i < bulkImport.attachPointsLength(); i++) {

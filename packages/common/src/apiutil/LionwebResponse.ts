@@ -65,7 +65,6 @@ export interface ListRepositoriesResponse extends LionwebResponse {
 
 export function lionwebResponse<T extends LionwebResponse>(response: Response, status: number, body: T): void {
     response.status(status)
-    // response.send(body)
     new JsonStreamStringify(body).pipe(response);
 }
 

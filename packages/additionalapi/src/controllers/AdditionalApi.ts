@@ -134,11 +134,14 @@ export class AdditionalApiImpl implements AdditionalApi {
            nodes: [], attachPoints: []
         }
 
+        // In the ProtoBuf format we use a map of strings, to save space, given the node id and strings describing
+        // metapointers are always repeated
         const stringsMap = new Map<number, string>()
         pbBulkImport.stringValues.forEach((string: string, index: number) => {
             stringsMap.set(index, string)
         })
 
+        // We do the same also for metapointer, which are duplicated over and over
         const metaPointersMap = new Map<number, LionWebJsonMetaPointer>()
         pbBulkImport.metaPointers.forEach((pbMetaPointer: PBMetaPointer, index: number) => {
             const metaPointer : LionWebJsonMetaPointer = {

@@ -42,6 +42,5 @@ export function registerAdditionalApi(app: Express, dbConnection: DbConnection, 
 
     // Add routes to application
     app.post("/additional/getNodeTree", runWithTry(context.additionalApi.getNodeTree))
-    // app.post("/additional/bulkImport", runWithTry(context.additionalApi.bulkImport))
     app.post("/additional/bulkImport", runWithTry(context.additionalApi.bulkImport))
 }

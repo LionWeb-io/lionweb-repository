@@ -106,7 +106,7 @@ export class AdditionalQueries {
 
         // Add all the new nodes
         const pool = this.context.pgPool;
-        await storeNodes(await pool.connect(), bulkImport.nodes)
+        await storeNodes(await pool.connect(), bulkImport.nodes, repositoryData.repository)
 
         // Attach the root of the new nodes to existing containers
         for (const attachPoint of bulkImport.attachPoints) {
