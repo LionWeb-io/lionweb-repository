@@ -238,7 +238,7 @@ async function pipeInputIntoQueryStream(client: PoolClient, query: string, input
 
             });
 
-            queryStream.on('end', () => {
+            inputStream.on('end', () => {
                 resolve();
             });
 
@@ -250,24 +250,24 @@ async function pipeInputIntoQueryStream(client: PoolClient, query: string, input
 }
 
 export async function storeNodes(client: PoolClient, nodes: LionWebJsonNode[], repositoryName: string) : Promise<void> {
-    await pipeInputIntoQueryStream(client,`COPY "repository:${repositoryName}".lionweb_nodes FROM STDIN`,
+    await pipeInputIntoQueryStream(client,`COPY "${repositoryName}".lionweb_nodes FROM STDIN`,
         prepareInputStreamNodes(nodes), "nodes insertion");
-    await pipeInputIntoQueryStream(client,`COPY "repository:${repositoryName}".lionweb_containments(containment_language,containment_version,containment_key,children,node_id) FROM STDIN`,
+    await pipeInputIntoQueryStream(client,`COPY "${repositoryName}".lionweb_containments(containment_language,containment_version,containment_key,children,node_id) FROM STDIN`,
         prepareInputStreamContainments(nodes), "containments insertion");
-    await pipeInputIntoQueryStream(client,`COPY "repository:${repositoryName}".lionweb_references(reference_language,reference_version,reference_key,targets,node_id) FROM STDIN`,
+    await pipeInputIntoQueryStream(client,`COPY "${repositoryName}".lionweb_references(reference_language,reference_version,reference_key,targets,node_id) FROM STDIN`,
         prepareInputStreamReferences(nodes), "references ${repositoryName}");
-    await pipeInputIntoQueryStream(client,`COPY "repository:${repositoryName}".lionweb_properties(property_language,property_version,property_key,value,node_id) FROM STDIN`,
+    await pipeInputIntoQueryStream(client,`COPY "${repositoryName}".lionweb_properties(property_language,property_version,property_key,value,node_id) FROM STDIN`,
         prepareInputStreamProperties(nodes), "properties ${repositoryName}");
 }
 
 async function storeNodesThroughFlatBuffers(client: PoolClient, bulkImport: FBBulkImport, repositoryName: string) : Promise<void> {
-    await pipeInputIntoQueryStream(client,`COPY "repository:${repositoryName}".lionweb_nodes FROM STDIN`,
+    await pipeInputIntoQueryStream(client,`COPY "${repositoryName}".lionweb_nodes FROM STDIN`,
         prepareInputStreamNodesFlatBuffers(bulkImport), "nodes insertion");
-    await pipeInputIntoQueryStream(client,`COPY "repository:${repositoryName}".lionweb_containments(containment_language,containment_version,containment_key,children,node_id) FROM STDIN`,
+    await pipeInputIntoQueryStream(client,`COPY "${repositoryName}".lionweb_containments(containment_language,containment_version,containment_key,children,node_id) FROM STDIN`,
         prepareInputStreamContainmentsFlatBuffers(bulkImport), "containments insertion");
-    await pipeInputIntoQueryStream(client,`COPY "repository:${repositoryName}".lionweb_references(reference_language,reference_version,reference_key,targets,node_id) FROM STDIN`,
+    await pipeInputIntoQueryStream(client,`COPY "${repositoryName}".lionweb_references(reference_language,reference_version,reference_key,targets,node_id) FROM STDIN`,
         prepareInputStreamReferencesFlatBuffers(bulkImport), "references ${repositoryName}");
-    await pipeInputIntoQueryStream(client,`COPY "repository:${repositoryName}".lionweb_properties(property_language,property_version,property_key,value,node_id) FROM STDIN`,
+    await pipeInputIntoQueryStream(client,`COPY "${repositoryName}".lionweb_properties(property_language,property_version,property_key,value,node_id) FROM STDIN`,
         prepareInputStreamPropertiesFlatBuffers(bulkImport), "properties ${repositoryName}");
 }
 
