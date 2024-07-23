@@ -2,7 +2,7 @@ import {LionWebJsonNode} from "@lionweb/validation";
 import {Duplex} from "stream";
 import {PoolClient} from "pg";
 import {from as copyFrom} from "pg-copy-streams";
-import {FBBulkImport} from "../serialization";
+import {FBBulkImport} from "../serialization/index.js";
 import {
     makeQueryToAttachNodeForFlatBuffers,
     makeQueryToCheckHowManyDoNotExist,

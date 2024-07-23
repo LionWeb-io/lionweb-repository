@@ -13,7 +13,7 @@ import {
 } from "./QueryNode.js"
 import {performImportFromFlatBuffers, storeNodes} from "./ImportLogic.js";
 import { LionWebJsonMetaPointer, LionWebJsonNode} from "@lionweb/validation";
-import {FBBulkImport} from "../serialization";
+import {FBBulkImport} from "../serialization/index.js";
 
 export type NodeTreeResultType = {
     id: string

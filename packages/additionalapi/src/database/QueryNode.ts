@@ -1,6 +1,6 @@
 import {CONTAINMENTS_TABLE, NODES_TABLE} from "@lionweb/repository-common";
-import {AttachPoint} from "./AdditionalQueries";
-import {FBAttachPoint} from "../serialization";
+import {AttachPoint} from "./AdditionalQueries.js";
+import {FBAttachPoint} from "../serialization/index.js";
 
 function sqlArrayFromNodeIdArray(strings: string[]): string {
     return `(${strings.map(id => `'${id}'`).join(", ")})`

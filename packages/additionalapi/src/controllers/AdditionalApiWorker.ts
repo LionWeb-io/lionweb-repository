@@ -1,7 +1,7 @@
 import { RepositoryData, requestLogger } from "@lionweb/repository-common";
 import { AdditionalApiContext } from "../main.js";
-import {BulkImport} from "../database";
-import {FBBulkImport} from "../serialization";
+import {BulkImport} from "../database/index.js";
+import {FBBulkImport} from "../serialization/index.js";
 
 /**
  * Implementations of the additional non-LionWeb methods.
