@@ -4,8 +4,15 @@ import {
     NODES_TABLE,
     PROPERTIES_TABLE,
     REFERENCES_TABLE,
-    TableHelpers, RESERVED_IDS_TABLE,
-    ReservedIdRecord, NodeRecord, NODES_TABLE_HISTORY, RepositoryData, dbLogger
+    TableHelpers,
+    RESERVED_IDS_TABLE,
+    ReservedIdRecord,
+    NodeRecord,
+    NODES_TABLE_HISTORY,
+    RepositoryData,
+    dbLogger,
+    METAPOINTERS_TABLE,
+    DbConnection
 } from "@lionweb/repository-common"
 import {
     LionWebJsonNode,
@@ -15,6 +22,7 @@ import {
 import { BulkApiContext } from "../main.js"
 import { DbChanges } from "./DbChanges.js";
 import { sqlArrayFromNodeIdArray } from "./QueryNode.js"
+import {LionWebJsonMetaPointer} from "@lionweb/validation/src/json/LionWebJson";
 
 /**
  * Class that builds SQL queries.
@@ -57,13 +65,74 @@ export class QueryMaker {
         return result + "]"
     }
 
+    private async getExistingMetaPointers(dbConnection: DbConnection, repositoryData: RepositoryData): Promise<Map<LionWebJsonMetaPointer, number>> {
+        const rawResult = await dbConnection.query(repositoryData, `select * from ${METAPOINTERS_TABLE}`);
+        const res =  new Map<LionWebJsonMetaPointer, number>();
+        rawResult.forEach((entry:MpEntry) => {
+           res.set({
+               language: entry.language,
+               key: entry.key,
+               version: entry._version
+           }, entry.id)
+        });
+        return res;
+    }
+
     /**
      * Insert _tbsNodesToCreate_ in the lionweb_nodes table
      * These nodes are all new nodes, so all nodes,  properties, copntainmmentds and references are directly inserted
      * in their respective tables.
      * @param tbsNodesToCreate
      */
-    public dbInsertNodeArray(tbsNodesToCreate: LionWebJsonNode[]): string {
+    public async dbInsertNodeArray(dbConnection: DbConnection, repositoryData: RepositoryData, tbsNodesToCreate: LionWebJsonNode[]): Promise<string> {
+        // First, we find all metapointers
+        const existingMetaPointers = await this.getExistingMetaPointers(dbConnection, repositoryData)
+        const newMetaPointers = new Map<LionWebJsonMetaPointer, number>();
+
+        function checkMetapointer(mp: LionWebJsonMetaPointer) {
+            if (!existingMetaPointers.has(mp) && !newMetaPointers.has(mp)) {
+                newMetaPointers.set(mp, existingMetaPointers.size + newMetaPointers.size + 1)
+            }
+        }
+
+        function metapointerIndex(mp: LionWebJsonMetaPointer): number {
+            let res = existingMetaPointers.get(mp)
+            if (res !== undefined) {
+                return res
+            }
+            res = newMetaPointers.get(mp);
+            if (res !== undefined) {
+                return res
+            }
+            throw new Error(`Cannot find metapointer ${JSON.stringify(mp)}`)
+        }
+
+        tbsNodesToCreate.forEach(node => {
+            checkMetapointer(node.classifier);
+            node.properties.forEach(prop => {
+                checkMetapointer(prop.property)
+            })
+            node.containments.forEach(cont => {
+                checkMetapointer(cont.containment)
+            })
+            node.references.forEach(ref => {
+                checkMetapointer(ref.reference)
+            })
+        })
+
+        if (newMetaPointers.size > 0) {
+            console.log("newMetaPointers", newMetaPointers)
+            const metapointers_rows = Array.from(newMetaPointers.entries()).map(entry => {
+                return {
+                    id: entry[1],
+                    language: entry[0].language,
+                    _version: entry[0].version,
+                    key: entry[0].key,
+                }
+            })
+            await dbConnection.query(repositoryData, this.context.pgp.helpers.insert(metapointers_rows, TableHelpers.METAPOINTERS_COLUMN_SET) + ";\n")
+        }
+
         dbLogger.debug("Queries insert new nodes " + tbsNodesToCreate.map(n => n.id))
         {
             let query = "-- create new nodes\n"
@@ -73,23 +142,19 @@ export class QueryMaker {
             const node_rows: NodeRecord[] = tbsNodesToCreate.map(node => {
                 return {
                     id: node.id,
-                    classifier_language: node.classifier.language,
-                    classifier_version: node.classifier.version,
-                    classifier_key: node.classifier.key,
+                    classifier: metapointerIndex(node.classifier),
                     annotations: node.annotations,
                     parent: node.parent
                 }
             })
             query += this.context.pgp.helpers.insert(node_rows, TableHelpers.NODES_COLUMN_SET) + ";\n"
-            query += this.insertContainments(tbsNodesToCreate)
+            query += this.insertContainments(tbsNodesToCreate, metapointerIndex)
 
             // INSERT Properties
             const insertProperties = tbsNodesToCreate.flatMap(node =>
                 node.properties.map(prop => ({ 
                     node_id: node.id,
-                    property_language: prop.property.language,
-                    property_version: prop.property.version,
-                    property_key: prop.property.key,
+                    property: metapointerIndex(prop.property),
                     value: prop.value }))
             )
             if (insertProperties.length !== 0) {
@@ -100,9 +165,7 @@ export class QueryMaker {
             const insertReferences = tbsNodesToCreate.flatMap(node =>
                 node.references.map(reference => ({ 
                     node_id: node.id,
-                    reference_version: reference.reference.version,
-                    reference_language: reference.reference.language,
-                    reference_key: reference.reference.key,
+                    reference: metapointerIndex(reference.reference),
                     targets: reference.targets
                 }))
             )
@@ -113,15 +176,13 @@ export class QueryMaker {
         }
     }
 
-    public insertContainments(tbsNodesToCreate: LionWebJsonNode[]): string {
+    public insertContainments(tbsNodesToCreate: LionWebJsonNode[], metapointerIndex: (mp: LionWebJsonMetaPointer) => number): string {
         let query = "-- insert containments for new node\n"
         // INSERT Containments
         const insertRowData = tbsNodesToCreate.flatMap(node =>
             node.containments.map(c => ({ 
                 node_id: node.id,
-                containment_language: c.containment.language,
-                containment_version: c.containment.version,
-                containment_key: c.containment.key,
+                containment: metapointerIndex(c.containment),
                 children: c.children
             }))
         )
@@ -177,3 +238,5 @@ export class QueryMaker {
         return ""
     }
 }
+
+type MpEntry = {language:string, key:string, _version:string, id: number};

@@ -85,7 +85,7 @@ export class BulkApiWorker {
       
     bulkStore = async (repositoryData: RepositoryData, chunk: LionWebJsonChunk): Promise<QueryReturnType<StoreResponse>> => {
         return await this.context.dbConnection.tx(async task => {
-            return await this.context.queries.store(task, repositoryData, chunk)
+            return await this.context.queries.store(task, repositoryData, this.context.dbConnection, chunk)
         })
     }
 
@@ -107,6 +107,7 @@ export class BulkApiWorker {
             }
         }
         const [versionResult, nodes ] = await this.context.dbConnection.multi(repositoryData, currentRepoVersionQuery() + retrieveWith(nodeIdList, depthLimit))
+        // Let's expand metapointers
         return {
             status: HttpSuccessCodes.Ok,
             query: "",

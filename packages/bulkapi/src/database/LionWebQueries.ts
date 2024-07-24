@@ -10,7 +10,7 @@ import {
     ReservedIdRecord,
     LionwebResponse,
     UNLIMITED_DEPTH,
-    NODES_TABLE, LionwebTask, RepositoryData, dbLogger, requestLogger
+    NODES_TABLE, LionwebTask, RepositoryData, dbLogger, requestLogger, DbConnection
 } from "@lionweb/repository-common"
 import {
     LionWebJsonChunk,
@@ -121,7 +121,7 @@ export class LionWebQueries {
     ): Promise<QueryReturnType<CreatePartitionsResponse>> => {
         dbLogger.info("LionWebQueries.createPartitions repo " + JSON.stringify(repositoryData))
         let query = nextRepoVersionQuery(repositoryData.clientId)
-        query += this.context.queryMaker.dbInsertNodeArray(partitions.nodes)
+        query += await this.context.queryMaker.dbInsertNodeArray(this.context.dbConnection, repositoryData, partitions.nodes)
         dbLogger.info(query)
         const [versionresult] = await task.multi(repositoryData, query)
         return {
@@ -139,7 +139,7 @@ export class LionWebQueries {
      *
      * @param toBeStoredChunk
      */
-    store = async (task: LionwebTask, repositoryData: RepositoryData, toBeStoredChunk: LionWebJsonChunk): Promise<QueryReturnType<StoreResponse>> => {
+    store = async (task: LionwebTask, repositoryData: RepositoryData, dbConnection: DbConnection, toBeStoredChunk: LionWebJsonChunk): Promise<QueryReturnType<StoreResponse>> => {
         dbLogger.info("LionWebQueries.store")
         if (toBeStoredChunk === null || toBeStoredChunk === undefined) {
             return {
@@ -288,7 +288,7 @@ export class LionWebQueries {
         queries += dbCommands.createPostgresQuery()
 
         // Check whether new node ids are not reserved for another client
-        const reservedIds = await this.reservedNodeIdsByOtherClient(task, 
+        const reservedIds = await this.reservedNodeIdsByOtherClient(task,
             repositoryData,
             toBeStoredNewNodes.map(ch => ch.node.id)
         )
@@ -309,7 +309,7 @@ export class LionWebQueries {
                 }
             }
         }
-        queries += this.context.queryMaker.dbInsertNodeArray(toBeStoredNewNodes.map(ch => (ch as NodeAdded).node))
+        queries += await this.context.queryMaker.dbInsertNodeArray(dbConnection, repositoryData, toBeStoredNewNodes.map(ch => (ch as NodeAdded).node))
         // And run them on the database
         if (queries !== "") {
             queries = nextRepoVersionQuery(repositoryData.clientId) + queries
