@@ -189,6 +189,7 @@ export class DbChanges {
             }
             result += this.createQueryForFeatures(
                 data,
+                "reference",
                 "reference_language",
                 "reference_version",
                 "reference_key",
@@ -202,12 +203,17 @@ export class DbChanges {
             // And there can only be one new _targets_ value as well.
             const data: ContainmentRowData = {
                 node_id: values[0].node_id,
-                containment: values[0].containment,
+                containment_version: values[0].containment.version,
+                containment_language: values[0].containment.language,
+                containment_key: values[0].containment.key,
                 children: values[0].children
             }
             result += this.createQueryForFeatures(
                 data,
-                "containment"
+                "containment",
+                "containment_language",
+                "containment_version",
+                "containment_key",
                 CONTAINMENTS_TABLE,
                 TableHelpers.CONTAINMENTS_COLUMN_SET,
                 values[0].missing
@@ -225,6 +231,7 @@ export class DbChanges {
             }
             result += this.createQueryForFeatures(
                 data,
+                "property",
                 "property_language",
                 "property_version",
                 "property_key",
@@ -269,6 +276,7 @@ export class DbChanges {
      */
     private createQueryForFeatures(
         data: UnknownObjectType,
+        metapointerColumn: string,
         languageColum: string,
         versionColumn: string,
         keyColum: string,
@@ -287,10 +295,8 @@ export class DbChanges {
                                 -- table is a reserved word, so we use tabl instead
                                 DELETE FROM ${tableName} tabl
                                 WHERE 
-                                    tabl.node_id = '${data["node_id"]}' AND
-                                    tabl.${languageColum} = '${data[languageColum]}' AND
-                                    tabl.${versionColumn} = '${data[versionColumn]}' AND
-                                    tabl.${keyColum} = '${data[keyColum]}';
+                                    tabl.node_id = '${data["node_id"]}' AND containment = toMetaPointerID('${data[languageColum]}',
+                                    '${data[versionColumn]}','${data[keyColum]}');
                     `
                 break
             case Missing.NotMissing:
@@ -299,9 +305,7 @@ export class DbChanges {
                                     SET ${this.context.pgp.helpers.sets(data, columnSet)}
                                 WHERE
                                     tabl.node_id = '${data["node_id"]}' AND
-                                    tabl.${languageColum} = '${data[languageColum]}' AND
-                                    tabl.${versionColumn} = '${data[versionColumn]}' AND
-                                    tabl.${keyColum} = '${data[keyColum]}';
+                                    tabl.${metapointerColumn} = toMetaPointerID('${data[languageColum]}','${data[versionColumn]}','${data[keyColum]}');
                               `
                 break
         }

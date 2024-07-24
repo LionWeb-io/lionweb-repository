@@ -65,18 +65,6 @@ export class QueryMaker {
         return result + "]"
     }
 
-    private async getExistingMetaPointers(dbConnection: DbConnection, repositoryData: RepositoryData): Promise<Map<LionWebJsonMetaPointer, number>> {
-        const rawResult = await dbConnection.query(repositoryData, `select * from ${METAPOINTERS_TABLE}`);
-        const res =  new Map<LionWebJsonMetaPointer, number>();
-        rawResult.forEach((entry:MpEntry) => {
-           res.set({
-               language: entry.language,
-               key: entry.key,
-               version: entry._version
-           }, entry.id)
-        });
-        return res;
-    }
 
     /**
      * Insert _tbsNodesToCreate_ in the lionweb_nodes table
@@ -86,7 +74,7 @@ export class QueryMaker {
      */
     public async dbInsertNodeArray(dbConnection: DbConnection, repositoryData: RepositoryData, tbsNodesToCreate: LionWebJsonNode[]): Promise<string> {
         // First, we find all metapointers
-        const existingMetaPointers = await this.getExistingMetaPointers(dbConnection, repositoryData)
+        const existingMetaPointers = await getExistingMetaPointers(dbConnection, repositoryData)
         const newMetaPointers = new Map<LionWebJsonMetaPointer, number>();
 
         function checkMetapointer(mp: LionWebJsonMetaPointer) {
@@ -240,3 +228,16 @@ export class QueryMaker {
 }
 
 type MpEntry = {language:string, key:string, _version:string, id: number};
+
+export async function getExistingMetaPointers(dbConnection: DbConnection, repositoryData: RepositoryData): Promise<Map<LionWebJsonMetaPointer, number>> {
+    const rawResult = await dbConnection.query(repositoryData, `select * from ${METAPOINTERS_TABLE}`);
+    const res =  new Map<LionWebJsonMetaPointer, number>();
+    rawResult.forEach((entry:MpEntry) => {
+        res.set({
+            language: entry.language,
+            key: entry.key,
+            version: entry._version
+        }, entry.id)
+    });
+    return res;
+}

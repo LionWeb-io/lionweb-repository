@@ -37,7 +37,8 @@ export function initSchemaWithoutHistory(schema: string): string {
         language            text   NOT NULL,
         _version            text   NOT NULL,
         key                 text   NOT NULL,       
-        PRIMARY KEY(id)
+        PRIMARY KEY(id),
+        UNIQUE (language, _version, key)
     );  
     
     -- Creates nodes table
@@ -157,6 +158,15 @@ export function initSchemaWithoutHistory(schema: string): string {
         RETURN version;
     END;
     $$ LANGUAGE plpgsql;
+    
+    CREATE OR REPLACE FUNCTION toMetaPointerID(language_value text, version_value text, key_value text) RETURNS int
+AS
+$$
+BEGIN
+    INSERT INTO ${METAPOINTERS_TABLE}("language", "_version", "key") values(language_value, version_value, key_value) ON CONFLICT("language", "_version", "key") DO NOTHING;
+    RETURN (SELECT id from ${METAPOINTERS_TABLE} WHERE "language"=language_value AND "_version"=version_value AND "key"=key_value);
+END
+$$ LANGUAGE plpgsql;
     `
 }
 
