@@ -7,7 +7,7 @@ export type ReservedIdRecord = {
 
 export type NodeRecord = {
     id: string,                   // The node id // Don't update this column
-    classifier: number,
+    classifier: string,
     annotations: string[],          // The annotation(id)s
     parent: string | null
 }

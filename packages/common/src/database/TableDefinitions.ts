@@ -67,6 +67,8 @@ export class TableDefinitions {
             { table: METAPOINTERS_TABLE }
         )
         // prettier-ignore
+        SEE: https://stackoverflow.com/questions/76156145/multi-row-insert-with-subqueries-using-pg-promise
+
         this.NODES_COLUMN_SET = new this.pgp.helpers.ColumnSet(
             [
                 "?id",                   // The node id // Don't update this column
