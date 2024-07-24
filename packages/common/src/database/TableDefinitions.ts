@@ -67,12 +67,16 @@ export class TableDefinitions {
             { table: METAPOINTERS_TABLE }
         )
         // prettier-ignore
-        SEE: https://stackoverflow.com/questions/76156145/multi-row-insert-with-subqueries-using-pg-promise
+        //SEE: https://stackoverflow.com/questions/76156145/multi-row-insert-with-subqueries-using-pg-promise
 
         this.NODES_COLUMN_SET = new this.pgp.helpers.ColumnSet(
             [
                 "?id",                   // The node id // Don't update this column
-                "?classifier",  // MetaPointer
+                {
+                    name: 'classifier',
+                    mod: ':raw'
+                },
+                //"?classifier",  // MetaPointer
                 "annotations",          // The annotation(id)s
                 "parent"                // The id of the parent node
             ],
@@ -81,7 +85,11 @@ export class TableDefinitions {
         // prettier-ignore
         this.CONTAINMENTS_COLUMN_SET = new this.pgp.helpers.ColumnSet(
             [
-                "?containment",  // MetaPointer
+                {
+                    name: 'containment',
+                    mod: ':raw',
+                    cnd: true // Don't update this column
+                },
                 "children",
                 "?node_id"              // Don't update this column
             ],
@@ -90,7 +98,10 @@ export class TableDefinitions {
         // prettier-ignore
         this.PROPERTIES_COLUMN_SET = new this.pgp.helpers.ColumnSet(
             [
-                "?property",  // MetaPointer
+                {
+                    name: 'property',
+                    mod: ':raw'
+                },
                 "value",
                 "?node_id"      // Don't update this column
             ],
@@ -99,7 +110,10 @@ export class TableDefinitions {
         // prettier-ignore
         this.REFERENCES_COLUMN_SET = new this.pgp.helpers.ColumnSet(
             [
-                "?reference",  // MetaPointer
+                {
+                    name: 'reference',
+                    mod: ':raw'
+                },
                 {
                     name: "targets",
                     cast: "jsonb[]"

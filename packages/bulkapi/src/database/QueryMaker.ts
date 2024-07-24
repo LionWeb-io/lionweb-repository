@@ -142,7 +142,7 @@ export class QueryMaker {
             const insertProperties = tbsNodesToCreate.flatMap(node =>
                 node.properties.map(prop => ({ 
                     node_id: node.id,
-                    property: `toMetaPointerID('${prop.property.language},'${prop.property.version}', '${prop.property.key}')`,
+                    property: `toMetaPointerID('${prop.property.language}','${prop.property.version}', '${prop.property.key}')`,
                     value: prop.value }))
             )
             if (insertProperties.length !== 0) {
@@ -153,7 +153,7 @@ export class QueryMaker {
             const insertReferences = tbsNodesToCreate.flatMap(node =>
                 node.references.map(reference => ({ 
                     node_id: node.id,
-                    reference:`toMetaPointerID('${reference.reference.language},'${reference.reference.version}', '${reference.reference.key}')`,
+                    reference:`toMetaPointerID('${reference.reference.language}','${reference.reference.version}', '${reference.reference.key}')`,
                     targets: reference.targets
                 }))
             )
@@ -170,7 +170,7 @@ export class QueryMaker {
         const insertRowData = tbsNodesToCreate.flatMap(node =>
             node.containments.map(c => ({ 
                 node_id: node.id,
-                containment: `toMetaPointerID('${c.containment.language},'${c.containment.version}', '${c.containment.key}')`,
+                containment: `toMetaPointerID('${c.containment.language}','${c.containment.version}', '${c.containment.key}')`,
                 children: c.children
             }))
         )
