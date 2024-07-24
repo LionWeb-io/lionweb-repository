@@ -14,6 +14,7 @@ import {
 import {performImportFromFlatBuffers, storeNodes} from "./ImportLogic.js";
 import { LionWebJsonMetaPointer, LionWebJsonNode} from "@lionweb/validation";
 import {FBBulkImport} from "../serialization/index.js";
+import {MetaPointersTracker} from "@lionweb/repository-dbadmin";
 
 export type NodeTreeResultType = {
     id: string
@@ -106,11 +107,17 @@ export class AdditionalQueries {
 
         // Add all the new nodes
         const pool = this.context.pgPool;
-        await storeNodes(await pool.connect(), bulkImport.nodes, repositoryData.repository)
+        const metaPointerTracker = new MetaPointersTracker(repositoryData)
+        await storeNodes(await pool.connect(), repositoryData, this.context.dbConnection, bulkImport)
 
         // Attach the root of the new nodes to existing containers
+        await metaPointerTracker.populate((collector)=>{
         for (const attachPoint of bulkImport.attachPoints) {
-            await this.context.dbConnection.query(repositoryData, makeQueryToAttachNode(attachPoint))
+            collector.considerAddingMetaPointer(attachPoint.containment);
+        }
+        }, this.context.dbConnection)
+        for (const attachPoint of bulkImport.attachPoints) {
+            await this.context.dbConnection.query(repositoryData, makeQueryToAttachNode(attachPoint, metaPointerTracker))
         }
 
         return { status: HttpSuccessCodes.Ok, success: true }
@@ -121,7 +128,7 @@ export class AdditionalQueries {
      * to the "neutral" format and invoke bulkImport. This choice has been made for performance reasons.
      */
     bulkImportFromFlatBuffers = async (repositoryData: RepositoryData, bulkImport: FBBulkImport): Promise<BulkImportResultType> => {
-        requestLogger.info("LionWebQueries.bulkImportFromFlatBuffers")
+        requestLogger.info(`LionWebQueries.bulkImportFromFlatBuffers (nodes ${bulkImport.nodesLength()}, attach points: ${bulkImport.attachPointsLength()})`)
         const pool = this.context.pgPool;
 
         return await performImportFromFlatBuffers(await pool.connect(), this.context.dbConnection, bulkImport, repositoryData)

@@ -51,7 +51,7 @@ collection.forEach(withoutHistory => {
                     initError = JSON.stringify(partResult.body)
                     return
                 }
-                console.log("PARTITION INIYTIAL " + JSON.stringify(partResult.body.messages) )
+                console.log("PARTITION INITIAL " + JSON.stringify(partResult.body.messages) )
                 initialPartitionVersion = getVersionFromResponse(partResult)
                 const result = await client.bulk.store(baseFullChunk)
                 if (result.status !== HttpSuccessCodes.Ok) {
@@ -77,14 +77,14 @@ collection.forEach(withoutHistory => {
                     client.repository = null
                     const retrieve = await client.bulk.retrieve(["ID-2"])
                     console.log("Retrieve Result: " + JSON.stringify(JSON.stringify(retrieve.body.messages)))
-                    assert(retrieve.body.success === false, "Repository === nulll failed")
+                    assert(retrieve.body.success === false, "Repository === null failed")
                 })
                 it("repository null", async () => {
                     assert(initError === "", initError)
                     client.repository = "nothing"
                     const retrieve = await client.bulk.retrieve(["ID-2"])
                     console.log("Retrieve Result: " + JSON.stringify(JSON.stringify(retrieve.body.messages)))
-                    assert(retrieve.body.success === false, "Non exiting repsoitory should fail")
+                    assert(retrieve.body.success === false, "Non exiting repository should fail")
                 })
             })
 
@@ -94,14 +94,14 @@ collection.forEach(withoutHistory => {
                     client.repository = null
                     const retrieve = await client.bulk.retrieve(["ID-2"])
                     console.log("Retrieve Result: " + JSON.stringify(JSON.stringify(retrieve.body.messages)))
-                    assert(retrieve.body.success === false, "Repository === nulll failed")
+                    assert(retrieve.body.success === false, "Repository === null failed")
                 })
                 it("repository null", async () => {
                     assert(initError === "", initError)
                     client.repository = "nothing"
                     const retrieve = await client.bulk.retrieve(["ID-2"])
                     console.log("Retrieve Result: " + JSON.stringify(JSON.stringify(retrieve.body.messages)))
-                    assert(retrieve.body.success === false, "Non exiting repsoitory should fail")
+                    assert(retrieve.body.success === false, "Non exiting repository should fail")
                 })
             })
             
@@ -442,7 +442,7 @@ collection.forEach(withoutHistory => {
             })
 
             async function testResult(originalJsonFile: string, changesFile: string) {
-                console.log(`TEst result of '${originalJsonFile}' with '${changesFile}'`)
+                console.log(`Test result of '${originalJsonFile}' with '${changesFile}'`)
                 assert(initError === "", initError)
                 const changesChunk = readModel(changesFile) as LionWebJsonChunk
 

@@ -141,7 +141,7 @@ export class BulkApiImpl implements BulkApi {
      * @param response `ok`  if everything is correct
      */
     store = async (request: Request, response: Response): Promise<void> => {
-        requestLogger.info(` * store request received, with body of ${request.headers["content-length"]} bytes`)
+        requestLogger.info(` * store request received, with body of ${request.headers["content-length"]} bytes [A]`)
         const clientId = getStringParam(request, "clientId")
         const chunk: LionWebJsonChunk = request.body
         const validator = new LionWebValidator(chunk, getLanguageRegistry())

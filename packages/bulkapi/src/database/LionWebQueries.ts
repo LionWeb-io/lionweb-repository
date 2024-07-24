@@ -42,6 +42,7 @@ import {
     QueryNodeForIdList,
     versionResultToResponse
 } from "./QueryNode.js"
+import {MetaPointersCollector, MetaPointersTracker} from "@lionweb/repository-dbadmin";
 
 export type NodeTreeResultType = {
     id: string
@@ -121,7 +122,9 @@ export class LionWebQueries {
     ): Promise<QueryReturnType<CreatePartitionsResponse>> => {
         dbLogger.info("LionWebQueries.createPartitions repo " + JSON.stringify(repositoryData))
         let query = nextRepoVersionQuery(repositoryData.clientId)
-        query += this.context.queryMaker.dbInsertNodeArray(partitions.nodes)
+        const metaPointersTracker = new MetaPointersTracker(repositoryData)
+        await metaPointersTracker.populateFromNodes(partitions.nodes, task)
+        query += await this.context.queryMaker.dbInsertNodeArray(partitions.nodes, metaPointersTracker)
         dbLogger.info(query)
         const [versionresult] = await task.multi(repositoryData, query)
         return {
@@ -181,7 +184,7 @@ export class LionWebQueries {
 
         const diff = new LionWebJsonDiff()
         diff.diffLwChunk(databaseChunkWrapper.jsonChunk, toBeStoredChunk)
-        dbLogger.info("STORE.CHANGES ")
+        dbLogger.info("STORE.CHANGES using metapointers")
         dbLogger.info(diff.diffResult.changes.map(ch => "    " + ch.changeMsg()))
 
         const toBeStoredNewNodes = diff.diffResult.changes.filter((ch): ch is NodeAdded => ch.changeType === "NodeAdded")
@@ -285,10 +288,12 @@ export class LionWebQueries {
             implicitlyRemovedChildNodes.queryResult.chunk,
             parentsOfImplicitlyRemovedChildNodes.queryResult.chunk
         )
-        queries += dbCommands.createPostgresQuery()
+        const metaPointersTracker = new MetaPointersTracker(repositoryData)
+        await populateFromDbChanges(metaPointersTracker, dbCommands, task)
+        queries += dbCommands.createPostgresQuery(metaPointersTracker)
 
         // Check whether new node ids are not reserved for another client
-        const reservedIds = await this.reservedNodeIdsByOtherClient(task, 
+        const reservedIds = await this.reservedNodeIdsByOtherClient(task,
             repositoryData,
             toBeStoredNewNodes.map(ch => ch.node.id)
         )
@@ -309,7 +314,8 @@ export class LionWebQueries {
                 }
             }
         }
-        queries += this.context.queryMaker.dbInsertNodeArray(toBeStoredNewNodes.map(ch => (ch as NodeAdded).node))
+        await metaPointersTracker.populateFromNodes(toBeStoredNewNodes.map(ch => (ch as NodeAdded).node), task)
+        queries += await this.context.queryMaker.dbInsertNodeArray( toBeStoredNewNodes.map(ch => (ch as NodeAdded).node), metaPointersTracker)
         // And run them on the database
         if (queries !== "") {
             queries = nextRepoVersionQuery(repositoryData.clientId) + queries
@@ -476,4 +482,18 @@ export function printMap(map: Map<string, string>): string {
         result += `[${entry[0]} => ${entry[1]}]`
     }
     return result
+}
+
+async function populateFromDbChanges(metaPointersTracker: MetaPointersTracker, dbCommands: DbChanges, task: LionwebTask): Promise<void> {
+    const collector = metaPointersTracker.collector();
+    dbCommands.updatesPropertyTable.values().forEach(table => table.forEach(e =>
+        collector.considerAddingMetaPointer(e.property)
+    ))
+    dbCommands.updatesContainmentTable.values().forEach(table => table.forEach(e =>
+        collector.considerAddingMetaPointer(e.containment)
+    ))
+    dbCommands.updatesReferenceTable.values().forEach(table => table.forEach(e =>
+        collector.considerAddingMetaPointer(e.reference)
+    ))
+    await collector.obtainIndexes(task)
 }

@@ -32,7 +32,7 @@ export class InspectionApiWorker {
             const ids = el["ids"].split(",");
             return {
                 // @ts-expect-error TS7503
-                "language": el["classifier_language"],
+                "language": el["language"],
                 "ids": ids,
                 "size": ids.length
             } as LanguageNodes
@@ -45,9 +45,9 @@ export class InspectionApiWorker {
             const ids = el["ids"].split(",");
             return {
                 // @ts-expect-error TS7503
-                "language": el["classifier_language"],
+                "language": el["language"],
                 // @ts-expect-error TS7503
-                "classifier": el["classifier_key"],
+                "classifier": el["key"],
                 "ids": ids,
                 "size": ids.length
             } as ClassifierNodes

@@ -43,14 +43,14 @@ describe("Repository tests for inspection APIs", () => {
     })
 
     it("nodes by language", async () => {
-        const result = (await client.inspection.nodesByLanguage())
+        const result = await client.inspection.nodesByLanguage()
+        result.forEach(e => e.ids.sort((a, b) => a.localeCompare(b)))
         deepEqual(result, [
                 {
                     language: '-default-key-FileSystem',
                     ids: [
-                        "ID-2", "ANN-1", "ANN-10", "ANN-9",
-                        "ID-10", "ID-11", "ID-12",
-                        "ID-13", "ID-14", "ID-15",
+                        "ANN-1", "ANN-10", "ANN-9", "ID-10", "ID-11", "ID-12",
+                        "ID-13", "ID-14", "ID-15", "ID-2",
                         "ID-3", "ID-4",
                         "ID-5", "ID-6", "ID-7",
                         "ID-8", "ID-9"
@@ -62,7 +62,8 @@ describe("Repository tests for inspection APIs", () => {
     })
 
     it("nodes by classifier", async () => {
-        const result = (await client.inspection.nodesByClassifier())
+        const result = await client.inspection.nodesByClassifier()
+        result.forEach(e => e.ids.sort((a, b) => a.localeCompare(b)))
         deepEqual(result, [
                 {
                     "language": "-default-key-FileSystem",
