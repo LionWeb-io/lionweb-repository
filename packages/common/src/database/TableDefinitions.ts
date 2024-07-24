@@ -100,7 +100,8 @@ export class TableDefinitions {
             [
                 {
                     name: 'property',
-                    mod: ':raw'
+                    mod: ':raw',
+                    cnd: true // Don't update this column
                 },
                 "value",
                 "?node_id"      // Don't update this column
@@ -112,7 +113,8 @@ export class TableDefinitions {
             [
                 {
                     name: 'reference',
-                    mod: ':raw'
+                    mod: ':raw',
+                    cnd: true // Don't update this column
                 },
                 {
                     name: "targets",

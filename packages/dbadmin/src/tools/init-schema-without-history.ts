@@ -114,6 +114,7 @@ export function initSchemaWithoutHistory(schema: string): string {
     -- CREATE INDEX PropertiesNodesIndex   ON ${PROPERTIES_TABLE}   (node_id)
     -- CREATE INDEX ReferencesNodesIndex   ON ${REFERENCES_TABLE}   (node_id)
     -- CREATE INDEX ReservedIdsIndex       ON ${RESERVED_IDS_TABLE} (node_id)
+    -- CREATE INDEX MpsIndex       ON ${METAPOINTERS_TABLE} (language, _version, key)
     
     -- SET repo.version = 0;
     -- SET repo.version = (SELECT value FROM CURRENT_DATA WHERE key = 'repo.version');
