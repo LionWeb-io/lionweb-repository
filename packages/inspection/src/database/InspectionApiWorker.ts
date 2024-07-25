@@ -47,7 +47,7 @@ export class InspectionApiWorker {
                 // @ts-expect-error TS7503
                 "language": el["language"],
                 // @ts-expect-error TS7503
-                "classifier": el["_key"],
+                "classifier": el["key"],
                 "ids": ids,
                 "size": ids.length
             } as ClassifierNodes
