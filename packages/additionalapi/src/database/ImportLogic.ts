@@ -23,7 +23,7 @@ function prepareInputStreamNodes(nodes: LionWebJsonNode[]) : Duplex {
         read_stream_string.push(SEPARATOR);
         read_stream_string.push(node.classifier.key);
         read_stream_string.push(SEPARATOR);
-        read_stream_string.push("{}");
+        read_stream_string.push("{" + node.annotations.join(",") + "}");
         read_stream_string.push(SEPARATOR);
         read_stream_string.push(node.parent);
         read_stream_string.push("\n");
@@ -121,7 +121,11 @@ function prepareInputStreamNodesFlatBuffers(bulkImport: FBBulkImport) : Duplex {
         read_stream_string.push(SEPARATOR);
         read_stream_string.push(classifier.key());
         read_stream_string.push(SEPARATOR);
-        read_stream_string.push("{}");
+        const annotations : string[] = new Array<string>(node.annotationsLength());
+        for (let k = 0; k < node.annotationsLength(); k++) {
+            annotations[k] = node.annotations(k);
+        }
+        read_stream_string.push("{" + annotations.join(",") + "}");
         read_stream_string.push(SEPARATOR);
         read_stream_string.push(node.parent());
         read_stream_string.push("\n");
