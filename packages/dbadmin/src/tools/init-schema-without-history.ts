@@ -171,6 +171,38 @@ BEGIN
     RETURN (SELECT id from ${METAPOINTERS_TABLE} WHERE "language"=language_value AND "_version"=version_value AND "key"=key_value);
 END
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION toMetaPointerIDs(
+    language_values text[], 
+    version_values text[], 
+    key_values text[]
+) RETURNS TABLE(res_id int, res_language text, res_version text, res_key text)
+AS
+$$
+BEGIN
+    WITH input_values AS (
+        SELECT unnest(language_values) AS i_language,
+               unnest(version_values) AS i_version,
+               unnest(key_values) AS i_key
+    )
+	INSERT INTO ${METAPOINTERS_TABLE}("language", "_version", "key")
+        SELECT i_language, i_version, i_key
+        FROM input_values
+        ON CONFLICT("language", "_version", "key") DO NOTHING;
+
+    RETURN QUERY (WITH input_values AS (
+        SELECT unnest(language_values) AS i_language,
+               unnest(version_values) AS i_version,
+               unnest(key_values) AS i_key
+    )
+    
+    SELECT id, language, _version, key
+    FROM ${METAPOINTERS_TABLE}
+    WHERE (language, _version, key) IN (
+        SELECT i_language, i_version, i_key FROM input_values
+    ));
+END
+$$ LANGUAGE plpgsql;
     `
 }
 

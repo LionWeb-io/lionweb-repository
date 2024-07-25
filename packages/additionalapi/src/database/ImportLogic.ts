@@ -1,8 +1,8 @@
-import {LionWebJsonNode} from "@lionweb/validation";
+import {LionWebJsonMetaPointer, LionWebJsonNode} from "@lionweb/validation";
 import {Duplex} from "stream";
 import {PoolClient} from "pg";
 import {from as copyFrom} from "pg-copy-streams";
-import {FBBulkImport} from "../serialization/index.js";
+import {FBBulkImport, FBMetaPointer} from "../serialization/index.js";
 import {
     makeQueryToAttachNodeForFlatBuffers,
     makeQueryToCheckHowManyDoNotExist,
@@ -12,16 +12,12 @@ import {DbConnection, HttpClientErrors, HttpSuccessCodes, RepositoryData} from "
 
 const SEPARATOR = "\t";
 
-function prepareInputStreamNodes(nodes: LionWebJsonNode[]) : Duplex {
+function prepareInputStreamNodes(nodes: LionWebJsonNode[], metaPointersTracker:MetaPointersTracker) : Duplex {
     const read_stream_string = new Duplex();
     nodes.forEach(node => {
         read_stream_string.push(node.id);
         read_stream_string.push(SEPARATOR);
-        read_stream_string.push(node.classifier.language);
-        read_stream_string.push(SEPARATOR);
-        read_stream_string.push(node.classifier.version);
-        read_stream_string.push(SEPARATOR);
-        read_stream_string.push(node.classifier.key);
+        read_stream_string.push(metaPointersTracker.forMetapointer(node.classifier));
         read_stream_string.push(SEPARATOR);
         read_stream_string.push("{" + node.annotations.join(",") + "}");
         read_stream_string.push(SEPARATOR);
@@ -108,18 +104,14 @@ function prepareInputStreamContainments(nodes: LionWebJsonNode[]) : Duplex {
     return read_stream_string;
 }
 
-function prepareInputStreamNodesFlatBuffers(bulkImport: FBBulkImport) : Duplex {
+function prepareInputStreamNodesFlatBuffers(bulkImport: FBBulkImport, metaPointersTracker: MetaPointersTracker) : Duplex {
     const read_stream_string = new Duplex();
     for (let i = 0; i < bulkImport.nodesLength(); i++) {
         const node = bulkImport.nodes(i);
         const classifier = node.classifier();
         read_stream_string.push(node.id());
         read_stream_string.push(SEPARATOR);
-        read_stream_string.push(classifier.language());
-        read_stream_string.push(SEPARATOR);
-        read_stream_string.push(classifier.version());
-        read_stream_string.push(SEPARATOR);
-        read_stream_string.push(classifier.key());
+        read_stream_string.push(metaPointersTracker.forFBMetapointer(classifier).toString());
         read_stream_string.push(SEPARATOR);
         const annotations : string[] = new Array<string>(node.annotationsLength());
         for (let k = 0; k < node.annotationsLength(); k++) {
@@ -134,18 +126,14 @@ function prepareInputStreamNodesFlatBuffers(bulkImport: FBBulkImport) : Duplex {
     return read_stream_string;
 }
 
-function prepareInputStreamPropertiesFlatBuffers(bulkImport: FBBulkImport) : Duplex {
+function prepareInputStreamPropertiesFlatBuffers(bulkImport: FBBulkImport, metaPointersTracker: MetaPointersTracker) : Duplex {
     const read_stream_string = new Duplex();
     for (let i = 0; i < bulkImport.nodesLength(); i++) {
         const node = bulkImport.nodes(i);
         for (let j = 0; j < node.propertiesLength(); j++) {
             const prop = node.properties(j);
             const metaPointer = prop.metaPointer();
-                read_stream_string.push(metaPointer.language());
-                read_stream_string.push(SEPARATOR);
-                read_stream_string.push(metaPointer.version());
-                read_stream_string.push(SEPARATOR);
-                read_stream_string.push(metaPointer.key());
+                read_stream_string.push(metaPointersTracker.forFBMetapointer(metaPointer).toString());
                 read_stream_string.push(SEPARATOR);
                 const value = prop.value();
                 if (value == null) {
@@ -165,18 +153,14 @@ function prepareInputStreamPropertiesFlatBuffers(bulkImport: FBBulkImport) : Dup
     return read_stream_string;
 }
 
-function prepareInputStreamReferencesFlatBuffers(bulkImport: FBBulkImport) : Duplex {
+function prepareInputStreamReferencesFlatBuffers(bulkImport: FBBulkImport, metaPointersTracker: MetaPointersTracker) : Duplex {
     const read_stream_string = new Duplex();
     for (let i = 0; i < bulkImport.nodesLength(); i++) {
         const node = bulkImport.nodes(i);
         for (let j = 0; j < node.referencesLength(); j++) {
             const ref = node.references(j);
             const metaPointer = ref.metaPointer();
-                read_stream_string.push(metaPointer.language());
-                read_stream_string.push(SEPARATOR);
-                read_stream_string.push(metaPointer.version());
-                read_stream_string.push(SEPARATOR);
-                read_stream_string.push(metaPointer.key());
+                read_stream_string.push(metaPointersTracker.forFBMetapointer(metaPointer).toString());
                 read_stream_string.push(SEPARATOR);
 
                 const parts : string[] = new Array<string>(ref.valuesLength());
@@ -201,18 +185,14 @@ function prepareInputStreamReferencesFlatBuffers(bulkImport: FBBulkImport) : Dup
     return read_stream_string;
 }
 
-function prepareInputStreamContainmentsFlatBuffers(bulkImport: FBBulkImport) : Duplex {
+function prepareInputStreamContainmentsFlatBuffers(bulkImport: FBBulkImport, metaPointersTracker: MetaPointersTracker) : Duplex {
     const read_stream_string = new Duplex();
     for (let i = 0; i < bulkImport.nodesLength(); i++) {
         const node = bulkImport.nodes(i);
         for (let j = 0; j < node.containmentsLength(); j++) {
             const containment = node.containments(j);
             const metaPointer = containment.metaPointer();
-                read_stream_string.push(metaPointer.language());
-                read_stream_string.push(SEPARATOR);
-                read_stream_string.push(metaPointer.version());
-                read_stream_string.push(SEPARATOR);
-                read_stream_string.push(metaPointer.key());
+                read_stream_string.push(metaPointersTracker.forFBMetapointer(metaPointer).toString());
                 read_stream_string.push(SEPARATOR);
                 const children : string[] = new Array<string>(containment.childrenLength());
                 for (let k = 0; k < containment.childrenLength(); k++) {
@@ -253,26 +233,123 @@ async function pipeInputIntoQueryStream(client: PoolClient, query: string, input
     });
 }
 
-export async function storeNodes(client: PoolClient, nodes: LionWebJsonNode[], repositoryName: string) : Promise<void> {
-    await pipeInputIntoQueryStream(client,`COPY "${repositoryName}".lionweb_nodes FROM STDIN`,
-        prepareInputStreamNodes(nodes), "nodes insertion");
-    await pipeInputIntoQueryStream(client,`COPY "${repositoryName}".lionweb_containments(containment_language,containment_version,containment_key,children,node_id) FROM STDIN`,
+export type MetaPointersMap = Map<string, number>;
+
+export class MetaPointersTracker {
+    metaPointersMap : MetaPointersMap = new Map<string, number>();
+    async populate(nodes: LionWebJsonNode[], repositoryData: RepositoryData, dbConnection: DbConnection) {
+        console.log("Metapointers tracker")
+        const metaPointers = new Set<LionWebJsonMetaPointer>();
+        nodes.forEach((node: LionWebJsonNode) => {
+            metaPointers.add(node.classifier);
+        })
+        const metaPointersList = Array.from(metaPointers);
+        const ls = `array[${metaPointersList.map(el => `'${el.language}'`).join(",")}]`;
+        const vs = `array[${metaPointersList.map(el => `'${el.version}'`).join(",")}]`;
+        const ks = `array[${metaPointersList.map(el => `'${el.key}'`).join(",")}]`;
+        const raw_res = await dbConnection.query(repositoryData,`toMetaPointerIDs(${ls},${vs},${ks}`);
+        throw new Error(`GOT ${JSON.stringify(raw_res)}`)
+    }
+    async populateThroughFlatBuffers(bulkImport: FBBulkImport, repositoryData: RepositoryData, dbConnection: DbConnection) {
+        const metaPointers = new Set<FBMetaPointer>();
+        const positions = new Set<number>;
+        for (let i = 0; i < bulkImport.nodesLength(); i++) {
+            const fbNode = bulkImport.nodes(i);
+            const metaPointer = fbNode.classifier();
+            if (!positions.has(metaPointer.bb_pos)) {
+                positions.add(metaPointer.bb_pos)
+                metaPointers.add(metaPointer);
+            }
+            for (let j = 0; j <fbNode.containmentsLength(); j++) {
+                const metaPointer = fbNode.containments(j).metaPointer();
+                if (!positions.has(metaPointer.bb_pos)) {
+                    positions.add(metaPointer.bb_pos)
+                    metaPointers.add(metaPointer);
+                }
+            }
+            for (let j = 0; j <fbNode.referencesLength(); j++) {
+                const metaPointer = fbNode.references(j).metaPointer();
+                if (!positions.has(metaPointer.bb_pos)) {
+                    positions.add(metaPointer.bb_pos)
+                    metaPointers.add(metaPointer);
+                }
+            }
+            for (let j = 0; j <fbNode.propertiesLength(); j++) {
+                const metaPointer = fbNode.properties(j).metaPointer();
+                if (!positions.has(metaPointer.bb_pos)) {
+                    positions.add(metaPointer.bb_pos)
+                    metaPointers.add(metaPointer);
+                }
+            }
+        }
+        for (let i = 0; i <bulkImport.attachPointsLength(); i++) {
+            const attachPoint = bulkImport.attachPoints(i);
+            const metaPointer = attachPoint.containment();
+            if (!positions.has(metaPointer.bb_pos)) {
+                positions.add(metaPointer.bb_pos)
+                metaPointers.add(metaPointer);
+            }
+        }
+        const metaPointersList = Array.from(metaPointers);
+        const ls = `array[${metaPointersList.map(el => `'${el.language()}'`).join(",")}]`;
+        const vs = `array[${metaPointersList.map(el => `'${el.version()}'`).join(",")}]`;
+        const ks = `array[${metaPointersList.map(el => `'${el.key()}'`).join(",")}]`;
+        const raw_res : {"tometapointerids":string}[] = await dbConnection.query(repositoryData,`SELECT toMetaPointerIDs(${ls},${vs},${ks});`);
+        if (raw_res.length != metaPointersList.length) {
+            throw new Error("Illegal state");
+        }
+        raw_res.forEach((el)=>{
+            const value = el.tometapointerids;
+            const parts = value.substring(1, value.length - 1).split(",")
+            this.metaPointersMap.set(`${parts[1]}@${parts[2]}@${parts[3]}`, Number(parts[0]));
+        })
+    }
+
+    forMetapointer(metaPointer: LionWebJsonMetaPointer): number {
+        const key = `${metaPointer.language}@${metaPointer.version}@${metaPointer.key}`;
+        if (!this.metaPointersMap.has(key)) {
+            throw new Error(`Metapointer not found: ${JSON.stringify(metaPointer)}. Metapointers known:${JSON.stringify(Array.from(this.metaPointersMap.keys()))}`);
+        }
+        return this.metaPointersMap.get(key);
+    }
+
+    forFBMetapointer(metaPointer: FBMetaPointer): number {
+        const key = `${metaPointer.language()}@${metaPointer.version()}@${metaPointer.key()}`;
+        if (!this.metaPointersMap.has(key)) {
+            throw new Error(`Metapointer not found: ${JSON.stringify(metaPointer)}. Metapointers known:${JSON.stringify(Array.from(this.metaPointersMap.keys()))}`);
+        }
+        return this.metaPointersMap.get(key);
+    }
+}
+
+export async function storeNodes(client: PoolClient, repositoryData: RepositoryData, dbConnection: DbConnection, nodes: LionWebJsonNode[], repositoryName: string) : Promise<void> {
+    const metaPointersTracker = new MetaPointersTracker();
+    await metaPointersTracker.populate(nodes, repositoryData, dbConnection);
+
+    await pipeInputIntoQueryStream(client,`COPY "${repositoryName}".lionweb_nodes(id,classifier,annotations,parent) FROM STDIN`,
+        prepareInputStreamNodes(nodes, metaPointersTracker), "nodes insertion");
+    await pipeInputIntoQueryStream(client,`COPY "${repositoryName}".lionweb_containments(containment,children,node_id) FROM STDIN`,
         prepareInputStreamContainments(nodes), "containments insertion");
-    await pipeInputIntoQueryStream(client,`COPY "${repositoryName}".lionweb_references(reference_language,reference_version,reference_key,targets,node_id) FROM STDIN`,
+    await pipeInputIntoQueryStream(client,`COPY "${repositoryName}".lionweb_references(reference,targets,node_id) FROM STDIN`,
         prepareInputStreamReferences(nodes), "references ${repositoryName}");
-    await pipeInputIntoQueryStream(client,`COPY "${repositoryName}".lionweb_properties(property_language,property_version,property_key,value,node_id) FROM STDIN`,
+    await pipeInputIntoQueryStream(client,`COPY "${repositoryName}".lionweb_properties(property,value,node_id) FROM STDIN`,
         prepareInputStreamProperties(nodes), "properties ${repositoryName}");
 }
 
-async function storeNodesThroughFlatBuffers(client: PoolClient, bulkImport: FBBulkImport, repositoryName: string) : Promise<void> {
-    await pipeInputIntoQueryStream(client,`COPY "${repositoryName}".lionweb_nodes FROM STDIN`,
-        prepareInputStreamNodesFlatBuffers(bulkImport), "nodes insertion");
-    await pipeInputIntoQueryStream(client,`COPY "${repositoryName}".lionweb_containments(containment_language,containment_version,containment_key,children,node_id) FROM STDIN`,
-        prepareInputStreamContainmentsFlatBuffers(bulkImport), "containments insertion");
-    await pipeInputIntoQueryStream(client,`COPY "${repositoryName}".lionweb_references(reference_language,reference_version,reference_key,targets,node_id) FROM STDIN`,
-        prepareInputStreamReferencesFlatBuffers(bulkImport), "references ${repositoryName}");
-    await pipeInputIntoQueryStream(client,`COPY "${repositoryName}".lionweb_properties(property_language,property_version,property_key,value,node_id) FROM STDIN`,
-        prepareInputStreamPropertiesFlatBuffers(bulkImport), "properties ${repositoryName}");
+async function storeNodesThroughFlatBuffers(client: PoolClient, repositoryData: RepositoryData, dbConnection: DbConnection, bulkImport: FBBulkImport, repositoryName: string)
+    : Promise<MetaPointersTracker> {
+    const metaPointersTracker = new MetaPointersTracker();
+    await metaPointersTracker.populateThroughFlatBuffers(bulkImport, repositoryData, dbConnection);
+
+    await pipeInputIntoQueryStream(client,`COPY "${repositoryName}".lionweb_nodes(id,classifier,annotations,parent) FROM STDIN`,
+        prepareInputStreamNodesFlatBuffers(bulkImport, metaPointersTracker), "nodes insertion");
+    await pipeInputIntoQueryStream(client,`COPY "${repositoryName}".lionweb_containments(containment,children,node_id) FROM STDIN`,
+        prepareInputStreamContainmentsFlatBuffers(bulkImport, metaPointersTracker), "containments insertion");
+    await pipeInputIntoQueryStream(client,`COPY "${repositoryName}".lionweb_references(reference,targets,node_id) FROM STDIN`,
+        prepareInputStreamReferencesFlatBuffers(bulkImport, metaPointersTracker), "references ${repositoryName}");
+    await pipeInputIntoQueryStream(client,`COPY "${repositoryName}".lionweb_properties(property,value,node_id) FROM STDIN`,
+        prepareInputStreamPropertiesFlatBuffers(bulkImport, metaPointersTracker), "properties ${repositoryName}");
+    return metaPointersTracker
 }
 
 /**
@@ -327,12 +404,12 @@ export async function performImportFromFlatBuffers(client: PoolClient, dbConnect
     }
 
     // Add all the new nodes
-    await storeNodesThroughFlatBuffers(client, bulkImport, repositoryData.repository)
+    const metaPointersTracker = await storeNodesThroughFlatBuffers(client, repositoryData, dbConnection, bulkImport, repositoryData.repository)
 
     // Attach the root of the new nodes to existing containers
     for (let i = 0; i < bulkImport.attachPointsLength(); i++) {
         const fbAttachPoint = bulkImport.attachPoints(i);
-        await dbConnection.query(repositoryData, makeQueryToAttachNodeForFlatBuffers(fbAttachPoint))
+        await dbConnection.query(repositoryData, makeQueryToAttachNodeForFlatBuffers(fbAttachPoint, metaPointersTracker))
     }
 
     return { status: HttpSuccessCodes.Ok, success: true}

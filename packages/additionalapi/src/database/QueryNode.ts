@@ -1,6 +1,7 @@
 import {CONTAINMENTS_TABLE, NODES_TABLE} from "@lionweb/repository-common";
 import {AttachPoint} from "./AdditionalQueries.js";
 import {FBAttachPoint} from "../serialization/index.js";
+import {MetaPointersTracker} from "./ImportLogic";
 
 function sqlArrayFromNodeIdArray(strings: string[]): string {
     return `(${strings.map(id => `'${id}'`).join(", ")})`
@@ -54,11 +55,9 @@ export const makeQueryToAttachNode = (attachPoint: AttachPoint) : string => {
             AND containment_language = '${attachPoint.containment.language}';`
 }
 
-export const makeQueryToAttachNodeForFlatBuffers = (attachPoint: FBAttachPoint) : string => {
+export const makeQueryToAttachNodeForFlatBuffers = (attachPoint: FBAttachPoint, metaPointersTracker: MetaPointersTracker) : string => {
     const containment = attachPoint.containment()
     return `UPDATE ${CONTAINMENTS_TABLE}
             SET "children"=array_append("children", '${attachPoint.root}')
-            WHERE node_id = '${attachPoint.container}' AND containment_key = '${containment.key()}'
-            AND containment_version = '${containment.version}'
-            AND containment_language = '${containment.language}';`
+            WHERE node_id = '${attachPoint.container}' AND containment = ${metaPointersTracker.forFBMetapointer(containment)};`
 }
