@@ -386,6 +386,7 @@ export async function performImportFromFlatBuffers(client: PoolClient, dbConnect
         newNodesSet.add(fbNodeID)
         parentsSet.add(fbNode.parent())
     }
+    requestLogger.info(`...LionWebQueries.bulkImportFromFlatBuffers - checks 1`)
 
     // Check - We verify all the parent nodes are either other new nodes or the attach points containers
     // Check - verify the root of the attach points are among the new nodes
@@ -403,12 +404,14 @@ export async function performImportFromFlatBuffers(client: PoolClient, dbConnect
             return { status: HttpClientErrors.BadRequest, success: false, description: `Invalid parent specified: ${parent}. It is not one of the new nodes being added or one of the attach points` }
         }
     });
+    requestLogger.info(`...LionWebQueries.bulkImportFromFlatBuffers - checks 2`)
 
     // Check - verify all the given new nodes are effectively new
     const allNewNodesResult = await dbConnection.query(repositoryData, makeQueryToCheckHowManyExist(newNodesSet));
     if (allNewNodesResult > 0) {
         return { status: HttpClientErrors.BadRequest, success: false, description: `Some of the given nodes already exist` }
     }
+    requestLogger.info(`...LionWebQueries.bulkImportFromFlatBuffers - checks 3`)
 
     // Check - verify the containers from the attach points are existing nodes
     const allExistingNodesResult = await dbConnection.query(repositoryData, makeQueryToCheckHowManyDoNotExist(attachPointContainers));
