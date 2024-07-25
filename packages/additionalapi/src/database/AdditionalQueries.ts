@@ -121,7 +121,7 @@ export class AdditionalQueries {
      * to the "neutral" format and invoke bulkImport. This choice has been made for performance reasons.
      */
     bulkImportFromFlatBuffers = async (repositoryData: RepositoryData, bulkImport: FBBulkImport): Promise<BulkImportResultType> => {
-        requestLogger.info("LionWebQueries.bulkImportFromFlatBuffers")
+        requestLogger.info(`LionWebQueries.bulkImportFromFlatBuffers (nodes ${bulkImport.nodesLength()}, attach points: ${bulkImport.attachPointsLength()})`)
         const pool = this.context.pgPool;
 
         return await performImportFromFlatBuffers(await pool.connect(), this.context.dbConnection, bulkImport, repositoryData)
