@@ -8,7 +8,13 @@ import {
     makeQueryToCheckHowManyDoNotExist,
     makeQueryToCheckHowManyExist
 } from "./QueryNode.js";
-import {DbConnection, HttpClientErrors, HttpSuccessCodes, RepositoryData} from "@lionweb/repository-common";
+import {
+    DbConnection,
+    HttpClientErrors,
+    HttpSuccessCodes,
+    RepositoryData,
+    requestLogger
+} from "@lionweb/repository-common";
 import {BulkImport} from "./AdditionalQueries.js";
 
 const SEPARATOR = "\t";
@@ -367,6 +373,7 @@ export async function performImportFromFlatBuffers(client: PoolClient, dbConnect
     description?: string;
     status: number
 }> {
+    const t0 = Date.now();
     // Check - We verify there are no duplicate IDs in the new nodes
     const newNodesSet = new Set<string>()
     const parentsSet : Set<string> = new Set<string>()
@@ -409,14 +416,23 @@ export async function performImportFromFlatBuffers(client: PoolClient, dbConnect
         return { status: HttpClientErrors.BadRequest, success: false, description: `Some of the attach point containers do not exist` }
     }
 
+    const t1 = Date.now();
+    requestLogger.info(`LionWebQueries.bulkImportFromFlatBuffers - checks completed (${t1-t0}ms)`)
+
     // Add all the new nodes
     const metaPointersTracker = await storeNodesThroughFlatBuffers(client, repositoryData, dbConnection, bulkImport, repositoryData.repository)
+
+    const t2 = Date.now();
+    requestLogger.info(`LionWebQueries.bulkImportFromFlatBuffers - nodes completed (${t2-t1}ms)`)
 
     // Attach the root of the new nodes to existing containers
     for (let i = 0; i < bulkImport.attachPointsLength(); i++) {
         const fbAttachPoint = bulkImport.attachPoints(i);
         await dbConnection.query(repositoryData, makeQueryToAttachNodeForFlatBuffers(fbAttachPoint, metaPointersTracker))
     }
+
+    const t3 = Date.now();
+    requestLogger.info(`LionWebQueries.bulkImportFromFlatBuffers - attach points completed (${t3-t2}ms)`)
 
     return { status: HttpSuccessCodes.Ok, success: true}
 }
