@@ -121,7 +121,7 @@ export class LionWebQueries {
     ): Promise<QueryReturnType<CreatePartitionsResponse>> => {
         dbLogger.info("LionWebQueries.createPartitions repo " + JSON.stringify(repositoryData))
         let query = nextRepoVersionQuery(repositoryData.clientId)
-        query += await this.context.queryMaker.dbInsertNodeArray(this.context.dbConnection, repositoryData, partitions.nodes)
+        query += await this.context.queryMaker.dbInsertNodeArray(partitions.nodes)
         dbLogger.info(query)
         const [versionresult] = await task.multi(repositoryData, query)
         return {
@@ -309,7 +309,7 @@ export class LionWebQueries {
                 }
             }
         }
-        queries += await this.context.queryMaker.dbInsertNodeArray(dbConnection, repositoryData, toBeStoredNewNodes.map(ch => (ch as NodeAdded).node))
+        queries += await this.context.queryMaker.dbInsertNodeArray( toBeStoredNewNodes.map(ch => (ch as NodeAdded).node))
         // And run them on the database
         if (queries !== "") {
             queries = nextRepoVersionQuery(repositoryData.clientId) + queries
