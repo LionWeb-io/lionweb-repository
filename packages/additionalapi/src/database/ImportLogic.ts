@@ -9,6 +9,7 @@ import {
     makeQueryToCheckHowManyExist
 } from "./QueryNode.js";
 import {DbConnection, HttpClientErrors, HttpSuccessCodes, RepositoryData} from "@lionweb/repository-common";
+import {BulkImport} from "./AdditionalQueries.js";
 
 const SEPARATOR = "\t";
 
@@ -28,15 +29,11 @@ function prepareInputStreamNodes(nodes: LionWebJsonNode[], metaPointersTracker:M
     return read_stream_string;
 }
 
-function prepareInputStreamProperties(nodes: LionWebJsonNode[]) : Duplex {
+function prepareInputStreamProperties(nodes: LionWebJsonNode[], metaPointersTracker:MetaPointersTracker) : Duplex {
     const read_stream_string = new Duplex();
     nodes.forEach(node => {
         node.properties.forEach(prop => {
-                read_stream_string.push(prop.property.language);
-                read_stream_string.push(SEPARATOR);
-                read_stream_string.push(prop.property.version);
-                read_stream_string.push(SEPARATOR);
-                read_stream_string.push(prop.property.key);
+                read_stream_string.push(metaPointersTracker.forMetapointer(prop.property));
                 read_stream_string.push(SEPARATOR);
                 if (prop.value == null) {
                     read_stream_string.push("\\N");
@@ -55,15 +52,11 @@ function prepareInputStreamProperties(nodes: LionWebJsonNode[]) : Duplex {
     return read_stream_string;
 }
 
-function prepareInputStreamReferences(nodes: LionWebJsonNode[]) : Duplex {
+function prepareInputStreamReferences(nodes: LionWebJsonNode[], metaPointersTracker:MetaPointersTracker) : Duplex {
     const read_stream_string = new Duplex();
     nodes.forEach(node => {
         node.references.forEach(ref => {
-                read_stream_string.push(ref.reference.language);
-                read_stream_string.push(SEPARATOR);
-                read_stream_string.push(ref.reference.version);
-                read_stream_string.push(SEPARATOR);
-                read_stream_string.push(ref.reference.key);
+                read_stream_string.push(metaPointersTracker.forMetapointer(ref.reference));
                 read_stream_string.push(SEPARATOR);
 
                 const refValueStr = "{" + ref.targets.map(t => {
@@ -84,15 +77,11 @@ function prepareInputStreamReferences(nodes: LionWebJsonNode[]) : Duplex {
     return read_stream_string;
 }
 
-function prepareInputStreamContainments(nodes: LionWebJsonNode[]) : Duplex {
+function prepareInputStreamContainments(nodes: LionWebJsonNode[], metaPointersTracker:MetaPointersTracker) : Duplex {
     const read_stream_string = new Duplex();
     nodes.forEach(node => {
         node.containments.forEach(containment => {
-                read_stream_string.push(containment.containment.language);
-                read_stream_string.push(SEPARATOR);
-                read_stream_string.push(containment.containment.version);
-                read_stream_string.push(SEPARATOR);
-                read_stream_string.push(containment.containment.key);
+            read_stream_string.push(metaPointersTracker.forMetapointer(containment.containment));
                 read_stream_string.push(SEPARATOR);
                 read_stream_string.push("{" + containment.children.join(",") + "}");
                 read_stream_string.push(SEPARATOR);
@@ -237,19 +226,31 @@ export type MetaPointersMap = Map<string, number>;
 
 export class MetaPointersTracker {
     metaPointersMap : MetaPointersMap = new Map<string, number>();
-    async populate(nodes: LionWebJsonNode[], repositoryData: RepositoryData, dbConnection: DbConnection) {
-        console.log("Metapointers tracker")
+    async populate(bulkImport: BulkImport, repositoryData: RepositoryData, dbConnection: DbConnection) {
+        const nodes = bulkImport.nodes;
         const metaPointers = new Set<LionWebJsonMetaPointer>();
         nodes.forEach((node: LionWebJsonNode) => {
             metaPointers.add(node.classifier);
+            node.properties.forEach(p => metaPointers.add(p.property));
+            node.references.forEach(r => metaPointers.add(r.reference));
+            node.containments.forEach(c => metaPointers.add(c.containment));
         })
+        bulkImport.attachPoints.forEach(ap => metaPointers.add(ap.containment));
         const metaPointersList = Array.from(metaPointers);
         const ls = `array[${metaPointersList.map(el => `'${el.language}'`).join(",")}]`;
         const vs = `array[${metaPointersList.map(el => `'${el.version}'`).join(",")}]`;
         const ks = `array[${metaPointersList.map(el => `'${el.key}'`).join(",")}]`;
-        const raw_res = await dbConnection.query(repositoryData,`toMetaPointerIDs(${ls},${vs},${ks}`);
-        throw new Error(`GOT ${JSON.stringify(raw_res)}`)
+        const raw_res : {"tometapointerids":string}[]  = await dbConnection.query(repositoryData,`toMetaPointerIDs(${ls},${vs},${ks}`);
+        if (raw_res.length != metaPointersList.length) {
+            throw new Error("Illegal state");
+        }
+        raw_res.forEach((el)=>{
+            const value = el.tometapointerids;
+            const parts = value.substring(1, value.length - 1).split(",")
+            this.metaPointersMap.set(`${parts[1]}@${parts[2]}@${parts[3]}`, Number(parts[0]));
+        })
     }
+
     async populateThroughFlatBuffers(bulkImport: FBBulkImport, repositoryData: RepositoryData, dbConnection: DbConnection) {
         const metaPointers = new Set<FBMetaPointer>();
         const positions = new Set<number>;
@@ -308,7 +309,7 @@ export class MetaPointersTracker {
     forMetapointer(metaPointer: LionWebJsonMetaPointer): number {
         const key = `${metaPointer.language}@${metaPointer.version}@${metaPointer.key}`;
         if (!this.metaPointersMap.has(key)) {
-            throw new Error(`Metapointer not found: ${JSON.stringify(metaPointer)}. Metapointers known:${JSON.stringify(Array.from(this.metaPointersMap.keys()))}`);
+            throw new Error(`Metapointer not found: ${JSON.stringify(metaPointer)}`);
         }
         return this.metaPointersMap.get(key);
     }
@@ -316,24 +317,29 @@ export class MetaPointersTracker {
     forFBMetapointer(metaPointer: FBMetaPointer): number {
         const key = `${metaPointer.language()}@${metaPointer.version()}@${metaPointer.key()}`;
         if (!this.metaPointersMap.has(key)) {
-            throw new Error(`Metapointer not found: ${JSON.stringify(metaPointer)}. Metapointers known:${JSON.stringify(Array.from(this.metaPointersMap.keys()))}`);
+            throw new Error(`Metapointer not found: ${JSON.stringify(metaPointer)}`);
         }
         return this.metaPointersMap.get(key);
     }
 }
 
-export async function storeNodes(client: PoolClient, repositoryData: RepositoryData, dbConnection: DbConnection, nodes: LionWebJsonNode[], repositoryName: string) : Promise<void> {
+export async function storeNodes(client: PoolClient, repositoryData: RepositoryData, dbConnection: DbConnection, bulkImport: BulkImport) : Promise<MetaPointersTracker> {
     const metaPointersTracker = new MetaPointersTracker();
-    await metaPointersTracker.populate(nodes, repositoryData, dbConnection);
+    await metaPointersTracker.populate(bulkImport, repositoryData, dbConnection);
+
+    const repositoryName = repositoryData.repository;
+
+    const nodes = bulkImport.nodes;
 
     await pipeInputIntoQueryStream(client,`COPY "${repositoryName}".lionweb_nodes(id,classifier,annotations,parent) FROM STDIN`,
         prepareInputStreamNodes(nodes, metaPointersTracker), "nodes insertion");
     await pipeInputIntoQueryStream(client,`COPY "${repositoryName}".lionweb_containments(containment,children,node_id) FROM STDIN`,
-        prepareInputStreamContainments(nodes), "containments insertion");
+        prepareInputStreamContainments(nodes, metaPointersTracker), "containments insertion");
     await pipeInputIntoQueryStream(client,`COPY "${repositoryName}".lionweb_references(reference,targets,node_id) FROM STDIN`,
-        prepareInputStreamReferences(nodes), "references ${repositoryName}");
+        prepareInputStreamReferences(nodes, metaPointersTracker), "references ${repositoryName}");
     await pipeInputIntoQueryStream(client,`COPY "${repositoryName}".lionweb_properties(property,value,node_id) FROM STDIN`,
-        prepareInputStreamProperties(nodes), "properties ${repositoryName}");
+        prepareInputStreamProperties(nodes, metaPointersTracker), "properties ${repositoryName}");
+    return metaPointersTracker
 }
 
 async function storeNodesThroughFlatBuffers(client: PoolClient, repositoryData: RepositoryData, dbConnection: DbConnection, bulkImport: FBBulkImport, repositoryName: string)

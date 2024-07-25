@@ -1,4 +1,3 @@
-// const pgp = require("pg-promise")();
 import {
     CONTAINMENTS_TABLE,
     NODES_TABLE,
@@ -7,11 +6,9 @@ import {
     TableHelpers,
     RESERVED_IDS_TABLE,
     ReservedIdRecord,
-    NodeRecord,
     NODES_TABLE_HISTORY,
     RepositoryData,
-    dbLogger,
-    DbConnection
+    dbLogger
 } from "@lionweb/repository-common"
 import {
     LionWebJsonNode,
@@ -21,8 +18,6 @@ import {
 import { BulkApiContext } from "../main.js"
 import { DbChanges } from "./DbChanges.js";
 import { sqlArrayFromNodeIdArray } from "./QueryNode.js"
-import {LionWebJsonMetaPointer} from "@lionweb/validation/src/json/LionWebJson";
-import {Column} from "pg-promise";
 
 /**
  * Class that builds SQL queries.
@@ -72,62 +67,14 @@ export class QueryMaker {
      * in their respective tables.
      * @param tbsNodesToCreate
      */
-    public async dbInsertNodeArray(dbConnection: DbConnection, repositoryData: RepositoryData, tbsNodesToCreate: LionWebJsonNode[]): Promise<string> {
-        // // First, we find all metapointers
-        // const existingMetaPointers = await getExistingMetaPointers(dbConnection, repositoryData)
-        // const newMetaPointers = new Map<LionWebJsonMetaPointer, number>();
-        //
-        // function checkMetapointer(mp: LionWebJsonMetaPointer) {
-        //     if (!existingMetaPointers.has(mp) && !newMetaPointers.has(mp)) {
-        //         newMetaPointers.set(mp, existingMetaPointers.size + newMetaPointers.size + 1)
-        //     }
-        // }
-        //
-        // function metapointerIndex(mp: LionWebJsonMetaPointer): number {
-        //     let res = existingMetaPointers.get(mp)
-        //     if (res !== undefined) {
-        //         return res
-        //     }
-        //     res = newMetaPointers.get(mp);
-        //     if (res !== undefined) {
-        //         return res
-        //     }
-        //     throw new Error(`Cannot find metapointer ${JSON.stringify(mp)}`)
-        // }
-
-        // tbsNodesToCreate.forEach(node => {
-        //     checkMetapointer(node.classifier);
-        //     node.properties.forEach(prop => {
-        //         checkMetapointer(prop.property)
-        //     })
-        //     node.containments.forEach(cont => {
-        //         checkMetapointer(cont.containment)
-        //     })
-        //     node.references.forEach(ref => {
-        //         checkMetapointer(ref.reference)
-        //     })
-        // })
-        //
-        // if (newMetaPointers.size > 0) {
-        //     console.log("newMetaPointers", newMetaPointers)
-        //     const metapointers_rows = Array.from(newMetaPointers.entries()).map(entry => {
-        //         return {
-        //             id: entry[1],
-        //             language: entry[0].language,
-        //             _version: entry[0].version,
-        //             key: entry[0].key,
-        //         }
-        //     })
-        //     await dbConnection.query(repositoryData, this.context.pgp.helpers.insert(metapointers_rows, TableHelpers.METAPOINTERS_COLUMN_SET) + ";\n")
-        // }
-
+    public async dbInsertNodeArray(tbsNodesToCreate: LionWebJsonNode[]): Promise<string> {
         dbLogger.debug("Queries insert new nodes " + tbsNodesToCreate.map(n => n.id))
         {
             let query = "-- create new nodes\n"
             if (tbsNodesToCreate.length === 0) {
                 return query
             }
-            const node_rows: NodeRecord[] = tbsNodesToCreate.map(node => {
+            const node_rows = tbsNodesToCreate.map(node => {
                 return {
                     id: node.id,
                     classifier: this.context.pgp.as.format(`toMetaPointerID('${node.classifier.language}', '${node.classifier.version}', '${node.classifier.key}')`),
@@ -226,18 +173,3 @@ export class QueryMaker {
         return ""
     }
 }
-
-// type MpEntry = {language:string, key:string, _version:string, id: number};
-
-// export async function getExistingMetaPointers(dbConnection: DbConnection, repositoryData: RepositoryData): Promise<Map<LionWebJsonMetaPointer, number>> {
-//     const rawResult = await dbConnection.query(repositoryData, `select * from ${METAPOINTERS_TABLE}`);
-//     const res =  new Map<LionWebJsonMetaPointer, number>();
-//     rawResult.forEach((entry:MpEntry) => {
-//         res.set({
-//             language: entry.language,
-//             key: entry.key,
-//             version: entry._version
-//         }, entry.id)
-//     });
-//     return res;
-// }
