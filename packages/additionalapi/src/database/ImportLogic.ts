@@ -232,14 +232,22 @@ export type MetaPointersMap = Map<string, number>;
 
 export class MetaPointersTracker {
     metaPointersMap : MetaPointersMap = new Map<string, number>();
+
     async populateFromNodes(nodes: LionWebJsonNode[], task: LionwebTask, repositoryData: RepositoryData) {
         const metaPointers = new Set<LionWebJsonMetaPointer>();
-        // TODO remove the elements for which we have already a value in the metaPointersMap
+        function considerAddingMetaPointer(metaPointer: LionWebJsonMetaPointer) {
+            const key = `${metaPointer.language}@${metaPointer.version}@${metaPointer.key}`;
+            if (this.metaPointersMap.has(key)) {
+                return
+            } else {
+                metaPointers.add(metaPointer)
+            }
+        }
         nodes.forEach((node: LionWebJsonNode) => {
-            metaPointers.add(node.classifier);
-            node.properties.forEach(p => metaPointers.add(p.property));
-            node.references.forEach(r => metaPointers.add(r.reference));
-            node.containments.forEach(c => metaPointers.add(c.containment));
+            considerAddingMetaPointer(node.classifier);
+            node.properties.forEach(p => considerAddingMetaPointer(p.property));
+            node.references.forEach(r => considerAddingMetaPointer(r.reference));
+            node.containments.forEach(c => considerAddingMetaPointer(c.containment));
         })
         const metaPointersList = Array.from(metaPointers);
         const ls = `array[${metaPointersList.map(el => `'${el.language}'`).join(",")}]`;
