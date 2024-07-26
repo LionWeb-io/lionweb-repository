@@ -373,6 +373,7 @@ export async function performImportFromFlatBuffers(client: PoolClient, dbConnect
     description?: string;
     status: number
 }> {
+    requestLogger.info(`...LionWebQueries.bulkImportFromFlatBuffers - before checks`)
     const t0 = Date.now();
     // Check - We verify there are no duplicate IDs in the new nodes
     const newNodesSet = new Set<string>()
@@ -381,6 +382,7 @@ export async function performImportFromFlatBuffers(client: PoolClient, dbConnect
         const fbNode = bulkImport.nodes(i);
         const fbNodeID = fbNode.id();
         if (newNodesSet.has(fbNodeID)) {
+            requestLogger.error(`...LionWebQueries.bulkImportFromFlatBuffers - check 1 failed`);
             return { status: HttpClientErrors.BadRequest, success: false, description: `Node with ID ${fbNodeID} is being inserted twice` }
         }
         newNodesSet.add(fbNodeID)
