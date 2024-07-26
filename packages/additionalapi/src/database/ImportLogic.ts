@@ -234,6 +234,7 @@ export class MetaPointersTracker {
     metaPointersMap : MetaPointersMap = new Map<string, number>();
     async populateFromNodes(nodes: LionWebJsonNode[], task: LionwebTask, repositoryData: RepositoryData) {
         const metaPointers = new Set<LionWebJsonMetaPointer>();
+        // TODO remove the elements for which we have already a value in the metaPointersMap
         nodes.forEach((node: LionWebJsonNode) => {
             metaPointers.add(node.classifier);
             node.properties.forEach(p => metaPointers.add(p.property));
