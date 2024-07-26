@@ -30,7 +30,7 @@ import {
     AnnotationOrderChanged,
     JsonContext,
     NodeRemoved,
-    createLwNode
+    createLwNode, LionWebJsonMetaPointer
 } from "@lionweb/validation"
 import { BulkApiContext } from "../main.js"
 import { DbChanges } from "./DbChanges.js"
@@ -42,7 +42,7 @@ import {
     QueryNodeForIdList,
     versionResultToResponse
 } from "./QueryNode.js"
-import {MetaPointersTracker} from "@lionweb/repository-additionalapi";
+import {MetaPointersMap, MetaPointersTracker} from "@lionweb/repository-additionalapi";
 
 export type NodeTreeResultType = {
     id: string
@@ -289,6 +289,7 @@ export class LionWebQueries {
             parentsOfImplicitlyRemovedChildNodes.queryResult.chunk
         )
         const metaPointersTracker = new MetaPointersTracker()
+        await populateFromDbChanges(metaPointersTracker, dbCommands, task, repositoryData)
         queries += dbCommands.createPostgresQuery(metaPointersTracker)
 
         // Check whether new node ids are not reserved for another client
@@ -481,4 +482,32 @@ export function printMap(map: Map<string, string>): string {
         result += `[${entry[0]} => ${entry[1]}]`
     }
     return result
+}
+
+async function populateFromDbChanges(metaPointersTracker: MetaPointersTracker, dbCommands: DbChanges, task: LionwebTask, repositoryData: RepositoryData) {
+    const metaPointers = new Set<LionWebJsonMetaPointer>();
+    function considerAddingMetaPointer(metaPointer: LionWebJsonMetaPointer, metaPointersMap: MetaPointersMap) {
+        const key = `${metaPointer.language}@${metaPointer.version}@${metaPointer.key}`;
+        if (metaPointersMap.has(key)) {
+            return
+        } else {
+            metaPointers.add(metaPointer)
+        }
+    }
+    dbCommands.updatesContainmentTable.values().forEach(table => table.forEach(e =>
+        considerAddingMetaPointer(e.containment, metaPointersTracker.metaPointersMap)
+    ))
+    const metaPointersList = Array.from(metaPointers);
+    const ls = `array[${metaPointersList.map(el => `'${el.language}'`).join(",")}]`;
+    const vs = `array[${metaPointersList.map(el => `'${el.version}'`).join(",")}]`;
+    const ks = `array[${metaPointersList.map(el => `'${el.key}'`).join(",")}]`;
+    const raw_res : {"tometapointerids":string}[]  = await task.query(repositoryData,`SELECT toMetaPointerIDs(${ls},${vs},${ks});`);
+    // if (raw_res.length != metaPointersList.length) {
+    //     throw new Error("Illegal state");
+    // }
+    raw_res.forEach((el)=>{
+        const value = el.tometapointerids;
+        const parts = value.substring(1, value.length - 1).split(",")
+        metaPointersTracker.metaPointersMap.set(`${parts[1]}@${parts[2]}@${parts[3]}`, Number(parts[0]));
+    })
 }

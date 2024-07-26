@@ -197,19 +197,15 @@ export class DbChanges {
         this.updatesContainmentTable.values().forEach((values: DbContainmentUpdate[]) => {
             // Just take the first from _values_, as every property except _newValue_ is identical anyway.
             // And there can only be one new _targets_ value as well.
-            const data: ContainmentRowData = {
+            const metaPointerIndex = metaPointersTracker.forMetapointer(values[0].containment)
+            const data = {
                 node_id: values[0].node_id,
-                containment_version: values[0].containment.version,
-                containment_language: values[0].containment.language,
-                containment_key: values[0].containment.key,
+                containment: metaPointerIndex,
                 children: values[0].children
             }
-            result += this.createQueryForFeatures(
+            result += this.createQueryForFeaturesUsingMetaPointer(
                 data,
                 "containment",
-                "containment_language",
-                "containment_version",
-                "containment_key",
                 CONTAINMENTS_TABLE,
                 TableHelpers.CONTAINMENTS_COLUMN_SET,
                 values[0].missing
@@ -218,19 +214,15 @@ export class DbChanges {
         this.updatesPropertyTable.values().forEach((values: DbPropertyUpdate[]) => {
             // Just take the first from _values_, as every property except _newValue_ is identical anyway.
             // And there can only be one newValue as well.
-            const data: PropertyRowData = {
+            const metaPointerIndex = metaPointersTracker.forMetapointer(values[0].property)
+            const data = {
                 node_id: values[0].node_id,
-                property_language: values[0].property.language,
-                property_version: values[0].property.version,
-                property_key: values[0].property.key,
+                property: metaPointerIndex,
                 value: values[0].newValue
             }
-            result += this.createQueryForFeatures(
+            result += this.createQueryForFeaturesUsingMetaPointer(
                 data,
                 "property",
-                "property_language",
-                "property_version",
-                "property_key",
                 PROPERTIES_TABLE,
                 TableHelpers.PROPERTIES_COLUMN_SET,
                 values[0].missing

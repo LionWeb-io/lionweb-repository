@@ -16,6 +16,7 @@ import {
     requestLogger
 } from "@lionweb/repository-common";
 import {BulkImport} from "./AdditionalQueries.js";
+import {DbChanges} from "@lionweb/repository-bulkapi";
 
 const SEPARATOR = "\t";
 
@@ -233,21 +234,22 @@ export type MetaPointersMap = Map<string, number>;
 export class MetaPointersTracker {
     metaPointersMap : MetaPointersMap = new Map<string, number>();
 
+
     async populateFromNodes(nodes: LionWebJsonNode[], task: LionwebTask, repositoryData: RepositoryData) {
         const metaPointers = new Set<LionWebJsonMetaPointer>();
-        function considerAddingMetaPointer(metaPointer: LionWebJsonMetaPointer) {
+        function considerAddingMetaPointer(metaPointer: LionWebJsonMetaPointer, metaPointersMap: MetaPointersMap) {
             const key = `${metaPointer.language}@${metaPointer.version}@${metaPointer.key}`;
-            if (this.metaPointersMap.has(key)) {
+            if (metaPointersMap.has(key)) {
                 return
             } else {
                 metaPointers.add(metaPointer)
             }
         }
         nodes.forEach((node: LionWebJsonNode) => {
-            considerAddingMetaPointer(node.classifier);
-            node.properties.forEach(p => considerAddingMetaPointer(p.property));
-            node.references.forEach(r => considerAddingMetaPointer(r.reference));
-            node.containments.forEach(c => considerAddingMetaPointer(c.containment));
+            considerAddingMetaPointer(node.classifier, this.metaPointersMap);
+            node.properties.forEach(p => considerAddingMetaPointer(p.property, this.metaPointersMap));
+            node.references.forEach(r => considerAddingMetaPointer(r.reference, this.metaPointersMap));
+            node.containments.forEach(c => considerAddingMetaPointer(c.containment, this.metaPointersMap));
         })
         const metaPointersList = Array.from(metaPointers);
         const ls = `array[${metaPointersList.map(el => `'${el.language}'`).join(",")}]`;
@@ -358,6 +360,8 @@ export class MetaPointersTracker {
         }
         return this.metaPointersMap.get(key);
     }
+
+
 }
 
 export async function storeNodes(client: PoolClient, repositoryData: RepositoryData, dbConnection: DbConnection, bulkImport: BulkImport) : Promise<MetaPointersTracker> {

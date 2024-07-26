@@ -91,7 +91,7 @@ export class QueryMaker {
             const insertProperties = tbsNodesToCreate.flatMap(node =>
                 node.properties.map(prop => ({ 
                     node_id: node.id,
-                    property: `toMetaPointerID('${prop.property.language}','${prop.property.version}', '${prop.property.key}')`,
+                    property: this.context.pgp.as.format(metaPointersTracker.forMetapointer(prop.property).toString()),
                     value: prop.value }))
             )
             if (insertProperties.length !== 0) {
