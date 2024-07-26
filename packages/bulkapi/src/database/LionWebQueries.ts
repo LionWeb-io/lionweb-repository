@@ -313,6 +313,7 @@ export class LionWebQueries {
                 }
             }
         }
+        await metaPointersTracker.populateFromNodes(toBeStoredNewNodes.map(ch => (ch as NodeAdded).node), task, repositoryData)
         queries += await this.context.queryMaker.dbInsertNodeArray( toBeStoredNewNodes.map(ch => (ch as NodeAdded).node), metaPointersTracker)
         // And run them on the database
         if (queries !== "") {

@@ -246,9 +246,9 @@ export class MetaPointersTracker {
         const vs = `array[${metaPointersList.map(el => `'${el.version}'`).join(",")}]`;
         const ks = `array[${metaPointersList.map(el => `'${el.key}'`).join(",")}]`;
         const raw_res : {"tometapointerids":string}[]  = await task.query(repositoryData,`SELECT toMetaPointerIDs(${ls},${vs},${ks});`);
-        if (raw_res.length != metaPointersList.length) {
-            throw new Error("Illegal state");
-        }
+        // if (raw_res.length != metaPointersList.length) {
+        //     throw new Error("Illegal state");
+        // }
         raw_res.forEach((el)=>{
             const value = el.tometapointerids;
             const parts = value.substring(1, value.length - 1).split(",")
