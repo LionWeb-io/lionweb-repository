@@ -18,6 +18,7 @@ import {
 import { BulkApiContext } from "../main.js"
 import { DbChanges } from "./DbChanges.js";
 import { sqlArrayFromNodeIdArray } from "./QueryNode.js"
+import {MetaPointersTracker} from "@lionweb/repository-additionalapi";
 
 /**
  * Class that builds SQL queries.
@@ -50,7 +51,8 @@ export class QueryMaker {
         let queries = ""
         const db = new DbChanges(this.context)
         db.addChanges(referenceChanges)
-        queries += db.createPostgresQuery()
+        const metaPointersTracker = new MetaPointersTracker();
+        queries += db.createPostgresQuery(metaPointersTracker)
         return queries + "\n"
     }
 
@@ -67,7 +69,7 @@ export class QueryMaker {
      * in their respective tables.
      * @param tbsNodesToCreate
      */
-    public async dbInsertNodeArray(tbsNodesToCreate: LionWebJsonNode[]): Promise<string> {
+    public async dbInsertNodeArray(tbsNodesToCreate: LionWebJsonNode[], metaPointersTracker: MetaPointersTracker): Promise<string> {
         dbLogger.debug("Queries insert new nodes " + tbsNodesToCreate.map(n => n.id))
         {
             let query = "-- create new nodes\n"
@@ -77,7 +79,7 @@ export class QueryMaker {
             const node_rows = tbsNodesToCreate.map(node => {
                 return {
                     id: node.id,
-                    classifier: this.context.pgp.as.format(`toMetaPointerID('${node.classifier.language}', '${node.classifier.version}', '${node.classifier.key}')`),
+                    classifier: this.context.pgp.as.format(metaPointersTracker.forMetapointer(node.classifier).toString()),
                     annotations: node.annotations,
                     parent: node.parent
                 }

@@ -10,7 +10,7 @@ import {
     ReservedIdRecord,
     LionwebResponse,
     UNLIMITED_DEPTH,
-    NODES_TABLE, LionwebTask, RepositoryData, dbLogger, requestLogger, DbConnection
+    NODES_TABLE, LionwebTask, RepositoryData, dbLogger, requestLogger
 } from "@lionweb/repository-common"
 import {
     LionWebJsonChunk,
@@ -42,6 +42,7 @@ import {
     QueryNodeForIdList,
     versionResultToResponse
 } from "./QueryNode.js"
+import {MetaPointersTracker} from "@lionweb/repository-additionalapi";
 
 export type NodeTreeResultType = {
     id: string
@@ -121,7 +122,9 @@ export class LionWebQueries {
     ): Promise<QueryReturnType<CreatePartitionsResponse>> => {
         dbLogger.info("LionWebQueries.createPartitions repo " + JSON.stringify(repositoryData))
         let query = nextRepoVersionQuery(repositoryData.clientId)
-        query += await this.context.queryMaker.dbInsertNodeArray(partitions.nodes)
+        const metaPointersTracker = new MetaPointersTracker()
+        await metaPointersTracker.populateFromNodes(partitions.nodes, task, repositoryData)
+        query += await this.context.queryMaker.dbInsertNodeArray(partitions.nodes, metaPointersTracker)
         dbLogger.info(query)
         const [versionresult] = await task.multi(repositoryData, query)
         return {
@@ -139,7 +142,7 @@ export class LionWebQueries {
      *
      * @param toBeStoredChunk
      */
-    store = async (task: LionwebTask, repositoryData: RepositoryData, dbConnection: DbConnection, toBeStoredChunk: LionWebJsonChunk): Promise<QueryReturnType<StoreResponse>> => {
+    store = async (task: LionwebTask, repositoryData: RepositoryData, toBeStoredChunk: LionWebJsonChunk): Promise<QueryReturnType<StoreResponse>> => {
         dbLogger.info("LionWebQueries.store")
         if (toBeStoredChunk === null || toBeStoredChunk === undefined) {
             return {
@@ -181,7 +184,7 @@ export class LionWebQueries {
 
         const diff = new LionWebJsonDiff()
         diff.diffLwChunk(databaseChunkWrapper.jsonChunk, toBeStoredChunk)
-        dbLogger.info("STORE.CHANGES ")
+        dbLogger.info("STORE.CHANGES using metapointers")
         dbLogger.info(diff.diffResult.changes.map(ch => "    " + ch.changeMsg()))
 
         const toBeStoredNewNodes = diff.diffResult.changes.filter((ch): ch is NodeAdded => ch.changeType === "NodeAdded")
@@ -285,7 +288,8 @@ export class LionWebQueries {
             implicitlyRemovedChildNodes.queryResult.chunk,
             parentsOfImplicitlyRemovedChildNodes.queryResult.chunk
         )
-        queries += dbCommands.createPostgresQuery()
+        const metaPointersTracker = new MetaPointersTracker()
+        queries += dbCommands.createPostgresQuery(metaPointersTracker)
 
         // Check whether new node ids are not reserved for another client
         const reservedIds = await this.reservedNodeIdsByOtherClient(task,
@@ -309,7 +313,7 @@ export class LionWebQueries {
                 }
             }
         }
-        queries += await this.context.queryMaker.dbInsertNodeArray( toBeStoredNewNodes.map(ch => (ch as NodeAdded).node))
+        queries += await this.context.queryMaker.dbInsertNodeArray( toBeStoredNewNodes.map(ch => (ch as NodeAdded).node), metaPointersTracker)
         // And run them on the database
         if (queries !== "") {
             queries = nextRepoVersionQuery(repositoryData.clientId) + queries

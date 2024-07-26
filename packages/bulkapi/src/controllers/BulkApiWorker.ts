@@ -85,7 +85,7 @@ export class BulkApiWorker {
       
     bulkStore = async (repositoryData: RepositoryData, chunk: LionWebJsonChunk): Promise<QueryReturnType<StoreResponse>> => {
         return await this.context.dbConnection.tx(async task => {
-            return await this.context.queries.store(task, repositoryData, this.context.dbConnection, chunk)
+            return await this.context.queries.store(task, repositoryData, chunk)
         })
     }
 

@@ -11,7 +11,7 @@ import {
 import {
     DbConnection,
     HttpClientErrors,
-    HttpSuccessCodes,
+    HttpSuccessCodes, LionwebTask,
     RepositoryData,
     requestLogger
 } from "@lionweb/repository-common";
@@ -232,6 +232,28 @@ export type MetaPointersMap = Map<string, number>;
 
 export class MetaPointersTracker {
     metaPointersMap : MetaPointersMap = new Map<string, number>();
+    async populateFromNodes(nodes: LionWebJsonNode[], task: LionwebTask, repositoryData: RepositoryData) {
+        const metaPointers = new Set<LionWebJsonMetaPointer>();
+        nodes.forEach((node: LionWebJsonNode) => {
+            metaPointers.add(node.classifier);
+            node.properties.forEach(p => metaPointers.add(p.property));
+            node.references.forEach(r => metaPointers.add(r.reference));
+            node.containments.forEach(c => metaPointers.add(c.containment));
+        })
+        const metaPointersList = Array.from(metaPointers);
+        const ls = `array[${metaPointersList.map(el => `'${el.language}'`).join(",")}]`;
+        const vs = `array[${metaPointersList.map(el => `'${el.version}'`).join(",")}]`;
+        const ks = `array[${metaPointersList.map(el => `'${el.key}'`).join(",")}]`;
+        const raw_res : {"tometapointerids":string}[]  = await task.query(repositoryData,`SELECT toMetaPointerIDs(${ls},${vs},${ks});`);
+        if (raw_res.length != metaPointersList.length) {
+            throw new Error("Illegal state");
+        }
+        raw_res.forEach((el)=>{
+            const value = el.tometapointerids;
+            const parts = value.substring(1, value.length - 1).split(",")
+            this.metaPointersMap.set(`${parts[1]}@${parts[2]}@${parts[3]}`, Number(parts[0]));
+        })
+    }
     async populate(bulkImport: BulkImport, repositoryData: RepositoryData, dbConnection: DbConnection) {
         const nodes = bulkImport.nodes;
         const metaPointers = new Set<LionWebJsonMetaPointer>();
@@ -246,7 +268,7 @@ export class MetaPointersTracker {
         const ls = `array[${metaPointersList.map(el => `'${el.language}'`).join(",")}]`;
         const vs = `array[${metaPointersList.map(el => `'${el.version}'`).join(",")}]`;
         const ks = `array[${metaPointersList.map(el => `'${el.key}'`).join(",")}]`;
-        const raw_res : {"tometapointerids":string}[]  = await dbConnection.query(repositoryData,`toMetaPointerIDs(${ls},${vs},${ks}`);
+        const raw_res : {"tometapointerids":string}[]  = await dbConnection.query(repositoryData,`SELECT toMetaPointerIDs(${ls},${vs},${ks});`);
         if (raw_res.length != metaPointersList.length) {
             throw new Error("Illegal state");
         }
