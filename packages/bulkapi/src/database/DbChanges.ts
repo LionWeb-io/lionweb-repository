@@ -186,7 +186,7 @@ export class DbChanges {
                 reference: metaPointerIndex,
                 targets: values[0].targets
             }
-            result += this.createQueryForFeaturesUsingMetaPointer(
+            result += this.createQueryForFeatures(
                 data,
                 "reference",
                 REFERENCES_TABLE,
@@ -203,7 +203,7 @@ export class DbChanges {
                 containment: metaPointerIndex,
                 children: values[0].children
             }
-            result += this.createQueryForFeaturesUsingMetaPointer(
+            result += this.createQueryForFeatures(
                 data,
                 "containment",
                 CONTAINMENTS_TABLE,
@@ -220,7 +220,7 @@ export class DbChanges {
                 property: metaPointerIndex,
                 value: values[0].newValue
             }
-            result += this.createQueryForFeaturesUsingMetaPointer(
+            result += this.createQueryForFeatures(
                 data,
                 "property",
                 PROPERTIES_TABLE,
@@ -263,55 +263,6 @@ export class DbChanges {
      * @param missing
      */
     private createQueryForFeatures(
-        data: UnknownObjectType,
-        metapointerColumn: string,
-        languageColum: string,
-        versionColumn: string,
-        keyColum: string,
-        tableName: string,
-        columnSet: ColumnSet,
-        missing: Missing
-    ): string {
-        let result = ""
-        switch (missing) {
-            case Missing.MissingBefore:
-                result += `-- insert new feature for existing node
-                                ${this.context.pgp.helpers.insert(data, columnSet)};`
-                break
-            case Missing.MissingAfter:
-                result += `-- delete feature for existing node
-                                -- table is a reserved word, so we use tabl instead
-                                DELETE FROM ${tableName} tabl
-                                WHERE 
-                                    tabl.node_id = '${data["node_id"]}' AND containment = toMetaPointerID('${data[languageColum]}',
-                                    '${data[versionColumn]}','${data[keyColum]}');
-                    `
-                break
-            case Missing.NotMissing:
-                result += `-- update feature for existing node
-                                UPDATE ${tableName} tabl
-                                    SET ${this.context.pgp.helpers.sets(data, columnSet)}
-                                WHERE
-                                    tabl.node_id = '${data["node_id"]}' AND
-                                    tabl.${metapointerColumn} = toMetaPointerID('${data[languageColum]}','${data[versionColumn]}','${data[keyColum]}');
-                              `
-                break
-        }
-        return result
-    }
-
-    /**
-     * Creates a query (update, insert or delete) for a features table.
-     * Generic for properties, references and containments.
-     * @param data
-     * @param languageColum
-     * @param versionColumn
-     * @param keyColum
-     * @param tableName
-     * @param columnSet
-     * @param missing
-     */
-    private createQueryForFeaturesUsingMetaPointer(
         data: UnknownObjectType,
         metapointerColumn: string,
         tableName: string,

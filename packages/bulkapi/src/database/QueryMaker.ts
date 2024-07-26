@@ -85,7 +85,7 @@ export class QueryMaker {
                 }
             })
             query += this.context.pgp.helpers.insert(node_rows, TableHelpers.NODES_COLUMN_SET) + ";\n"
-            query += this.insertContainments(tbsNodesToCreate)
+            query += this.insertContainments(tbsNodesToCreate, metaPointersTracker)
 
             // INSERT Properties
             const insertProperties = tbsNodesToCreate.flatMap(node =>
@@ -102,7 +102,7 @@ export class QueryMaker {
             const insertReferences = tbsNodesToCreate.flatMap(node =>
                 node.references.map(reference => ({ 
                     node_id: node.id,
-                    reference:`toMetaPointerID('${reference.reference.language}','${reference.reference.version}', '${reference.reference.key}')`,
+                    reference:this.context.pgp.as.format(metaPointersTracker.forMetapointer(reference.reference).toString()),
                     targets: reference.targets
                 }))
             )
@@ -113,13 +113,13 @@ export class QueryMaker {
         }
     }
 
-    public insertContainments(tbsNodesToCreate: LionWebJsonNode[]): string {
+    public insertContainments(tbsNodesToCreate: LionWebJsonNode[], metaPointersTracker: MetaPointersTracker): string {
         let query = "-- insert containments for new node\n"
         // INSERT Containments
         const insertRowData = tbsNodesToCreate.flatMap(node =>
             node.containments.map(c => ({ 
                 node_id: node.id,
-                containment: `toMetaPointerID('${c.containment.language}','${c.containment.version}', '${c.containment.key}')`,
+                containment: this.context.pgp.as.format(metaPointersTracker.forMetapointer(c.containment).toString()),
                 children: c.children
             }))
         )
