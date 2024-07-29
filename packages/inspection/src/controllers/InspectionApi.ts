@@ -6,7 +6,7 @@ import {
 } from "@lionweb/repository-common";
 import e, { Request, Response } from "express"
 import { InspectionContext } from "../main.js";
-import {ClassifierNodes, LanguageNodes} from "../database/InspectionApiWorker";
+import {ClassifierNodes, LanguageNodes} from "../database/InspectionApiWorker.js";
 
 export interface InspectionApi {
     nodesByClassifier(request: Request, response: Response): void

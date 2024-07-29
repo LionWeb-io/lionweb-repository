@@ -1,19 +1,24 @@
 import { registerHistoryApi } from "@lionweb/repository-history"
-import http from "http"
 import express, { Express, NextFunction, Response, Request } from "express"
 import bodyParser from "body-parser"
 import cors from "cors"
 import pgPromise from "pg-promise"
-import { postgresConnectionWithDatabase, pgp, postgresConnectionWithoutDatabase } from "./DbConnection.js"
+import {postgresConnectionWithDatabase, pgp, postgresConnectionWithoutDatabase, postgresPool} from "./DbConnection.js"
 import { DbConnection, expressLogger, requestLogger, SCHEMA_PREFIX, ServerConfig } from "@lionweb/repository-common"
 import { initializeCommons } from "@lionweb/repository-common"
 import { registerDBAdmin } from "@lionweb/repository-dbadmin"
 import { registerInspection } from "@lionweb/repository-inspection"
 import { registerBulkApi } from "@lionweb/repository-bulkapi"
-import { registerAdditionalApi } from "@lionweb/repository-additionalapi"
+import {
+    FLATBUFFERS_CONTENT_TYPE,
+    JSON_CONTENT_TYPE,
+    PROTOBUF_CONTENT_TYPE,
+    registerAdditionalApi
+} from "@lionweb/repository-additionalapi"
 import { registerLanguagesApi } from "@lionweb/repository-languages"
 import { HttpClientErrors } from "@lionweb/repository-common"
 import { pinoHttp } from "pino-http"
+import * as http from "node:http";
 
 export const app: Express = express()
 
@@ -34,8 +39,11 @@ app.use(
         useLevel: ServerConfig.getInstance().expressLog()
     })
 )
+
 app.use(bodyParser.urlencoded({ extended: false }))
-app.use(bodyParser.json({ limit: ServerConfig.getInstance().bodyLimit() }))
+app.use(bodyParser.json({ limit: ServerConfig.getInstance().bodyLimit(), type: JSON_CONTENT_TYPE }))
+app.use(bodyParser.raw({ inflate:true, limit: ServerConfig.getInstance().bodyLimit(), type: PROTOBUF_CONTENT_TYPE}))
+app.use(bodyParser.raw({ inflate:true, limit: ServerConfig.getInstance().bodyLimit(), type: FLATBUFFERS_CONTENT_TYPE}))
 
 const expectedToken = ServerConfig.getInstance().expectedToken()
 
@@ -58,12 +66,13 @@ const dbConnection = DbConnection.getInstance()
 dbConnection.postgresConnection = postgresConnectionWithoutDatabase
 dbConnection.dbConnection = postgresConnectionWithDatabase
 dbConnection.pgp = pgPromise()
+dbConnection.pgPool = postgresPool
 // Must be first to initialize
 initializeCommons(pgp)
 const dbAdminApi = registerDBAdmin(app, DbConnection.getInstance(), postgresConnectionWithoutDatabase, pgp)
 registerBulkApi(app, DbConnection.getInstance(), pgp)
 registerInspection(app, DbConnection.getInstance(), pgp)
-registerAdditionalApi(app, DbConnection.getInstance(), pgp)
+registerAdditionalApi(app, DbConnection.getInstance(), pgp, dbConnection.pgPool)
 registerLanguagesApi(app, DbConnection.getInstance(), pgp)
 registerHistoryApi(app, DbConnection.getInstance(), pgp)
 

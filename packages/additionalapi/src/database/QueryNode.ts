@@ -1,4 +1,6 @@
-import { NODES_TABLE } from "@lionweb/repository-common";
+import {CONTAINMENTS_TABLE, NODES_TABLE} from "@lionweb/repository-common";
+import {AttachPoint} from "./AdditionalQueries.js";
+import {FBAttachPoint} from "../serialization/index.js";
 
 function sqlArrayFromNodeIdArray(strings: string[]): string {
     return `(${strings.map(id => `'${id}'`).join(", ")})`
@@ -26,4 +28,37 @@ export const makeQueryNodeTreeForIdList = (nodeidlist: string[], depthLimit: num
             )
             SELECT * FROM tmp;
     `
+}
+
+export const makeQueryToCheckHowManyExist = (nodeidlist: Set<string>): string => {
+    if (nodeidlist.size === 0) {
+        throw new Error("Invalid nodeidlist (it is empty)")
+    }
+    const ids = Array.from(nodeidlist, id => `'${id}'`).join(",")
+    return `SELECT COUNT(*) FROM ${NODES_TABLE} WHERE ID IN (${ids});`
+}
+
+export const makeQueryToCheckHowManyDoNotExist = (nodeidlist: Set<string>): string => {
+    if (nodeidlist.size === 0) {
+        throw new Error("Invalid nodeidlist (it is empty)")
+    }
+    const ids = Array.from(nodeidlist, id => `'${id}'`).join(",")
+    return `SELECT COUNT(*) FROM ${NODES_TABLE} WHERE ID NOT IN (${ids});`
+}
+
+export const makeQueryToAttachNode = (attachPoint: AttachPoint) : string => {
+    return `UPDATE ${CONTAINMENTS_TABLE}
+            SET "children"=array_append("children", '${attachPoint.root}')
+            WHERE node_id = '${attachPoint.container}' AND containment_key = '${attachPoint.containment.key}'
+            AND containment_version = '${attachPoint.containment.version}'
+            AND containment_language = '${attachPoint.containment.language}';`
+}
+
+export const makeQueryToAttachNodeForFlatBuffers = (attachPoint: FBAttachPoint) : string => {
+    const containment = attachPoint.containment()
+    return `UPDATE ${CONTAINMENTS_TABLE}
+            SET "children"=array_append("children", '${attachPoint.root}')
+            WHERE node_id = '${attachPoint.container}' AND containment_key = '${containment.key()}'
+            AND containment_version = '${containment.version}'
+            AND containment_language = '${containment.language}';`
 }
