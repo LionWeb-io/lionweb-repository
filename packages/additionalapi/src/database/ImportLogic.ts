@@ -228,7 +228,7 @@ function prepareInputStreamContainmentsFlatBuffers(bulkImport: FBBulkImport) : D
     return read_stream_string;
 }
 
-async function pipeInputIntoQueryStream(client: PoolClient, query: string, inputStream: Duplex, opDesc: string) {
+async function pipeInputIntoQueryStream(client: PoolClient, query: string, inputStream: Duplex, opDesc: string) : Promise<void> {
     await new Promise<void>((resolve, reject) => {
         try {
             const queryStream = client.query(copyFrom(query))
