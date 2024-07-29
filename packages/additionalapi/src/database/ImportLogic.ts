@@ -9,6 +9,7 @@ import {
     makeQueryToCheckHowManyExist
 } from "./QueryNode.js";
 import {DbConnection, HttpClientErrors, HttpSuccessCodes, RepositoryData} from "@lionweb/repository-common";
+import {BulkImportResultType} from "./AdditionalQueries.js";
 
 const SEPARATOR = "\t";
 
@@ -279,11 +280,7 @@ async function storeNodesThroughFlatBuffers(client: PoolClient, bulkImport: FBBu
  * This is a variant of bulkImport that operates directly on Flatbuffers data structures, instead of converting them
  * to the "neutral" format and invoke bulkImport. This choice has been made for performance reasons.
  */
-export async function performImportFromFlatBuffers(client: PoolClient, dbConnection: DbConnection, bulkImport: FBBulkImport, repositoryData: RepositoryData) : Promise<{
-    success: boolean;
-    description?: string;
-    status: number
-}> {
+export async function performImportFromFlatBuffers(client: PoolClient, dbConnection: DbConnection, bulkImport: FBBulkImport, repositoryData: RepositoryData) : Promise<BulkImportResultType> {
     // Check - We verify there are no duplicate IDs in the new nodes
     const newNodesSet = new Set<string>()
     const parentsSet : Set<string> = new Set<string>()
