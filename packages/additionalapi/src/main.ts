@@ -1,4 +1,4 @@
-import {Express, raw} from "express"
+import {Express} from "express"
 import pgPromise from "pg-promise"
 import pg from "pg-promise/typescript/pg-subset.js"
 import { DbConnection, requestLogger, runWithTry } from "@lionweb/repository-common";
