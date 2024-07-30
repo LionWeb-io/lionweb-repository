@@ -22,7 +22,7 @@ We use `pgAdmin 4` to test queries and look directly into the database.
 docker pull postgres:16.1
 
 # create a container and run it
-docker run --shm-size=256m -d --name lionwebrepodb -p 5432:5432 -e POSTGRES_PASSWORD=lionweb postgres:16.1
+docker run --shm-size=1g -d --name lionwebrepodb -p 5432:5432 -e POSTGRES_PASSWORD=lionweb postgres:16.1
 ```
 
 ### How to build
