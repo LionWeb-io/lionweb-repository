@@ -163,46 +163,42 @@ export function initSchemaWithoutHistory(schema: string): string {
     END;
     $$ LANGUAGE plpgsql;
     
-    CREATE OR REPLACE FUNCTION toMetaPointerID(language_value text, version_value text, key_value text) RETURNS int
-AS
-$$
-BEGIN
-    INSERT INTO ${METAPOINTERS_TABLE}("language", "_version", "key") values(language_value, version_value, key_value) ON CONFLICT("language", "_version", "key") DO NOTHING;
-    RETURN (SELECT id from ${METAPOINTERS_TABLE} WHERE "language"=language_value AND "_version"=version_value AND "key"=key_value);
-END
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION toMetaPointerIDs(
-    language_values text[], 
-    version_values text[], 
-    key_values text[]
-) RETURNS TABLE(res_id int, res_language text, res_version text, res_key text)
-AS
-$$
-BEGIN
-    WITH input_values AS (
-        SELECT unnest(language_values) AS i_language,
-               unnest(version_values) AS i_version,
-               unnest(key_values) AS i_key
-    )
-	INSERT INTO ${METAPOINTERS_TABLE}("language", "_version", "key")
-        SELECT i_language, i_version, i_key
-        FROM input_values
-        ON CONFLICT("language", "_version", "key") DO NOTHING;
-
-    RETURN QUERY (WITH input_values AS (
-        SELECT unnest(language_values) AS i_language,
-               unnest(version_values) AS i_version,
-               unnest(key_values) AS i_key
-    )
+    --------------------------------------------------------------------        
+    -- Function to get the id for a list of MetaPointers. This
+    -- function also stores such MetaPointers, if they are not already
+    -- present
+    --------------------------------------------------------------------
+    CREATE OR REPLACE FUNCTION toMetaPointerIDs(
+        language_values text[], 
+        version_values text[], 
+        key_values text[]
+    ) RETURNS TABLE(res_id int, res_language text, res_version text, res_key text)
+    AS
+    $$
+    BEGIN
+        WITH input_values AS (
+            SELECT unnest(language_values) AS i_language,
+                   unnest(version_values) AS i_version,
+                   unnest(key_values) AS i_key
+        )
+        INSERT INTO ${METAPOINTERS_TABLE}("language", "_version", "key")
+            SELECT i_language, i_version, i_key
+            FROM input_values
+            ON CONFLICT("language", "_version", "key") DO NOTHING;
     
-    SELECT id, language, _version, key
-    FROM ${METAPOINTERS_TABLE}
-    WHERE (language, _version, key) IN (
-        SELECT i_language, i_version, i_key FROM input_values
-    ));
-END
-$$ LANGUAGE plpgsql;
+        RETURN QUERY (WITH input_values AS (
+            SELECT unnest(language_values) AS i_language,
+                   unnest(version_values) AS i_version,
+                   unnest(key_values) AS i_key
+        )
+        
+        SELECT id, language, _version, key
+        FROM ${METAPOINTERS_TABLE}
+        WHERE (language, _version, key) IN (
+            SELECT i_language, i_version, i_key FROM input_values
+        ));
+    END
+    $$ LANGUAGE plpgsql;
     `
 }
 

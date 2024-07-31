@@ -184,7 +184,7 @@ export class LionWebQueries {
 
         const diff = new LionWebJsonDiff()
         diff.diffLwChunk(databaseChunkWrapper.jsonChunk, toBeStoredChunk)
-        dbLogger.info("STORE.CHANGES using metapointers")
+        dbLogger.info("STORE.CHANGES")
         dbLogger.info(diff.diffResult.changes.map(ch => "    " + ch.changeMsg()))
 
         const toBeStoredNewNodes = diff.diffResult.changes.filter((ch): ch is NodeAdded => ch.changeType === "NodeAdded")

@@ -42,7 +42,7 @@ WITH nodes_for_version AS (
                 null
             ) properties
         FROM nodes_for_version n1 
-        LEFT JOIN propertiesForVersion(${repoVersion}) prop  on prop.node_id  = n1.id
+        LEFT JOIN propertiesForVersion(${repoVersion}) prop on prop.node_id  = n1.id
         LEFT JOIN ${METAPOINTERS_TABLE} mp on mp.id = prop.property 
         group by n1.id, prop.node_id
     ),
@@ -70,7 +70,7 @@ WITH nodes_for_version AS (
             )
         containments
         FROM nodes_for_version n1
-        LEFT JOIN containmentsForVersion(${repoVersion}) con  on con.node_id  = n1.id 
+        LEFT JOIN containmentsForVersion(${repoVersion}) con on con.node_id  = n1.id 
         LEFT JOIN ${METAPOINTERS_TABLE} mp on mp.id = con.containment 
         group by n1.id, con.node_id
     ),
@@ -93,7 +93,7 @@ WITH nodes_for_version AS (
                         null
                 END), null)        rreferences
         FROM nodes_for_version n1
-        LEFT JOIN referencesForVersion(${repoVersion}) rref  on rref.node_id  = n1.id 
+        LEFT JOIN referencesForVersion(${repoVersion}) rref on rref.node_id  = n1.id 
         LEFT JOIN ${METAPOINTERS_TABLE} mp on mp.id = rref.reference
         GROUP BY n1.id, rref.node_id
     )
