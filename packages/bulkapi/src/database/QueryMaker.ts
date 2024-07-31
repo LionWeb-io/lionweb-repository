@@ -79,7 +79,7 @@ export class QueryMaker {
             const node_rows = tbsNodesToCreate.map(node => {
                 return {
                     id: node.id,
-                    classifier: this.context.pgp.as.format(metaPointersTracker.forMetapointer(node.classifier).toString()),
+                    classifier: this.context.pgp.as.format(metaPointersTracker.forMetaPointer(node.classifier).toString()),
                     annotations: node.annotations,
                     parent: node.parent
                 }
@@ -91,7 +91,7 @@ export class QueryMaker {
             const insertProperties = tbsNodesToCreate.flatMap(node =>
                 node.properties.map(prop => ({ 
                     node_id: node.id,
-                    property: this.context.pgp.as.format(metaPointersTracker.forMetapointer(prop.property).toString()),
+                    property: this.context.pgp.as.format(metaPointersTracker.forMetaPointer(prop.property).toString()),
                     value: prop.value }))
             )
             if (insertProperties.length !== 0) {
@@ -102,7 +102,7 @@ export class QueryMaker {
             const insertReferences = tbsNodesToCreate.flatMap(node =>
                 node.references.map(reference => ({ 
                     node_id: node.id,
-                    reference:this.context.pgp.as.format(metaPointersTracker.forMetapointer(reference.reference).toString()),
+                    reference:this.context.pgp.as.format(metaPointersTracker.forMetaPointer(reference.reference).toString()),
                     targets: reference.targets
                 }))
             )
@@ -119,7 +119,7 @@ export class QueryMaker {
         const insertRowData = tbsNodesToCreate.flatMap(node =>
             node.containments.map(c => ({ 
                 node_id: node.id,
-                containment: this.context.pgp.as.format(metaPointersTracker.forMetapointer(c.containment).toString()),
+                containment: this.context.pgp.as.format(metaPointersTracker.forMetaPointer(c.containment).toString()),
                 children: c.children
             }))
         )

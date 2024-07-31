@@ -107,7 +107,6 @@ export class BulkApiWorker {
             }
         }
         const [versionResult, nodes ] = await this.context.dbConnection.multi(repositoryData, currentRepoVersionQuery() + retrieveWith(nodeIdList, depthLimit))
-        // Let's expand metapointers
         return {
             status: HttpSuccessCodes.Ok,
             query: "",

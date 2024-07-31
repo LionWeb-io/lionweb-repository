@@ -51,7 +51,7 @@ export const makeQueryToCheckHowManyDoNotExist = (nodeidlist: Set<string>): stri
 export const makeQueryToAttachNode = (attachPoint: AttachPoint, metaPointersTracker: MetaPointersTracker) : string => {
     return `UPDATE ${CONTAINMENTS_TABLE}
             SET "children"=array_append("children", '${attachPoint.root}')
-            WHERE node_id = '${attachPoint.container}' AND containment = '${metaPointersTracker.forMetapointer(attachPoint.containment)}';`
+            WHERE node_id = '${attachPoint.container}' AND containment = '${metaPointersTracker.forMetaPointer(attachPoint.containment)}';`
 }
 
 export const makeQueryToAttachNodeForFlatBuffers = (attachPoint: FBAttachPoint, metaPointersTracker: MetaPointersTracker) : string => {

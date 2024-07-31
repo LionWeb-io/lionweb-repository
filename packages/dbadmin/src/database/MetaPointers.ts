@@ -37,23 +37,23 @@ export function cleanGlobalPointersMap(repositoryName: string) {
     globalMetaPointersMap.delete(repositoryName)
 }
 
+/**
+ * This class is used to collect the MetaPointers to then collect at once.
+ */
 export class MetaPointersCollector {
     // Given the set of LionWebJsonMetaPointers would not recognize duplicate, we store also
     // keys for each metapointer, in order to catch duplicates
     private keysOfMetaPointers : Set<string> = new Set<string>()
     private metaPointers = new Set<LionWebJsonMetaPointer>();
-    // private fbPositions: Set<number> = new Set<number>();
 
     constructor(private repositoryData: RepositoryData) {
     }
-
 
     considerNode(node: LionWebJsonNode) {
         this.considerAddingMetaPointer(node.classifier);
         node.properties.forEach(p => this.considerAddingMetaPointer(p.property));
         node.references.forEach(r => this.considerAddingMetaPointer(r.reference));
         node.containments.forEach(c => this.considerAddingMetaPointer(c.containment));
-
     }
 
     considerAddingMetaPointer(metaPointer: LionWebJsonMetaPointer) {
@@ -84,13 +84,13 @@ export class MetaPointersCollector {
     }
 }
 
+/**
+ * This class permits to track the MetaPointers we need to store in the MetaPointers Table and then store
+ * exclusively the ones that we do not know already.
+ */
 export class MetaPointersTracker {
 
     constructor(private repositoryData: RepositoryData) {
-    }
-
-    collector() : MetaPointersCollector {
-        return new MetaPointersCollector(this.repositoryData)
     }
 
     async populateFromNodes(nodes: LionWebJsonNode[], task: LionwebTask) {
@@ -105,7 +105,7 @@ export class MetaPointersTracker {
         await collector.obtainIndexes(dbConnection)
     }
 
-    forMetapointer(metaPointer: LionWebJsonMetaPointer): number {
+    forMetaPointer(metaPointer: LionWebJsonMetaPointer): number {
         const key = `${metaPointer.language}@${metaPointer.version}@${metaPointer.key}`;
         if (!hasInGlobalMetaPointersMap(this.repositoryData.repository, key)) {
             throw new Error(`MetaPointer not found: ${JSON.stringify(metaPointer)}`);

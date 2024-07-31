@@ -11,7 +11,7 @@ import {
     makeQueryToCheckHowManyDoNotExist,
     makeQueryToCheckHowManyExist
 } from "./QueryNode.js"
-import {performImportFromFlatBuffers, storeNodes} from "./ImportLogic.js";
+import {performImportFromFlatBuffers, populateFromBulkImport, storeNodes} from "./ImportLogic.js";
 import { LionWebJsonMetaPointer, LionWebJsonNode} from "@lionweb/validation";
 import {FBBulkImport} from "../serialization/index.js";
 import {MetaPointersTracker} from "@lionweb/repository-dbadmin";
@@ -107,17 +107,13 @@ export class AdditionalQueries {
 
         // Add all the new nodes
         const pool = this.context.pgPool;
-        const metaPointerTracker = new MetaPointersTracker(repositoryData)
-        await storeNodes(await pool.connect(), repositoryData, this.context.dbConnection, bulkImport)
+        const metaPointersTracker = new MetaPointersTracker(repositoryData);
+        await populateFromBulkImport(metaPointersTracker, bulkImport, repositoryData, this.context.dbConnection);
+        await storeNodes(await pool.connect(), repositoryData, bulkImport, metaPointersTracker)
 
         // Attach the root of the new nodes to existing containers
-        await metaPointerTracker.populate((collector)=>{
         for (const attachPoint of bulkImport.attachPoints) {
-            collector.considerAddingMetaPointer(attachPoint.containment);
-        }
-        }, this.context.dbConnection)
-        for (const attachPoint of bulkImport.attachPoints) {
-            await this.context.dbConnection.query(repositoryData, makeQueryToAttachNode(attachPoint, metaPointerTracker))
+            await this.context.dbConnection.query(repositoryData, makeQueryToAttachNode(attachPoint, metaPointersTracker))
         }
 
         return { status: HttpSuccessCodes.Ok, success: true }

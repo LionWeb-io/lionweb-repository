@@ -179,7 +179,7 @@ export class DbChanges {
         this.updatesReferenceTable.values().forEach((values: DbReferenceUpdate[]) => {
             // Just take the first from _values_, as every property except _newValue_ is identical anyway.
             // And there can only be one new _targets_ value as well.
-            const metaPointerIndex = metaPointersTracker.forMetapointer(values[0].reference)
+            const metaPointerIndex = metaPointersTracker.forMetaPointer(values[0].reference)
             const data = {
                 node_id: values[0].node_id,
                 reference: metaPointerIndex,
@@ -196,7 +196,7 @@ export class DbChanges {
         this.updatesContainmentTable.values().forEach((values: DbContainmentUpdate[]) => {
             // Just take the first from _values_, as every property except _newValue_ is identical anyway.
             // And there can only be one new _targets_ value as well.
-            const metaPointerIndex = metaPointersTracker.forMetapointer(values[0].containment)
+            const metaPointerIndex = metaPointersTracker.forMetaPointer(values[0].containment)
             const data = {
                 node_id: values[0].node_id,
                 containment: metaPointerIndex,
@@ -213,7 +213,7 @@ export class DbChanges {
         this.updatesPropertyTable.values().forEach((values: DbPropertyUpdate[]) => {
             // Just take the first from _values_, as every property except _newValue_ is identical anyway.
             // And there can only be one newValue as well.
-            const metaPointerIndex = metaPointersTracker.forMetapointer(values[0].property)
+            const metaPointerIndex = metaPointersTracker.forMetaPointer(values[0].property)
             const data = {
                 node_id: values[0].node_id,
                 property: metaPointerIndex,
