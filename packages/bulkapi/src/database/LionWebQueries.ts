@@ -289,7 +289,7 @@ export class LionWebQueries {
             parentsOfImplicitlyRemovedChildNodes.queryResult.chunk
         )
         const metaPointersTracker = new MetaPointersTracker(repositoryData)
-        await populateFromDbChanges(metaPointersTracker, dbCommands, task)
+        await populateFromDbChanges(metaPointersTracker, dbCommands, toBeStoredNewNodes.map(ch => (ch as NodeAdded).node), task)
         queries += dbCommands.createPostgresQuery(metaPointersTracker)
 
         // Check whether new node ids are not reserved for another client
@@ -314,7 +314,7 @@ export class LionWebQueries {
                 }
             }
         }
-        await metaPointersTracker.populateFromNodes(toBeStoredNewNodes.map(ch => (ch as NodeAdded).node), task)
+        //await metaPointersTracker.populateFromNodes(toBeStoredNewNodes.map(ch => (ch as NodeAdded).node), task)
         queries += await this.context.queryMaker.dbInsertNodeArray( toBeStoredNewNodes.map(ch => (ch as NodeAdded).node), metaPointersTracker)
         // And run them on the database
         if (queries !== "") {
@@ -484,16 +484,19 @@ export function printMap(map: Map<string, string>): string {
     return result
 }
 
-async function populateFromDbChanges(metaPointersTracker: MetaPointersTracker, dbCommands: DbChanges, task: LionwebTask): Promise<void> {
-    const collector = metaPointersTracker.collector();
-    dbCommands.updatesPropertyTable.values().forEach(table => table.forEach(e =>
-        collector.considerAddingMetaPointer(e.property)
-    ))
-    dbCommands.updatesContainmentTable.values().forEach(table => table.forEach(e =>
-        collector.considerAddingMetaPointer(e.containment)
-    ))
-    dbCommands.updatesReferenceTable.values().forEach(table => table.forEach(e =>
-        collector.considerAddingMetaPointer(e.reference)
-    ))
-    await collector.obtainIndexes(task)
+async function populateFromDbChanges(metaPointersTracker: MetaPointersTracker, dbCommands: DbChanges,
+                                     nodes: LionWebJsonNode[],
+                                     task: LionwebTask): Promise<void> {
+    await metaPointersTracker.populate((collector)=> {
+        dbCommands.updatesPropertyTable.values().forEach(table => table.forEach(e =>
+            collector.considerAddingMetaPointer(e.property)
+        ))
+        dbCommands.updatesContainmentTable.values().forEach(table => table.forEach(e =>
+            collector.considerAddingMetaPointer(e.containment)
+        ))
+        dbCommands.updatesReferenceTable.values().forEach(table => table.forEach(e =>
+            collector.considerAddingMetaPointer(e.reference)
+        ))
+        nodes.forEach((node: LionWebJsonNode) => collector.considerNode(node))
+    }, task)
 }

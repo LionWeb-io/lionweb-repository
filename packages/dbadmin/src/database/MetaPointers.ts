@@ -67,6 +67,7 @@ export class MetaPointersCollector {
     }
 
     async obtainIndexes(task: LionwebTask | DbConnection): Promise<void> {
+        console.log(`MetaPointersCollector.obtainIndexes: ${this.metaPointers.size}`);
         if (this.metaPointers.size == 0) {
             return
         }
