@@ -49,7 +49,9 @@ export function initSchemaWithoutHistory(schema: string): string {
         classifier          int   NOT NULL,
         annotations         text[],
         parent              text,
-        PRIMARY KEY(id),
+        index               SERIAL,
+        PRIMARY KEY(index),
+        UNIQUE(id),
         FOREIGN KEY(classifier) REFERENCES ${METAPOINTERS_TABLE}(id)
     );
     
@@ -57,8 +59,8 @@ export function initSchemaWithoutHistory(schema: string): string {
     CREATE TABLE IF NOT EXISTS ${CONTAINMENTS_TABLE} (
         containment          int   NOT NULL,
         children             text[],
-        node_id              text,
-        PRIMARY KEY(containment, node_id),
+        node_index           integer,
+        PRIMARY KEY(containment, node_index),
         FOREIGN KEY(containment) REFERENCES ${METAPOINTERS_TABLE}(id)
     );
     
@@ -66,8 +68,8 @@ export function initSchemaWithoutHistory(schema: string): string {
     CREATE TABLE IF NOT EXISTS ${PROPERTIES_TABLE} (
         property          int   NOT NULL,
         value             text,
-        node_id           text,
-        PRIMARY KEY(property, node_id),
+        node_index           integer,
+        PRIMARY KEY(property, node_index),
         FOREIGN KEY(property) REFERENCES ${METAPOINTERS_TABLE}(id)
     );
     
@@ -75,8 +77,8 @@ export function initSchemaWithoutHistory(schema: string): string {
     CREATE TABLE IF NOT EXISTS ${REFERENCES_TABLE} (
         reference          int   NOT NULL,
         targets            jsonb[],
-        node_id            text,
-        PRIMARY KEY(reference, node_id),
+        node_index            integer,
+        PRIMARY KEY(reference, node_index),
         FOREIGN KEY(reference) REFERENCES ${METAPOINTERS_TABLE}(id)
     );
     

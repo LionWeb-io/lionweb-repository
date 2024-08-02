@@ -118,7 +118,7 @@ export class QueryMaker {
         // INSERT Containments
         const insertRowData = tbsNodesToCreate.flatMap(node =>
             node.containments.map(c => ({ 
-                node_id: node.id,
+                node_id: node.index,
                 containment: this.context.pgp.as.format(metaPointersTracker.forMetaPointer(c.containment).toString()),
                 children: c.children
             }))

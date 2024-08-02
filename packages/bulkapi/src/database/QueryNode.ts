@@ -49,7 +49,7 @@ export const nodesForQueryQuery = (nodesQuery: string): string => {
     ),
     node_properties AS ( 
         SELECT
-            relevant_nodes.id ,
+            relevant_nodes.index,
             array_remove(
                 array_agg(
                     CASE
@@ -70,13 +70,13 @@ export const nodesForQueryQuery = (nodesQuery: string): string => {
                 null
             ) properties
         FROM relevant_nodes
-        left join ${PROPERTIES_TABLE} prop  on prop.node_id  = relevant_nodes.id 
+        left join ${PROPERTIES_TABLE} prop  on prop.node_index  = relevant_nodes.index 
         left join ${METAPOINTERS_TABLE} mp on mp.id = prop.property 
-        group by relevant_nodes.id, prop.node_id
+        group by relevant_nodes.index, prop.node_index
     ),
     node_containments AS (
         SELECT    
-            n1.id ,
+            n1.index ,
             array_remove(
                 array_agg(
                     CASE 
@@ -98,13 +98,13 @@ export const nodesForQueryQuery = (nodesQuery: string): string => {
             )
         containments
         FROM node_properties n1
-        LEFT JOIN ${CONTAINMENTS_TABLE} con  ON con.node_id  = n1.id 
+        LEFT JOIN ${CONTAINMENTS_TABLE} con  ON con.node_index  = n1.index 
         left join ${METAPOINTERS_TABLE} mp on mp.id = con.containment
-        group by n1.id, con.node_id
+        group by n1.index, con.node_index
     ),
     node_references AS (
         SELECT    
-            n1.id ,
+            n1.index ,
             array_remove(array_agg(
                 CASE 
                     WHEN rref.reference IS NOT NULL THEN
@@ -121,9 +121,9 @@ export const nodesForQueryQuery = (nodesQuery: string): string => {
                         null
                 END), null)        rreferences
         from node_properties n1
-        left join ${REFERENCES_TABLE} rref  on rref.node_id  = n1.id
+        left join ${REFERENCES_TABLE} rref  on rref.node_index  = n1.index
         left join ${METAPOINTERS_TABLE} mp on mp.id = rref.reference 
-        group by n1.id, rref.node_id
+        group by n1.index, rref.node_index
     )
 
 select 
@@ -138,9 +138,9 @@ select
     array_to_json(rreferences) references,
     annotations annotations
 from relevant_nodes
-left join node_properties prop on prop.id = relevant_nodes.id
-left join node_containments con on con.id = relevant_nodes.id
-left join node_references rref on rref.id = relevant_nodes.id
+left join node_properties prop on prop.index = relevant_nodes.index
+left join node_containments con on con.index = relevant_nodes.index
+left join node_references rref on rref.index = relevant_nodes.index
 left join ${METAPOINTERS_TABLE} classifier on classifier.id = relevant_nodes.classifier
 `
 }
