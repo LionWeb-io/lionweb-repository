@@ -13,7 +13,7 @@ import {
 } from "./QueryNode.js"
 import {performImportFromFlatBuffers, populateFromBulkImport, storeNodes} from "./ImportLogic.js";
 import { LionWebJsonMetaPointer, LionWebJsonNode} from "@lionweb/validation";
-import {FBBulkImport} from "../serialization/index.js";
+import {FBBulkImport} from "../io/lionweb/serialization/flatbuffers/index.js";
 import {MetaPointersTracker} from "@lionweb/repository-dbadmin";
 
 export type NodeTreeResultType = {
@@ -52,7 +52,7 @@ export class AdditionalQueries {
      * @param depthLimit
      */
     getNodeTree = async (repositoryData: RepositoryData, nodeIdList: string[], depthLimit: number): Promise<QueryReturnType<NodeTreeResultType[]>> => {
-        requestLogger.info("LionWebQueries.getNodeTree for " + nodeIdList)
+        requestLogger.info("AdditionalQueries.getNodeTree for " + nodeIdList)
         let query = ""
         if (nodeIdList.length === 0) {
             return { status: HttpSuccessCodes.NoContent, query: "query", queryResult: [] }
@@ -62,7 +62,7 @@ export class AdditionalQueries {
     }
 
     bulkImport = async (repositoryData: RepositoryData, bulkImport: BulkImport): Promise<BulkImportResultType> => {
-        requestLogger.info("LionWebQueries.bulkImport")
+        requestLogger.info("AdditionalQueries.bulkImport")
 
         // Check - We verify there are no duplicate IDs in the new nodes
         const newNodesSet = new Set<string>()

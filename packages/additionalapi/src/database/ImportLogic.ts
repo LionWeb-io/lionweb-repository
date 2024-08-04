@@ -2,7 +2,7 @@ import {LionWebJsonNode} from "@lionweb/validation";
 import {Duplex} from "stream";
 import {PoolClient} from "pg";
 import {from as copyFrom} from "pg-copy-streams";
-import {FBBulkImport, FBMetaPointer} from "../serialization/index.js";
+import {FBBulkImport, FBMetaPointer} from "../io/lionweb/serialization/flatbuffers/index.js";
 import {
     makeQueryToAttachNodeForFlatBuffers,
     makeQueryToCheckHowManyDoNotExist,
@@ -12,7 +12,6 @@ import {
     DbConnection,
     HttpClientErrors,
     HttpSuccessCodes, RepositoryData,
-    requestLogger
 } from "@lionweb/repository-common";
 import {BulkImportResultType} from "./AdditionalQueries.js";
 import {BulkImport} from "./AdditionalQueries.js";
@@ -25,7 +24,7 @@ function prepareInputStreamNodes(nodes: LionWebJsonNode[], metaPointersTracker:M
     nodes.forEach(node => {
         read_stream_string.push(node.id);
         read_stream_string.push(SEPARATOR);
-        read_stream_string.push(metaPointersTracker.forMetaPointer(node.classifier));
+        read_stream_string.push(metaPointersTracker.forMetaPointer(node.classifier).toString());
         read_stream_string.push(SEPARATOR);
         read_stream_string.push("{" + node.annotations.join(",") + "}");
         read_stream_string.push(SEPARATOR);
@@ -40,7 +39,7 @@ function prepareInputStreamProperties(nodes: LionWebJsonNode[], metaPointersTrac
     const read_stream_string = new Duplex();
     nodes.forEach(node => {
         node.properties.forEach(prop => {
-                read_stream_string.push(metaPointersTracker.forMetaPointer(prop.property));
+                read_stream_string.push(metaPointersTracker.forMetaPointer(prop.property).toString());
                 read_stream_string.push(SEPARATOR);
                 if (prop.value == null) {
                     read_stream_string.push("\\N");
@@ -63,7 +62,7 @@ function prepareInputStreamReferences(nodes: LionWebJsonNode[], metaPointersTrac
     const read_stream_string = new Duplex();
     nodes.forEach(node => {
         node.references.forEach(ref => {
-                read_stream_string.push(metaPointersTracker.forMetaPointer(ref.reference));
+                read_stream_string.push(metaPointersTracker.forMetaPointer(ref.reference).toString());
                 read_stream_string.push(SEPARATOR);
 
                 const refValueStr = "{" + ref.targets.map(t => {
@@ -88,7 +87,7 @@ function prepareInputStreamContainments(nodes: LionWebJsonNode[], metaPointersTr
     const read_stream_string = new Duplex();
     nodes.forEach(node => {
         node.containments.forEach(containment => {
-            read_stream_string.push(metaPointersTracker.forMetaPointer(containment.containment));
+            read_stream_string.push(metaPointersTracker.forMetaPointer(containment.containment).toString());
                 read_stream_string.push(SEPARATOR);
                 read_stream_string.push("{" + containment.children.join(",") + "}");
                 read_stream_string.push(SEPARATOR);

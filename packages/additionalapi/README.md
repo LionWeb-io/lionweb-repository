@@ -54,12 +54,14 @@ From the root of this package run:
 
 ```
 flatc --ts -o src src/flatbuffers/chunk.fbs
+flatc --ts -o src src/flatbuffers/bulkimport.fbs
 ```
 
 ## How to generate ProtoBuf code
 
-From the root of the repository run:
+From the root of this package run:
 
 ```
-protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=packages/additionalapi/src/proto --ts_proto_opt=esModuleInterop=true --ts_proto_opt=env=node --ts_proto_opt=importSuffix=.js packages/additionalapi/src/proto/Chunk.proto
+protoc --plugin=../../node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=. --ts_proto_opt=esModuleInterop=true --ts_proto_opt=env=node --ts_proto_opt=importSuffix=.js src/proto/Chunk.proto
+protoc --plugin=../../node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=. --ts_proto_opt=esModuleInterop=true --ts_proto_opt=env=node --ts_proto_opt=importSuffix=.js src/proto/BulkImport.proto
 ```
