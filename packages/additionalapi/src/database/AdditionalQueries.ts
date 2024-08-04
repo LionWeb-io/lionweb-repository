@@ -67,13 +67,13 @@ export class AdditionalQueries {
         // Check - We verify there are no duplicate IDs in the new nodes
         const newNodesSet = new Set<string>()
         const parentsSet : Set<string> = new Set<string>()
-        bulkImport.nodes.forEach(node => {
+        for (const node of bulkImport.nodes) {
             if (newNodesSet.has(node.id)) {
                 return { status: HttpClientErrors.BadRequest, success: false, description: `Node with ID ${node.id} is being inserted twice` }
             }
             newNodesSet.add(node.id)
             parentsSet.add(node.parent)
-        })
+        }
 
         // Check - We verify all the parent nodes are either other new nodes or the attach points containers
         const attachPointContainers : Set<string> = new Set<string>()
