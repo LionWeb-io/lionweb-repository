@@ -21,6 +21,7 @@
     "lint": "eslint src"
   },
   "devDependencies": {
+    "@types/pg": "^8.11.6",
     "@types/uuid": "^10.0.0"
   },
   "dependencies": {
@@ -30,8 +31,8 @@
     "pg": "8.11.3",
     "pg-promise": "11.7.8",
     "pino": "^9.2.0",
-    "pino-pretty": "^11.2.1",
     "pino-http": "^10.1.0",
+    "pino-pretty": "^11.2.1",
     "source-map-support": "0.5.21",
     "uuid": "9.0.1"
   }

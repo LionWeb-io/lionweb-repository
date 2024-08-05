@@ -1,11 +1,14 @@
-// const pgp = require("pg-promise")();
 import {
     CONTAINMENTS_TABLE,
     NODES_TABLE,
     PROPERTIES_TABLE,
     REFERENCES_TABLE,
-    TableHelpers, RESERVED_IDS_TABLE,
-    ReservedIdRecord, NodeRecord, NODES_TABLE_HISTORY, RepositoryData, dbLogger
+    TableHelpers,
+    RESERVED_IDS_TABLE,
+    ReservedIdRecord,
+    NODES_TABLE_HISTORY,
+    RepositoryData,
+    dbLogger
 } from "@lionweb/repository-common"
 import {
     LionWebJsonNode,
@@ -15,6 +18,7 @@ import {
 import { BulkApiContext } from "../main.js"
 import { DbChanges } from "./DbChanges.js";
 import { sqlArrayFromNodeIdArray } from "./QueryNode.js"
+import {MetaPointersTracker} from "@lionweb/repository-dbadmin";
 
 /**
  * Class that builds SQL queries.
@@ -43,11 +47,12 @@ export class QueryMaker {
                 `
     }
 
-    public upsertQueriesForReferenceChanges(referenceChanges: ReferenceChange[]) {
+    public upsertQueriesForReferenceChanges(referenceChanges: ReferenceChange[], repositoryData: RepositoryData) {
         let queries = ""
         const db = new DbChanges(this.context)
         db.addChanges(referenceChanges)
-        queries += db.createPostgresQuery() 
+        const metaPointersTracker = new MetaPointersTracker(repositoryData);
+        queries += db.createPostgresQuery(metaPointersTracker)
         return queries + "\n"
     }
 
@@ -57,39 +62,36 @@ export class QueryMaker {
         return result + "]"
     }
 
+
     /**
      * Insert _tbsNodesToCreate_ in the lionweb_nodes table
      * These nodes are all new nodes, so all nodes,  properties, copntainmmentds and references are directly inserted
      * in their respective tables.
      * @param tbsNodesToCreate
      */
-    public dbInsertNodeArray(tbsNodesToCreate: LionWebJsonNode[]): string {
+    public async dbInsertNodeArray(tbsNodesToCreate: LionWebJsonNode[], metaPointersTracker: MetaPointersTracker): Promise<string> {
         dbLogger.debug("Queries insert new nodes " + tbsNodesToCreate.map(n => n.id))
         {
             let query = "-- create new nodes\n"
             if (tbsNodesToCreate.length === 0) {
                 return query
             }
-            const node_rows: NodeRecord[] = tbsNodesToCreate.map(node => {
+            const node_rows = tbsNodesToCreate.map(node => {
                 return {
                     id: node.id,
-                    classifier_language: node.classifier.language,
-                    classifier_version: node.classifier.version,
-                    classifier_key: node.classifier.key,
+                    classifier: this.context.pgp.as.format(metaPointersTracker.forMetaPointer(node.classifier).toString()),
                     annotations: node.annotations,
                     parent: node.parent
                 }
             })
             query += this.context.pgp.helpers.insert(node_rows, TableHelpers.NODES_COLUMN_SET) + ";\n"
-            query += this.insertContainments(tbsNodesToCreate)
+            query += this.insertContainments(tbsNodesToCreate, metaPointersTracker)
 
             // INSERT Properties
             const insertProperties = tbsNodesToCreate.flatMap(node =>
                 node.properties.map(prop => ({ 
                     node_id: node.id,
-                    property_language: prop.property.language,
-                    property_version: prop.property.version,
-                    property_key: prop.property.key,
+                    property: this.context.pgp.as.format(metaPointersTracker.forMetaPointer(prop.property).toString()),
                     value: prop.value }))
             )
             if (insertProperties.length !== 0) {
@@ -100,9 +102,7 @@ export class QueryMaker {
             const insertReferences = tbsNodesToCreate.flatMap(node =>
                 node.references.map(reference => ({ 
                     node_id: node.id,
-                    reference_version: reference.reference.version,
-                    reference_language: reference.reference.language,
-                    reference_key: reference.reference.key,
+                    reference:this.context.pgp.as.format(metaPointersTracker.forMetaPointer(reference.reference).toString()),
                     targets: reference.targets
                 }))
             )
@@ -113,15 +113,13 @@ export class QueryMaker {
         }
     }
 
-    public insertContainments(tbsNodesToCreate: LionWebJsonNode[]): string {
+    public insertContainments(tbsNodesToCreate: LionWebJsonNode[], metaPointersTracker: MetaPointersTracker): string {
         let query = "-- insert containments for new node\n"
         // INSERT Containments
         const insertRowData = tbsNodesToCreate.flatMap(node =>
             node.containments.map(c => ({ 
                 node_id: node.id,
-                containment_language: c.containment.language,
-                containment_version: c.containment.version,
-                containment_key: c.containment.key,
+                containment: this.context.pgp.as.format(metaPointersTracker.forMetaPointer(c.containment).toString()),
                 children: c.children
             }))
         )

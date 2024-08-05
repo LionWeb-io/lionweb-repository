@@ -4,10 +4,10 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { FBContainment } from '../../serialization/flatbuffers/fbcontainment.js';
-import { FBMetaPointer } from '../../serialization/flatbuffers/fbmeta-pointer.js';
-import { FBProperty } from '../../serialization/flatbuffers/fbproperty.js';
-import { FBReference } from '../../serialization/flatbuffers/fbreference.js';
+import { FBContainment } from '../../../../../io/lionweb/serialization/flatbuffers/gen/fbcontainment.js';
+import { FBMetaPointer } from '../../../../../io/lionweb/serialization/flatbuffers/gen/fbmeta-pointer.js';
+import { FBProperty } from '../../../../../io/lionweb/serialization/flatbuffers/gen/fbproperty.js';
+import { FBReference } from '../../../../../io/lionweb/serialization/flatbuffers/gen/fbreference.js';
 
 
 export class FBNode {

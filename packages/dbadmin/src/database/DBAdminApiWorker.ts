@@ -8,6 +8,7 @@ import {
     initSchemaWithoutHistory,
     listSchemas
 } from "../tools/index.js"
+import {cleanGlobalPointersMap} from "./MetaPointers.js";
 
 export type ListRepositoriesResult = {
     schema_name: string
@@ -23,6 +24,7 @@ export class DBAdminApiWorker {
 
     async deleteRepository(repositoryData: RepositoryData): Promise<QueryReturnType<string>> {
         const queryResult = await this.ctx.dbConnection.queryWithoutRepository(dropSchema(repositoryData.repository))
+        cleanGlobalPointersMap(repositoryData.repository);
         return {
             status: HttpSuccessCodes.Ok,
             query: "",
@@ -40,6 +42,7 @@ export class DBAdminApiWorker {
     }
 
     async createRepository(repositoryData: RepositoryData): Promise<QueryReturnType<string>> {
+        cleanGlobalPointersMap(repositoryData.repository);
         const schemaSql = initSchemaWithHistory(repositoryData.repository)
         const sql = removeNewlinesBetween$$(schemaSql)
         const queryResult = await this.ctx.dbConnection.queryWithoutRepository(sql)

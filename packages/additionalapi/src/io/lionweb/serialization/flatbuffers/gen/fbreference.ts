@@ -4,8 +4,8 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { FBMetaPointer } from '../../serialization/flatbuffers/fbmeta-pointer.js';
-import { FBReferenceValue } from '../../serialization/flatbuffers/fbreference-value.js';
+import { FBMetaPointer } from '../../../../../io/lionweb/serialization/flatbuffers/gen/fbmeta-pointer.js';
+import { FBReferenceValue } from '../../../../../io/lionweb/serialization/flatbuffers/gen/fbreference-value.js';
 
 
 export class FBReference {

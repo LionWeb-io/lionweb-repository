@@ -1,4 +1,4 @@
-namespace serialization.flatbuffers;
+namespace io.lionweb.serialization.flatbuffers.gen;
 
 table FBChunk {
     serializationFormatVersion: string;
@@ -48,16 +48,3 @@ table FBReferenceValue {
 }
 
 root_type FBChunk;
-
-/* Specific for Bulk Import */
-
-table FBBulkImport {
-    attachPoints: [FBAttachPoint];
-    nodes:[FBNode];
-}
-
-table FBAttachPoint {
-    container: string;
-    containment: FBMetaPointer;
-    root: string;
-}

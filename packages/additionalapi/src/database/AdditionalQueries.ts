@@ -11,9 +11,10 @@ import {
     makeQueryToCheckHowManyDoNotExist,
     makeQueryToCheckHowManyExist
 } from "./QueryNode.js"
-import {performImportFromFlatBuffers, storeNodes} from "./ImportLogic.js";
+import {performImportFromFlatBuffers, populateFromBulkImport, storeNodes} from "./ImportLogic.js";
 import { LionWebJsonMetaPointer, LionWebJsonNode} from "@lionweb/validation";
-import {FBBulkImport} from "../serialization/index.js";
+import {FBBulkImport} from "../io/lionweb/serialization/flatbuffers/index.js";
+import {MetaPointersTracker} from "@lionweb/repository-dbadmin";
 
 export type NodeTreeResultType = {
     id: string
@@ -51,7 +52,7 @@ export class AdditionalQueries {
      * @param depthLimit
      */
     getNodeTree = async (repositoryData: RepositoryData, nodeIdList: string[], depthLimit: number): Promise<QueryReturnType<NodeTreeResultType[]>> => {
-        requestLogger.info("LionWebQueries.getNodeTree for " + nodeIdList)
+        requestLogger.info("AdditionalQueries.getNodeTree for " + nodeIdList)
         let query = ""
         if (nodeIdList.length === 0) {
             return { status: HttpSuccessCodes.NoContent, query: "query", queryResult: [] }
@@ -61,18 +62,18 @@ export class AdditionalQueries {
     }
 
     bulkImport = async (repositoryData: RepositoryData, bulkImport: BulkImport): Promise<BulkImportResultType> => {
-        requestLogger.info("LionWebQueries.bulkImport")
+        requestLogger.info("AdditionalQueries.bulkImport")
 
         // Check - We verify there are no duplicate IDs in the new nodes
         const newNodesSet = new Set<string>()
         const parentsSet : Set<string> = new Set<string>()
-        bulkImport.nodes.forEach(node => {
+        for (const node of bulkImport.nodes) {
             if (newNodesSet.has(node.id)) {
                 return { status: HttpClientErrors.BadRequest, success: false, description: `Node with ID ${node.id} is being inserted twice` }
             }
             newNodesSet.add(node.id)
             parentsSet.add(node.parent)
-        })
+        }
 
         // Check - We verify all the parent nodes are either other new nodes or the attach points containers
         const attachPointContainers : Set<string> = new Set<string>()
@@ -106,11 +107,13 @@ export class AdditionalQueries {
 
         // Add all the new nodes
         const pool = this.context.pgPool;
-        await storeNodes(await pool.connect(), bulkImport.nodes, repositoryData.repository)
+        const metaPointersTracker = new MetaPointersTracker(repositoryData);
+        await populateFromBulkImport(metaPointersTracker, bulkImport, repositoryData, this.context.dbConnection);
+        await storeNodes(await pool.connect(), repositoryData, bulkImport, metaPointersTracker)
 
         // Attach the root of the new nodes to existing containers
         for (const attachPoint of bulkImport.attachPoints) {
-            await this.context.dbConnection.query(repositoryData, makeQueryToAttachNode(attachPoint))
+            await this.context.dbConnection.query(repositoryData, makeQueryToAttachNode(attachPoint, metaPointersTracker))
         }
 
         return { status: HttpSuccessCodes.Ok, success: true }
@@ -121,7 +124,7 @@ export class AdditionalQueries {
      * to the "neutral" format and invoke bulkImport. This choice has been made for performance reasons.
      */
     bulkImportFromFlatBuffers = async (repositoryData: RepositoryData, bulkImport: FBBulkImport): Promise<BulkImportResultType> => {
-        requestLogger.info("LionWebQueries.bulkImportFromFlatBuffers")
+        requestLogger.info(`LionWebQueries.bulkImportFromFlatBuffers (nodes ${bulkImport.nodesLength()}, attach points: ${bulkImport.attachPointsLength()})`)
         const pool = this.context.pgPool;
 
         return await performImportFromFlatBuffers(await pool.connect(), this.context.dbConnection, bulkImport, repositoryData)

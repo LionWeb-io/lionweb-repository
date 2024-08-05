@@ -4,8 +4,8 @@
 
 import * as flatbuffers from 'flatbuffers';
 
-import { FBAttachPoint } from '../../serialization/flatbuffers/fbattach-point.js';
-import { FBNode } from '../../serialization/flatbuffers/fbnode.js';
+import { FBAttachPoint } from '../../../../../io/lionweb/serialization/flatbuffers/gen/fbattach-point.js';
+import { FBNode } from '../../../../../io/lionweb/serialization/flatbuffers/gen/fbnode.js';
 
 
 export class FBBulkImport {
@@ -85,6 +85,14 @@ static startNodesVector(builder:flatbuffers.Builder, numElems:number) {
 static endFBBulkImport(builder:flatbuffers.Builder):flatbuffers.Offset {
   const offset = builder.endObject();
   return offset;
+}
+
+static finishFBBulkImportBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
+  builder.finish(offset);
+}
+
+static finishSizePrefixedFBBulkImportBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
+  builder.finish(offset, undefined, true);
 }
 
 static createFBBulkImport(builder:flatbuffers.Builder, attachPointsOffset:flatbuffers.Offset, nodesOffset:flatbuffers.Offset):flatbuffers.Offset {

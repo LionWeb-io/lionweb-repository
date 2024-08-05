@@ -13,6 +13,7 @@ services:
 
   db:
      image: postgres:16.1
+     shm_size: 1g
      restart: always
      user: postgres
      volumes:

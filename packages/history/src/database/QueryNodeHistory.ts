@@ -1,3 +1,5 @@
+import {METAPOINTERS_TABLE} from "@lionweb/repository-common";
+
 export function sqlArrayFromNodeIdArray(strings: string[]): string {
     return `(${strings.map(id => `'${id}'`).join(", ")})`
 }
@@ -23,13 +25,13 @@ WITH nodes_for_version AS (
             array_remove(
                 array_agg(
                     CASE
-                      WHEN prop.property_key IS NOT NULL THEN
+                      WHEN prop.property IS NOT NULL THEN
                         jsonb_build_object(
                             'property', 
                             json_build_object(
-                                'version', prop.property_version,
-                                'language', prop.property_language,
-                                'key', prop.property_key
+                                'version', mp._version,
+                                'language', mp.language,
+                                'key', mp.key
                             ),
                             'value', prop.value
                         )
@@ -40,7 +42,8 @@ WITH nodes_for_version AS (
                 null
             ) properties
         FROM nodes_for_version n1 
-        LEFT JOIN propertiesForVersion(${repoVersion}) prop  on prop.node_id  = n1.id 
+        LEFT JOIN propertiesForVersion(${repoVersion}) prop on prop.node_id  = n1.id
+        LEFT JOIN ${METAPOINTERS_TABLE} mp on mp.id = prop.property 
         group by n1.id, prop.node_id
     ),
     node_containments AS (
@@ -49,13 +52,13 @@ WITH nodes_for_version AS (
             array_remove(
                 array_agg(
                     CASE 
-                        WHEN con.containment_key IS NOT NULL THEN
+                        WHEN con.containment IS NOT NULL THEN
                             jsonb_build_object(
                                 'containment',
                                 json_build_object(
-                                    'version', con.containment_version,
-                                    'language', con.containment_language,
-                                    'key', con.containment_key
+                                    'version', mp._version,
+                                    'language', mp.language,
+                                    'key', mp.key
                                 ),     
                                 'children', con.children
                             )
@@ -67,7 +70,8 @@ WITH nodes_for_version AS (
             )
         containments
         FROM nodes_for_version n1
-        LEFT JOIN containmentsForVersion(${repoVersion}) con  on con.node_id  = n1.id 
+        LEFT JOIN containmentsForVersion(${repoVersion}) con on con.node_id  = n1.id 
+        LEFT JOIN ${METAPOINTERS_TABLE} mp on mp.id = con.containment 
         group by n1.id, con.node_id
     ),
     node_references AS (
@@ -75,13 +79,13 @@ WITH nodes_for_version AS (
             n1.id ,
             array_remove(array_agg(
                 CASE 
-                    WHEN rref.reference_key IS NOT NULL THEN
+                    WHEN rref.reference IS NOT NULL THEN
                         jsonb_build_object(
                             'reference',
                                 json_build_object(
-                                    'version', rref.reference_version,
-                                    'language', rref.reference_language,
-                                    'key', rref.reference_key
+                                    'version', mp._version,
+                                    'language', mp.language,
+                                    'key', mp.key
                                 ),     
                               'targets', rref.targets
                           )
@@ -89,16 +93,17 @@ WITH nodes_for_version AS (
                         null
                 END), null)        rreferences
         FROM nodes_for_version n1
-        LEFT JOIN referencesForVersion(${repoVersion}) rref  on rref.node_id  = n1.id 
+        LEFT JOIN referencesForVersion(${repoVersion}) rref on rref.node_id  = n1.id 
+        LEFT JOIN ${METAPOINTERS_TABLE} mp on mp.id = rref.reference
         GROUP BY n1.id, rref.node_id
     )
 
 SELECT 
     nodes_for_version.id,
     jsonb_build_object(
-            'key', classifier_key,
-            'language', classifier_language,
-            'version', classifier_version) classifier,
+            'key', mp.key,
+            'language', mp.language,
+            'version', mp._version) classifier,
     parent,
     array_to_json(prop.properties) properties,
     array_to_json(containments) containments,
@@ -108,6 +113,7 @@ FROM nodes_for_version
 LEFT JOIN node_properties prop on prop.id = nodes_for_version.id
 LEFT JOIN node_containments con on con.id = nodes_for_version.id
 LEFT JOIN node_references rref on rref.id = nodes_for_version.id
+LEFT JOIN ${METAPOINTERS_TABLE} mp on mp.id = nodes_for_version.classifier
 
 
     `

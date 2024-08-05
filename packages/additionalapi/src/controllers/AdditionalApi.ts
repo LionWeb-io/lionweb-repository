@@ -8,11 +8,11 @@ import {
     lionwebResponse, ParameterError,
     RepositoryData
 } from "@lionweb/repository-common"
-import {PBBulkImport, PBMetaPointer} from "../proto/Chunk.js";
+import {PBBulkImport, PBMetaPointer} from "../proto/index.js";
 import {BulkImport} from "../database/index.js";
 import {LionWebJsonMetaPointer} from "@lionweb/validation";
 import {ByteBuffer} from "flatbuffers";
-import {FBBulkImport} from "../serialization/index.js";
+import {FBBulkImport} from "../io/lionweb/serialization/flatbuffers/index.js";
 
 export const JSON_CONTENT_TYPE = "application/json"
 export const PROTOBUF_CONTENT_TYPE = "application/protobuf"

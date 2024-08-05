@@ -120,7 +120,7 @@ export class RepositoryClient {
             return { body: result, status: status }
         } catch (e) {
             const error = asError(e)
-            this.handleError(error)
+            this.handleError(error, method)
             return {
                 status: HttpClientErrors.PreconditionFailed,
                 body: {
@@ -171,13 +171,17 @@ export class RepositoryClient {
         }
     }
 
-    private handleError(e: Error): void {
+    private handleError(e: Error, method: string = null): void {
         let errorMess: string = e.message
         if (e.message.includes("aborted")) {
             errorMess = `Time out: no response from ${this._SERVER_URL}.`
             console.error(errorMess)
         }
-        console.error("handleError: " + JSON.stringify(e))
+        if (method == null) {
+            console.error("handleError: " + JSON.stringify(e))
+        } else {
+            console.error(`handleError on /${method}: ` + JSON.stringify(e))
+        }
     }
 
     /**
