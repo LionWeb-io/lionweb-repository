@@ -58,7 +58,7 @@ export function initSchemaWithoutHistory(schema: string): string {
         containment          int   NOT NULL,
         children             text[],
         node_id              text,
-        PRIMARY KEY(containment, node_id),
+        -- PRIMARY KEY(node_id, containment),
         FOREIGN KEY(containment) REFERENCES ${METAPOINTERS_TABLE}(id)
     );
     
@@ -67,7 +67,7 @@ export function initSchemaWithoutHistory(schema: string): string {
         property          int   NOT NULL,
         value             text,
         node_id           text,
-        PRIMARY KEY(property, node_id),
+        -- PRIMARY KEY(node_id, property),
         FOREIGN KEY(property) REFERENCES ${METAPOINTERS_TABLE}(id)
     );
     
@@ -76,7 +76,7 @@ export function initSchemaWithoutHistory(schema: string): string {
         reference          int   NOT NULL,
         targets            jsonb[],
         node_id            text,
-        PRIMARY KEY(reference, node_id),
+        -- PRIMARY KEY(node_id, reference),
         FOREIGN KEY(reference) REFERENCES ${METAPOINTERS_TABLE}(id)
     );
     
@@ -112,13 +112,17 @@ export function initSchemaWithoutHistory(schema: string): string {
         
     -- Create indices to enable finding features for nodes quickly
     
-    CREATE INDEX MetaPointersIndex ON ${METAPOINTERS_TABLE} (id);
-    CREATE INDEX NodesIndex ON ${NODES_TABLE} (id);
-    CREATE INDEX ContainmentsNodesIndex ON ${CONTAINMENTS_TABLE} (containment, node_id);
-    CREATE INDEX PropertiesNodesIndex   ON ${PROPERTIES_TABLE}   (property, node_id);
-    CREATE INDEX ReferencesNodesIndex   ON ${REFERENCES_TABLE}   (reference, node_id);
-    CREATE INDEX ReservedIdsIndex       ON ${RESERVED_IDS_TABLE} (node_id);
-    CREATE INDEX MpsValuesIndex       ON ${METAPOINTERS_TABLE} (language, _version, key);
+    --CREATE INDEX MetaPointersIndex ON ${METAPOINTERS_TABLE} (id);
+    --CREATE INDEX NodesIndex ON ${NODES_TABLE} (id);
+    CREATE INDEX ContainmentsNodesIndex ON ${CONTAINMENTS_TABLE} USING HASH (node_id);
+    CREATE INDEX PropertiesNodesIndex   ON ${PROPERTIES_TABLE}   USING HASH (node_id);
+    CREATE INDEX ReferencesNodesIndex   ON ${REFERENCES_TABLE}   USING HASH (node_id);
+    
+    -- CREATE INDEX ContainmentsNodesIndex ON ${CONTAINMENTS_TABLE} (containment, node_id);
+    -- CREATE INDEX PropertiesNodesIndex   ON ${PROPERTIES_TABLE}   (property, node_id);
+    -- CREATE INDEX ReferencesNodesIndex   ON ${REFERENCES_TABLE}   (reference, node_id);
+    -- CREATE INDEX ReservedIdsIndex       ON ${RESERVED_IDS_TABLE} (node_id);
+    -- CREATE INDEX MpsValuesIndex       ON ${METAPOINTERS_TABLE} (language, _version, key);
     
     -- SET repo.version = 0;
     -- SET repo.version = (SELECT value FROM CURRENT_DATA WHERE key = 'repo.version');
@@ -126,7 +130,7 @@ export function initSchemaWithoutHistory(schema: string): string {
     
     --------------------------------------------------------------------        
     -- Function to go to the next repo version
-    -- The table currenbt_data should reflect the new repo.version and
+    -- The table current_data should reflect the new repo.version and
     -- The new repo.version should be added to the repo_versions table 
     --------------------------------------------------------------------        
     CREATE OR REPLACE FUNCTION nextRepoVersion(client text)
