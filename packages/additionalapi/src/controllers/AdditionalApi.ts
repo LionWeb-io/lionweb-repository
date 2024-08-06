@@ -118,9 +118,13 @@ export class AdditionalApiImpl implements AdditionalApi {
 
             const result = await this.context.additionalApiWorker.bulkImportFromFlatBuffers(repositoryData,
                 fbBulkImport)
+            let messages: any[] = [];
+            if (result.description != null) {
+                messages = [result.description]
+            }
             lionwebResponse(response, HttpSuccessCodes.Ok, {
                 success: result.success,
-                messages: [],
+                messages: messages,
                 data: []
             })
         } else {
