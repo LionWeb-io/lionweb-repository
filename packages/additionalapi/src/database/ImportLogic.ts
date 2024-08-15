@@ -232,18 +232,22 @@ async function pipeInputIntoQueryStream(client: PoolClient, query: string, input
 
 export async function storeNodes(client: PoolClient, repositoryData: RepositoryData,
                                  bulkImport: BulkImport, metaPointersTracker: MetaPointersTracker) : Promise<void> {
-    const repositoryName = repositoryData.repository;
+    try {
+        const repositoryName = repositoryData.repository;
 
-    const nodes = bulkImport.nodes;
+        const nodes = bulkImport.nodes;
 
-    await pipeInputIntoQueryStream(client,`COPY "${repositoryName}".lionweb_nodes(id,classifier,annotations,parent) FROM STDIN`,
-        prepareInputStreamNodes(nodes, metaPointersTracker), "nodes insertion");
-    await pipeInputIntoQueryStream(client,`COPY "${repositoryName}".lionweb_containments(containment,children,node_id) FROM STDIN`,
-        prepareInputStreamContainments(nodes, metaPointersTracker), "containments insertion");
-    await pipeInputIntoQueryStream(client,`COPY "${repositoryName}".lionweb_references(reference,targets,node_id) FROM STDIN`,
-        prepareInputStreamReferences(nodes, metaPointersTracker), "references ${repositoryName}");
-    await pipeInputIntoQueryStream(client,`COPY "${repositoryName}".lionweb_properties(property,value,node_id) FROM STDIN`,
-        prepareInputStreamProperties(nodes, metaPointersTracker), "properties ${repositoryName}");
+        await pipeInputIntoQueryStream(client, `COPY "${repositoryName}".lionweb_nodes(id,classifier,annotations,parent) FROM STDIN`,
+            prepareInputStreamNodes(nodes, metaPointersTracker), "nodes insertion");
+        await pipeInputIntoQueryStream(client, `COPY "${repositoryName}".lionweb_containments(containment,children,node_id) FROM STDIN`,
+            prepareInputStreamContainments(nodes, metaPointersTracker), "containments insertion");
+        await pipeInputIntoQueryStream(client, `COPY "${repositoryName}".lionweb_references(reference,targets,node_id) FROM STDIN`,
+            prepareInputStreamReferences(nodes, metaPointersTracker), "references ${repositoryName}");
+        await pipeInputIntoQueryStream(client, `COPY "${repositoryName}".lionweb_properties(property,value,node_id) FROM STDIN`,
+            prepareInputStreamProperties(nodes, metaPointersTracker), "properties ${repositoryName}");
+    } finally {
+        client.release(false)
+    }
 }
 
 async function storeNodesThroughFlatBuffers(client: PoolClient, repositoryData: RepositoryData, dbConnection: DbConnection, bulkImport: FBBulkImport, repositoryName: string)
@@ -269,58 +273,83 @@ async function storeNodesThroughFlatBuffers(client: PoolClient, repositoryData: 
  * to the "neutral" format and invoke bulkImport. This choice has been made for performance reasons.
  */
 export async function performImportFromFlatBuffers(client: PoolClient, dbConnection: DbConnection, bulkImport: FBBulkImport, repositoryData: RepositoryData) : Promise<BulkImportResultType> {
-    // Check - We verify there are no duplicate IDs in the new nodes
-    const newNodesSet = new Set<string>()
-    const parentsSet : Set<string> = new Set<string>()
-    for (let i = 0; i < bulkImport.nodesLength(); i++) {
-        const fbNode = bulkImport.nodes(i);
-        const fbNodeID = fbNode.id();
-        if (newNodesSet.has(fbNodeID)) {
-            return { status: HttpClientErrors.BadRequest, success: false, description: `Node with ID ${fbNodeID} is being inserted twice` }
+    try {
+
+        // Check - We verify there are no duplicate IDs in the new nodes
+        const newNodesSet = new Set<string>()
+        const parentsSet: Set<string> = new Set<string>()
+        for (let i = 0; i < bulkImport.nodesLength(); i++) {
+            const fbNode = bulkImport.nodes(i);
+            const fbNodeID = fbNode.id();
+            if (newNodesSet.has(fbNodeID)) {
+                return {
+                    status: HttpClientErrors.BadRequest,
+                    success: false,
+                    description: `Node with ID ${fbNodeID} is being inserted twice`
+                }
+            }
+            newNodesSet.add(fbNodeID)
+            parentsSet.add(fbNode.parent())
         }
-        newNodesSet.add(fbNodeID)
-        parentsSet.add(fbNode.parent())
-    }
 
-    // Check - We verify all the parent nodes are either other new nodes or the attach points containers
-    // Check - verify the root of the attach points are among the new nodes
-    const attachPointContainers : Set<string> = new Set<string>()
-    for (let i = 0; i < bulkImport.attachPointsLength(); i++) {
-        const fbAttachPoint = bulkImport.attachPoints(i);
-        const fbAttachPointRoot = fbAttachPoint.root();
-        if (!newNodesSet.has(fbAttachPointRoot)) {
-            return { status: HttpClientErrors.BadRequest, success: false, description: `Attach point root ${fbAttachPointRoot} does not appear among the new nodes` }
+        // Check - We verify all the parent nodes are either other new nodes or the attach points containers
+        // Check - verify the root of the attach points are among the new nodes
+        const attachPointContainers: Set<string> = new Set<string>()
+        for (let i = 0; i < bulkImport.attachPointsLength(); i++) {
+            const fbAttachPoint = bulkImport.attachPoints(i);
+            const fbAttachPointRoot = fbAttachPoint.root();
+            if (!newNodesSet.has(fbAttachPointRoot)) {
+                return {
+                    status: HttpClientErrors.BadRequest,
+                    success: false,
+                    description: `Attach point root ${fbAttachPointRoot} does not appear among the new nodes`
+                }
+            }
+            attachPointContainers.add(fbAttachPoint.container())
         }
-        attachPointContainers.add(fbAttachPoint.container())
-    }
-    parentsSet.forEach(parent => {
-        if (!newNodesSet.has(parent) && !attachPointContainers.has(parent)) {
-            return { status: HttpClientErrors.BadRequest, success: false, description: `Invalid parent specified: ${parent}. It is not one of the new nodes being added or one of the attach points` }
+        parentsSet.forEach(parent => {
+            if (!newNodesSet.has(parent) && !attachPointContainers.has(parent)) {
+                return {
+                    status: HttpClientErrors.BadRequest,
+                    success: false,
+                    description: `Invalid parent specified: ${parent}. It is not one of the new nodes being added or one of the attach points`
+                }
+            }
+        });
+
+        // Check - verify all the given new nodes are effectively new
+        const allNewNodesResult = await dbConnection.query(repositoryData, makeQueryToCheckHowManyExist(newNodesSet));
+        if (allNewNodesResult > 0) {
+            return {
+                status: HttpClientErrors.BadRequest,
+                success: false,
+                description: `Some of the given nodes already exist`
+            }
         }
-    });
 
-    // Check - verify all the given new nodes are effectively new
-    const allNewNodesResult = await dbConnection.query(repositoryData, makeQueryToCheckHowManyExist(newNodesSet));
-    if (allNewNodesResult > 0) {
-        return { status: HttpClientErrors.BadRequest, success: false, description: `Some of the given nodes already exist` }
+        // Check - verify the containers from the attach points are existing nodes
+        const allExistingNodesResult = await dbConnection.query(repositoryData, makeQueryToCheckHowManyDoNotExist(attachPointContainers));
+        if (allExistingNodesResult > 0) {
+            return {
+                status: HttpClientErrors.BadRequest,
+                success: false,
+                description: `Some of the attach point containers do not exist`
+            }
+        }
+
+        // Add all the new nodes
+        const metaPointersTracker = await storeNodesThroughFlatBuffers(client, repositoryData, dbConnection, bulkImport, repositoryData.repository)
+
+        // Attach the root of the new nodes to existing containers
+        for (let i = 0; i < bulkImport.attachPointsLength(); i++) {
+            const fbAttachPoint = bulkImport.attachPoints(i);
+            await dbConnection.query(repositoryData, makeQueryToAttachNodeForFlatBuffers(fbAttachPoint, metaPointersTracker))
+        }
+
+        return {status: HttpSuccessCodes.Ok, success: true}
+    } finally {
+        client.release(false)
     }
-
-    // Check - verify the containers from the attach points are existing nodes
-    const allExistingNodesResult = await dbConnection.query(repositoryData, makeQueryToCheckHowManyDoNotExist(attachPointContainers));
-    if (allExistingNodesResult > 0) {
-        return { status: HttpClientErrors.BadRequest, success: false, description: `Some of the attach point containers do not exist` }
-    }
-
-    // Add all the new nodes
-    const metaPointersTracker = await storeNodesThroughFlatBuffers(client, repositoryData, dbConnection, bulkImport, repositoryData.repository)
-
-    // Attach the root of the new nodes to existing containers
-    for (let i = 0; i < bulkImport.attachPointsLength(); i++) {
-        const fbAttachPoint = bulkImport.attachPoints(i);
-        await dbConnection.query(repositoryData, makeQueryToAttachNodeForFlatBuffers(fbAttachPoint, metaPointersTracker))
-    }
-
-    return { status: HttpSuccessCodes.Ok, success: true}
 }
 
 async function populateThroughFlatBuffers(metaPointersTracker: MetaPointersTracker, bulkImport: FBBulkImport, repositoryData: RepositoryData, dbConnection: DbConnection): Promise<void> {
