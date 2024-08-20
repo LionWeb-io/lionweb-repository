@@ -56,7 +56,7 @@ export const makeQueryToAttachNode = (attachPoint: AttachPoint, metaPointersTrac
 
 export const makeQueryToAttachNodeForFlatBuffers = (attachPoint: FBAttachPoint, metaPointersTracker: MetaPointersTracker) : string => {
     const containment = attachPoint.containment()
-    return `UPDATE ${CONTAINMENTS_TABLE}
-            SET "children"=array_append("children", '${attachPoint.root}')
-            WHERE node_id = '${attachPoint.container}' AND containment = ${forFBMetapointer(metaPointersTracker, containment)};`
+    return `UPDATE ${CONTAINMENTS_TABLE} 
+            SET "children"=array_append("children", '${attachPoint.root()}')
+            WHERE node_id = '${attachPoint.container()}' AND containment = ${forFBMetapointer(metaPointersTracker, containment)};`
 }
