@@ -49,6 +49,6 @@ jobs:
 
       - name: start server and run tests (one step, else server will be down when tests start)
         run: |
-          npm run -w @lionweb/repository-server dev &
+          npm run -w @lionweb/repository-server dev-no-setup &
           sleep 6
           npm run test
