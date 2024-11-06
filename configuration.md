@@ -25,12 +25,16 @@ Below is the server-config.json with all default values
   "startup": {
     // Whether to create a new database at startup.
     // Note that the new database will overwrite any existing database  
-    "createDatabase": true,
+    // Values are "always" | "never" | "ifnotexists"
+    "createDatabase": "always",
     // The list of repositories to be created at start uo, can be empty
     "createRepositories": [
       {
         // Repository name
         "name": "default",
+        //
+        // Values are "always" | "never" | "ifnotexists"
+        create: "if-not-exists"
         // Whether the repository should keep the history
         "history": false
       }

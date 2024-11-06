@@ -4,13 +4,15 @@
     "expectedToken": null
   },
   "startup": {
-    "createDatabase": true,
+    "createDatabase": "if-not-exists",
     "createRepositories": [
       {
+        "create": "if-not-exists",
         "name": "one",
         "history": false
       },
       {
+        "create": "always",
         "name": "two",
         "history": true
       }

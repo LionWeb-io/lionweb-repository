@@ -4,7 +4,7 @@ import bodyParser from "body-parser"
 import cors from "cors"
 import pgPromise from "pg-promise"
 import {postgresConnectionWithDatabase, pgp, postgresConnectionWithoutDatabase, postgresPool} from "./DbConnection.js"
-import { DbConnection, expressLogger, requestLogger, SCHEMA_PREFIX, ServerConfig } from "@lionweb/repository-common"
+import { DbConnection, expressLogger, RepositoryConfig, requestLogger, SCHEMA_PREFIX, ServerConfig } from "@lionweb/repository-common"
 import { initializeCommons } from "@lionweb/repository-common"
 import { registerDBAdmin } from "@lionweb/repository-dbadmin"
 import { registerInspection } from "@lionweb/repository-inspection"
@@ -76,31 +76,119 @@ registerAdditionalApi(app, DbConnection.getInstance(), pgp, dbConnection.pgPool)
 registerLanguagesApi(app, DbConnection.getInstance(), pgp)
 registerHistoryApi(app, DbConnection.getInstance(), pgp)
 
-const httpServer = http.createServer(app)
+/**********************************************************************
+ *
+ * Server can be started with either argument --setup-only or --no-setup
+ * 
+ **********************************************************************/
 
-const serverPort = ServerConfig.getInstance().serverPort()
-
-// Initialize database
-if (ServerConfig.getInstance().createDatabase()) {
-    await dbAdminApi.createDatabase()
+const setupOnly = process.argv.includes("--setup-only");
+const noSetup = process.argv.includes("--no-setup");
+if (setupOnly && noSetup) {
+    requestLogger.error("Cannot use flags --no-setup and --setup-only together.")
+    process.exit(-1)
 }
-// Initialize repositories
-for (const repository of ServerConfig.getInstance().createRepositories()) {
+if (setupOnly) {
+    await setupDatabase()
+} else if (noSetup) {
+    await startServer()
+} else {
+    requestLogger.error("Server should be called with either flag --setup-only or --no-setup")
+    process.exit(-1)
+}
+
+async function setupDatabase() {
+    // Initialize database
+    const databaseCreation = ServerConfig.getInstance().createDatabase()
+
+    // Do we need to create the database?
+    switch (databaseCreation) {
+        case "always":
+            requestLogger.info(`Creating new database ${ServerConfig.getInstance().pgDb()} (config option 'always')`)
+            await dbAdminApi.createDatabase()
+            break;
+        case "never": 
+            requestLogger.info(`Not creating database ${ServerConfig.getInstance().pgDb()} (config option 'never')`)
+            break;
+        case "if-not-exists": {
+            const dbExists = await dbAdminApi.databaseExists()
+            if (dbExists) {
+                requestLogger.info(`Database ${ServerConfig.getInstance().pgDb()} already exists, keep existing database, (config option 'if-not-exists').`)
+            } else {
+                requestLogger.info(`Creating new database ${ServerConfig.getInstance().pgDb()} because it does not exist yet, (config option 'if-not-exists').`)
+                await dbAdminApi.createDatabase()
+            }
+            break;
+        }
+        default: {
+            break;
+        }
+    }
+
+    // Initialize repositories
+    const existingRepositories = (await dbAdminApi.listRepositories()).queryResult
+        .map(s => s.schema_name)
+        .filter(s => s.startsWith(SCHEMA_PREFIX))
+        .map(s => s.substring(SCHEMA_PREFIX.length))
+    requestLogger.info("Existing repositories " + existingRepositories)
+    for (const repository of ServerConfig.getInstance().createRepositories()) {
+        const repoCreation = repository.create
+        switch (repoCreation) {
+            case "always":
+                requestLogger.info(`Creating new repository ${repository.name} (config option 'always')`)
+                if (existingRepositories.includes(repository.name)) {
+                    // need to remove the repository first
+                    const deletedn = await  dbAdminApi.deleteRepository({clientId: "setup", repository: SCHEMA_PREFIX + repository.name})
+                    requestLogger.info(`Delete repository ${repository.name} result is ` + JSON.stringify(deletedn))
+                    const newEexistingRepositories = (await dbAdminApi.listRepositories()).queryResult
+                        .map(s => s.schema_name)
+                        .filter(s => s.startsWith(SCHEMA_PREFIX))
+                        .map(s => s.substring(SCHEMA_PREFIX.length))
+                    requestLogger.info("Repositories now are: " + newEexistingRepositories)
+                }
+                await createRepository(repository)
+                break;
+            case "never":
+                requestLogger.info(`Not creating repository ${repository.name} (config option 'never')`)
+                break;
+            case "if-not-exists": {
+                if (existingRepositories.includes(repository.name)) {
+                    requestLogger.info(`Repository ${repository} already exists, keep existing repository, (config option 'if-not-exists').`)
+                } else {
+                    requestLogger.info(`Creating new repository ${repository} because it does not exist yet, (config option 'if-not-exists').`)
+                    await createRepository(repository)
+                }
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+    }
+}
+
+async function createRepository(repository: RepositoryConfig) {
     if (repository?.history !== undefined && repository?.history !== null && repository?.history === true) {
-        await dbAdminApi.createRepository({clientId: "repository", repository: SCHEMA_PREFIX + repository.name})
+        await dbAdminApi.createRepository({ clientId: "repository", repository: SCHEMA_PREFIX + repository.name })
     } else {
-        await dbAdminApi.createRepositoryWithoutHistory({clientId: "repository", repository: SCHEMA_PREFIX + repository.name})
+        await dbAdminApi.createRepositoryWithoutHistory({ clientId: "setup", repository: SCHEMA_PREFIX + repository.name })
     }
 }
 
-httpServer.listen(serverPort, () => {
-    requestLogger.info(`Server is running at port ${serverPort} =========================================================`)
-    if (expectedToken == null) {
-        requestLogger.warn(
-            "WARNING! The server is not protected by a token. It can be accessed freely. " +
+async function startServer() {
+    const httpServer = http.createServer(app)
+
+    const serverPort = ServerConfig.getInstance().serverPort()
+
+    httpServer.listen(serverPort, () => {
+        requestLogger.info(`Server is running at port ${serverPort} =========================================================`)
+        if (expectedToken == null) {
+            requestLogger.warn(
+                "WARNING! The server is not protected by a token. It can be accessed freely. " +
                 "If that is NOT your intention act accordingly."
-        )
-    } else if (expectedToken.length < 24) {
-        requestLogger.warn("WARNING! The used token is quite short. Consider using a token of 24 characters or more.")
-    }
-})
+            )
+        } else if (expectedToken.length < 24) {
+            requestLogger.warn("WARNING! The used token is quite short. Consider using a token of 24 characters or more.")
+        }
+    })
+}
