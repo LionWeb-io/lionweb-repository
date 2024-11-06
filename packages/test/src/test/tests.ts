@@ -71,32 +71,15 @@ collection.forEach(withoutHistory => {
                 await client.dbAdmin.deleteRepository(repository)
             })
 
-            describe("No repository given", () => {
-                it("repository null", async () => {
+            describe("Repository does not exist", () => {
+                it("repository may not be null", async () => {
                     assert(initError === "", initError)
                     client.repository = null
                     const retrieve = await client.bulk.retrieve(["ID-2"])
                     console.log("Retrieve Result: " + JSON.stringify(JSON.stringify(retrieve.body.messages)))
                     assert(retrieve.body.success === false, "Repository === null failed")
                 })
-                it("repository null", async () => {
-                    assert(initError === "", initError)
-                    client.repository = "nothing"
-                    const retrieve = await client.bulk.retrieve(["ID-2"])
-                    console.log("Retrieve Result: " + JSON.stringify(JSON.stringify(retrieve.body.messages)))
-                    assert(retrieve.body.success === false, "Non exiting repository should fail")
-                })
-            })
-
-            describe("No repository given", () => {
-                it("repository null", async () => {
-                    assert(initError === "", initError)
-                    client.repository = null
-                    const retrieve = await client.bulk.retrieve(["ID-2"])
-                    console.log("Retrieve Result: " + JSON.stringify(JSON.stringify(retrieve.body.messages)))
-                    assert(retrieve.body.success === false, "Repository === null failed")
-                })
-                it("repository null", async () => {
+                it("repository name must exist", async () => {
                     assert(initError === "", initError)
                     client.repository = "nothing"
                     const retrieve = await client.bulk.retrieve(["ID-2"])
