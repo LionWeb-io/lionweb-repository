@@ -17,8 +17,8 @@
   },
   "scripts": {
     "clean": "rm -rf node_modules/ && rm -rf dist/",
-    "dev-setup-only": "node dist/server.js --setup-only --config",
-    "dev-no-setup": "nodemon dist/server.js -- --no-setup --config",
+    "dev-setup": "node dist/server.js --setup --config",
+    "dev-start": "nodemon dist/server.js -- --run --config",
     "build": "tsc",
     "alive": "echo I am alive",
     "lint": "eslint src",

@@ -78,14 +78,14 @@ registerHistoryApi(app, DbConnection.getInstance(), pgp)
 
 /**********************************************************************
  *
- * Server can be started with either argument --setup-only or --no-setup
+ * Server can be started with either argument --setup or --run
  * 
  **********************************************************************/
 
-const setupOnly = process.argv.includes("--setup-only");
-const noSetup = process.argv.includes("--no-setup");
+const setupOnly = process.argv.includes("--setup");
+const noSetup = process.argv.includes("--run");
 if (setupOnly && noSetup) {
-    requestLogger.error("Cannot use flags --no-setup and --setup-only together.")
+    requestLogger.error("Cannot use flags --run and --setup together.")
     process.exit(-1)
 }
 if (setupOnly) {
@@ -93,7 +93,7 @@ if (setupOnly) {
 } else if (noSetup) {
     await startServer()
 } else {
-    requestLogger.error("Server should be called with either flag --setup-only or --no-setup")
+    requestLogger.error("Server should be called with either flag --setup or --run")
     process.exit(-1)
 }
 
@@ -118,9 +118,6 @@ async function setupDatabase() {
                 requestLogger.info(`Creating new database ${ServerConfig.getInstance().pgDb()} because it does not exist yet, (config option 'if-not-exists').`)
                 await dbAdminApi.createDatabase()
             }
-            break;
-        }
-        default: {
             break;
         }
     }
@@ -158,9 +155,6 @@ async function setupDatabase() {
                     requestLogger.info(`Creating new repository ${repository} because it does not exist yet, (config option 'if-not-exists').`)
                     await createRepository(repository)
                 }
-                break;
-            }
-            default: {
                 break;
             }
         }

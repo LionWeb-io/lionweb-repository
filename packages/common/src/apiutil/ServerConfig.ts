@@ -3,15 +3,15 @@ import { LevelWithSilent } from "pino"
 import { expressLogger, verbosity } from "./logging.js"
 
 // Define the possible values of database creation both as a type, and as an array of strings
-const DatabaseCreationValues = ["always", "never", "if-not-exists"] as const
-export type DatabaseCreationType = typeof DatabaseCreationValues[number];
-export function isDatabaseCreationType(v: string): v is DatabaseCreationType {
-    const s: readonly string[] = DatabaseCreationValues;
+const CreationValues = ["always", "never", "if-not-exists"] as const
+export type CreationType = typeof CreationValues[number];
+export function isCreationType(v: string): v is CreationType {
+    const s: readonly string[] = CreationValues;
     return s.includes(v);
 }
 
 export type RepositoryConfig = { 
-    create: DatabaseCreationType, 
+    create: CreationType, 
     name?: string; 
     history?: boolean
 }
@@ -23,7 +23,7 @@ export type ServerConfigJson = {
         bodyLimit?: string
     }
     startup?: {
-        createDatabase?: DatabaseCreationType
+        createDatabase?: CreationType
         createRepositories?: RepositoryConfig[]
     }
     logging?: {
@@ -105,10 +105,10 @@ export class ServerConfig {
         }
     }
 
-    createDatabase(): DatabaseCreationType {
+    createDatabase(): CreationType {
         const result = this?.config?.startup?.createDatabase
         if (typeof result === "string") {
-            if (isDatabaseCreationType(result)) {
+            if (isCreationType(result)) {
                 return result
             }
         }
