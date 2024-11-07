@@ -1,4 +1,4 @@
-import { HttpSuccessCodes, QueryReturnType, removeNewlinesBetween$$, RepositoryData } from "@lionweb/repository-common"
+import { HttpSuccessCodes, QueryReturnType, removeNewlinesBetween$$, RepositoryData, ServerConfig } from "@lionweb/repository-common"
 import { DbAdminApiContext } from "../main.js"
 import {
     CREATE_DATABASE_SQL,
@@ -20,14 +20,15 @@ export type ListRepositoriesResult = {
 export class DBAdminApiWorker {
     done: boolean = false
 
-    constructor(private ctx: DbAdminApiContext) {}
+    constructor(private ctx: DbAdminApiContext) {
+    }
 
     async deleteRepository(repositoryData: RepositoryData): Promise<QueryReturnType<string>> {
         const queryResult = await this.ctx.dbConnection.queryWithoutRepository(dropSchema(repositoryData.repository))
         cleanGlobalPointersMap(repositoryData.repository);
         return {
             status: HttpSuccessCodes.Ok,
-            query: "",
+            query: dropSchema(repositoryData.repository),
             queryResult: JSON.stringify(queryResult)
         }
     }
@@ -88,6 +89,17 @@ export class DBAdminApiWorker {
                 query: sql,
                 queryResult: "{}"
             }
+        }
+    }
+
+    async databaseExists(): Promise<QueryReturnType<boolean>> {
+        const dbName = ServerConfig.getInstance().pgDb()
+        const query = `select exists(SELECT datname FROM pg_catalog.pg_database WHERE '${dbName}' = datname);`
+        const exists = await this.ctx.postgresConnection.one(query)
+        return { 
+            status: HttpSuccessCodes.Ok,
+            query: query,
+            queryResult: exists.exists as boolean
         }
     }
 }

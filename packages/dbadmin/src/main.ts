@@ -38,7 +38,7 @@ export class DbAdminApiContext {
  * @param dbConnection  The database connection to be used by this API
  * @param pgp           The pg-promise object to gain access to the pg helpers
  * 
- * @return              The Api worker, can be usedfor internal server admin usage
+ * @return              The Api worker, can be used for internal server admin usage
  */
 export function registerDBAdmin(
     app: Express,

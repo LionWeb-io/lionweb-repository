@@ -35,11 +35,11 @@ npm run lint
 
 ### How to start the repository server
 Ensure that Postgress is running.
-The repository server is started with `npm run dev` in  the `packages/server` folder:
+The repository server is started with `npm run dev-run` in  the `packages/server` folder:
 
 ```
 cd packages/server
-npm run dev
+npm run dev-run
 ```
 
 For more information on how to configure the repository, please check [configuration.md](configuration.md).

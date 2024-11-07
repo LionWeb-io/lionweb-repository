@@ -2,6 +2,20 @@ import fs from "node:fs"
 import { LevelWithSilent } from "pino"
 import { expressLogger, verbosity } from "./logging.js"
 
+// Define the possible values of database creation both as a type, and as an array of strings
+const CreationValues = ["always", "never", "if-not-exists"] as const
+export type CreationType = typeof CreationValues[number];
+export function isCreationType(v: string): v is CreationType {
+    const s: readonly string[] = CreationValues;
+    return s.includes(v);
+}
+
+export type RepositoryConfig = { 
+    create: CreationType, 
+    name?: string; 
+    history?: boolean
+}
+
 export type ServerConfigJson = {
     server: {
         serverPort?: number
@@ -9,11 +23,8 @@ export type ServerConfigJson = {
         bodyLimit?: string
     }
     startup?: {
-        createDatabase?: boolean
-        createRepositories?: {
-            name?: string
-            history?: boolean
-        }[]
+        createDatabase?: CreationType
+        createRepositories?: RepositoryConfig[]
     }
     logging?: {
         request?: LevelWithSilent
@@ -69,7 +80,7 @@ export class ServerConfig {
                 // This is not ideal, but because of how `npm run dev` works I could not think of another solution
                 // that works conveniently both to run the server specifying the configuration path and not specifying
                 // it
-                expressLogger.warn("--config <filename> is missing <filename>, using default path ${configFile}`)")
+                expressLogger.warn(`--config <filename> is missing <filename>, using default path ${configFile})`)
             }
         }
         if (fs.existsSync(configFile)) {
@@ -94,12 +105,17 @@ export class ServerConfig {
         }
     }
 
-    createDatabase(): boolean {
+    createDatabase(): CreationType {
         const result = this?.config?.startup?.createDatabase
-        return result === true
+        if (typeof result === "string") {
+            if (isCreationType(result)) {
+                return result
+            }
+        }
+        return "never"
     }
 
-    createRepositories(): { name?: string; history?: boolean }[] {
+    createRepositories(): RepositoryConfig[] {
         const result = this?.config?.startup?.createRepositories
         if (result !== undefined && result !== null && Array.isArray(result)) {
             return result

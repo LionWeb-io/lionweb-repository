@@ -19,6 +19,13 @@ export interface DBAdminApi {
      * @param request
      * @param response
      */
+    databaseExists(request: Request, response: Response): void
+
+    /**
+     * Create a new database to store repositories
+     * @param request
+     * @param response
+     */
     createDatabase(request: Request, response: Response): void
 
     /**
@@ -52,6 +59,15 @@ export interface DBAdminApi {
 
 export class DBAdminApiImpl implements DBAdminApi {
     constructor(private ctx: DbAdminApiContext) {}
+
+    databaseExists = async (request: e.Request, response: e.Response) => {
+        requestLogger.info(` * databaseExists request received, with body of ${request.headers["content-length"]} bytes`)
+        await this.ctx.dbAdminApiWorker.databaseExists()
+        lionwebResponse(response, HttpSuccessCodes.Ok, {
+            success: true,
+            messages: []
+        })
+    }
 
     createDatabase = async (request: e.Request, response: e.Response) => {
         requestLogger.info(` * createDatabase request received, with body of ${request.headers["content-length"]} bytes`)
