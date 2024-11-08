@@ -64,12 +64,12 @@ export class QueryMaker {
 
 
     /**
-     * Insert _tbsNodesToCreate_ in the lionweb_nodes table
-     * These nodes are all new nodes, so all nodes,  properties, copntainmmentds and references are directly inserted
+     * Create a query to insert _tbsNodesToCreate_ in the lionweb_nodes table
+     * These nodes are all new nodes, so all nodes,  properties, containments and references are directly inserted
      * in their respective tables.
      * @param tbsNodesToCreate
      */
-    public async dbInsertNodeArray(tbsNodesToCreate: LionWebJsonNode[], metaPointersTracker: MetaPointersTracker): Promise<string> {
+    public dbInsertNodeArray(tbsNodesToCreate: LionWebJsonNode[], metaPointersTracker: MetaPointersTracker): string {
         dbLogger.debug("Queries insert new nodes " + tbsNodesToCreate.map(n => n.id))
         {
             let query = "-- create new nodes\n"

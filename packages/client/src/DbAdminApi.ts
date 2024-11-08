@@ -15,7 +15,8 @@ export class DbAdminApi {
 
     async createRepository(repository: string, history: boolean): Promise<ClientResponse<LionwebResponse>> {
         const historyParameter = history ? "true" : "false"
-        return await this.client.postWithTimeout("createRepository", { body: {}, params: `repository=${repository}&history=${historyParameter}` })
+        const r =  await this.client.postWithTimeout("createRepository", { body: {}, params: `repository=${repository}&history=${historyParameter}` })
+        return r
     }
 
     async deleteRepository(repository: string): Promise<ClientResponse<LionwebResponse>> {

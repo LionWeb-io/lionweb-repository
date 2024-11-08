@@ -184,17 +184,20 @@ export function getRepositoryData(request: Request ): RepositoryData | Parameter
     }
 }
 
+let index = 1
 /**
  * Catch-all wrapper function to handle exceptions for any api call
  * @param func
  */
 export function runWithTry(func: (request: Request, response: Response) => void): (request: Request, response: Response) => void {
     return async function (request: Request, response: Response): Promise<void> {
+        const myIndex = index++
+        requestLogger.info("Call " + myIndex)
         try {
             await func(request, response)
         } catch (e) {
             const error = asError(e)
-            requestLogger.error(`Exception while serving request for ${request.url}: ${error.message}`)
+            requestLogger.error(`Exception ${myIndex} while serving request for ${request.url}: ${error.message}`)
             requestLogger.error(error)
             lionwebResponse(response, HttpServerErrors.InternalServerError, {
                 success: false,

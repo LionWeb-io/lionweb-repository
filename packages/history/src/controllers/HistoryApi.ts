@@ -7,7 +7,7 @@ import { HistoryContext } from "../main.js"
 import {
     ListPartitionsResponse,
     lionwebResponse,
-    HttpClientErrors, getStringParam, getIntegerParam, isParameterError, StoreResponse, FOREVER, getRepositoryParameter, dbLogger, requestLogger
+    HttpClientErrors, getStringParam, getIntegerParam, isParameterError, StoreResponse, FOREVER, getRepositoryParameter, dbLogger, requestLogger, LionwebTask
 } from "@lionweb/repository-common"
 
 export interface HistoryApi {
@@ -39,8 +39,10 @@ export class HistoryApiImpl implements HistoryApi {
                     messages: [repoVersion.error]
                 })
         } else {
-            const result = await this.ctx.historyApiWorker.bulkPartitions({ clientId: clientId, repository: getRepositoryParameter(request) }, repoVersion)
-            lionwebResponse<ListPartitionsResponse>(response, result.status, result.queryResult)
+            await this.ctx.dbConnection.tx(async (task: LionwebTask) => {
+                const result = await this.ctx.historyApiWorker.bulkPartitions(task, { clientId: clientId, repository: getRepositoryParameter(request) }, repoVersion)
+                lionwebResponse<ListPartitionsResponse>(response, result.status, result.queryResult)
+            })
         }
     }
     
@@ -78,8 +80,16 @@ export class HistoryApiImpl implements HistoryApi {
                 messages: [repoVersion.error]
             })
         } else {
-            const result = await this.ctx.historyApiWorker.bulkRetrieve({clientId: clientId, repository: getRepositoryParameter(request)}, idList, depthLimit, repoVersion)
-            lionwebResponse(response, result.status, result.queryResult)
+            await this.ctx.dbConnection.tx(async (task: LionwebTask) => {
+                const result = await this.ctx.historyApiWorker.bulkRetrieve(
+                    task,
+                    {
+                        clientId: clientId,
+                        repository: getRepositoryParameter(request)
+                    },
+                    idList, depthLimit, repoVersion)
+                lionwebResponse(response, result.status, result.queryResult)
+            })
         }
     }
 

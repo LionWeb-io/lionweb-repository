@@ -21,6 +21,7 @@
     "lint": "eslint src",
     "manualtest": "node dist/test/ManualTests.js",
     "setup": "npx degit https://github.com/LionWeb-io/lionweb-integration-testing/testchanges/data/ data",
+    "test18": "mocha ./dist/test/tests-issue18.js", 
     "test": "mocha ./dist/test/tests.js ./dist/test/inspectionTests.js ./dist/test/tests-issue19.js ./dist/test/history-test.js"
   },
   "devDependencies": {
