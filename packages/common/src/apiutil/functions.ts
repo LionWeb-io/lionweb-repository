@@ -1,6 +1,8 @@
 import { RepositoryData, SCHEMA_PREFIX } from "../database/index.js";
 import { HttpServerErrors } from "./httpcodes.js"
 import { requestLogger } from "./logging.js";
+import { Job } from "./Queue.js";
+import { requestQueue } from "./RequestQueue.js";
 import { collectUsedLanguages } from "./UsedLanguages.js"
 import { LionWebJsonChunk, LionWebJsonNode } from "@lionweb/validation"
 import { Request, Response } from "express"
@@ -193,17 +195,21 @@ export function runWithTry(func: (request: Request, response: Response) => void)
     return async function (request: Request, response: Response): Promise<void> {
         const myIndex = index++
         requestLogger.info("Call " + myIndex)
-        try {
-            await func(request, response)
-        } catch (e) {
-            const error = asError(e)
-            requestLogger.error(`Exception ${myIndex} while serving request for ${request.url}: ${error.message}`)
-            requestLogger.error(error)
-            lionwebResponse(response, HttpServerErrors.InternalServerError, {
-                success: false,
-                messages: [{ kind: error.name, message: `Exception while serving request for ${request.url}: ${error.message}` }]
-            })
+        const requestFunction = async () => {
+            try {
+                await func(request, response)
+            } catch (e) {
+                const error = asError(e)
+                requestLogger.error(`Exception ${myIndex} while serving request for ${request.url}: ${error.message}`)
+                requestLogger.error(error)
+                lionwebResponse(response, HttpServerErrors.InternalServerError, {
+                    success: false,
+                    messages: [{ kind: error.name, message: `Exception while serving request for ${request.url}: ${error.message}` }]
+                })
+            }
         }
+        requestLogger.info("Add to baseQueue requiest-" + myIndex)
+        requestQueue.add(new Job("request-" + myIndex, {requestFunction: requestFunction, requestId: myIndex}, "jobname"))
     }
 }
 
