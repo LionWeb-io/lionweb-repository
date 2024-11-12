@@ -2,7 +2,7 @@ import fs from "node:fs"
 import { LevelWithSilent } from "pino"
 import { expressLogger, verbosity } from "./logging.js"
 
-// Define the possible values of database creation both as a type, and as an array of strings
+// Define the possible values of database creation both as a type, and as an array of strings and a type
 const CreationValues = ["always", "never", "if-not-exists"] as const
 export type CreationType = typeof CreationValues[number];
 export function isCreationType(v: string): v is CreationType {
@@ -28,6 +28,7 @@ export type ServerConfigJson = {
     }
     logging?: {
         request?: LevelWithSilent
+        trace?: LevelWithSilent
         database?: LevelWithSilent
         express?: LevelWithSilent
     }
@@ -126,6 +127,11 @@ export class ServerConfig {
 
     requestLog(): LevelWithSilent {
         const result = this?.config?.logging?.request
+        return verbosity(result, "warn")
+    }
+
+    traceLog(): LevelWithSilent {
+        const result = this?.config?.logging?.trace
         return verbosity(result, "warn")
     }
 

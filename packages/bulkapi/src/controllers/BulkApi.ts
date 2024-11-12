@@ -168,14 +168,11 @@ export class BulkApiImpl implements BulkApi {
         } else {
             const repositoryData: RepositoryData = {clientId: clientId, repository: getRepositoryParameter(request)}
             await this.ctx.dbConnection.tx(async (task: LionwebTask) => {
-                requestLogger.info("TASK START")
                 const result = await this.ctx.bulkApiWorker.bulkStore(task, repositoryData, chunk)
                 result.queryResult.messages.push({ kind: "QueryFromApi", message: result.query })
                 lionwebResponse<StoreResponse>(response, result.status, result.queryResult)
-                requestLogger.info("TASK END")
             })
         }
-        requestLogger.info('    ** store request done')
     }
 
     /**
@@ -189,7 +186,6 @@ export class BulkApiImpl implements BulkApi {
         const clientId = getStringParam(request, "clientId")
         const depthLimit = getIntegerParam(request, "depthLimit", Number.MAX_SAFE_INTEGER)
         const idList = request.body.ids
-        requestLogger.info("Api.getNodes: " + JSON.stringify(request.body) + " depth " + depthLimit + " clientId: " + clientId)
         if (isParameterError(depthLimit)) {
             traceLogger.info("   * retrieve request: depthlimit error")
             lionwebResponse(response, HttpClientErrors.PreconditionFailed, {

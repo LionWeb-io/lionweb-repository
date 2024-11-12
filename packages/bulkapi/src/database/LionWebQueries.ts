@@ -62,7 +62,6 @@ export class LionWebQueries {
      * @param depthLimit
      */
     getNodeTree = async (task: LionwebTask, repositoryData: RepositoryData, nodeIdList: string[], depthLimit: number): Promise<QueryReturnType<NodeTreeResultType[]>> => {
-        requestLogger.info({nodeIdList: nodeIdList}, "LionWebQueries.getNodeTree for " + nodeIdList)
         let query = ""
         try {
             if (nodeIdList.length === 0) {
@@ -161,7 +160,6 @@ export class LionWebQueries {
         dbLogger.info({tbsNodeAndChildIds: tbsNodeAndChildIds}, "tbsNodeAndChildIds ")
         // Retrieve nodes for all id's that exist
         const databaseChunk = await this.context.bulkApiWorker.bulkRetrieve(task, repositoryData, tbsNodeAndChildIds, 0)
-        requestLogger.info("Bulk retrieve done ")
         const databaseChunkWrapper = new LionWebJsonChunkWrapper(databaseChunk.queryResult.chunk)
         dbLogger.info({chunk: databaseChunkWrapper.jsonChunk}, "database chunk")
 
@@ -237,7 +235,6 @@ export class LionWebQueries {
             return removedChildren.find(removed => removed.childId === added.childId) === undefined
         })
         // Child node itself needs updating its parent
-        requestLogger.info("ADDED CHILDREN " + addedChildren.map(ch => ch.childId))
         // Existing nodes that have moved parent without the node being in the TBS chunk.
         const addedAndNotParentChangedChildren = addedChildren.filter(added => {
             return (
@@ -253,7 +250,6 @@ export class LionWebQueries {
             addedAndNotRemovedChildren.map(ch => ch.childId),
             0
         )
-        requestLogger.info("2nd retrieve")
         const parentsOfImplicitlyRemovedChildNodes = await this.context.bulkApiWorker.bulkRetrieve(
             task,
             repositoryData,
@@ -321,9 +317,7 @@ export class LionWebQueries {
         // And run them on the database
         if (queries !== "") {
             queries = nextRepoVersionQuery(repositoryData.clientId) + queries
-            requestLogger.info("  store inserting")
             const [multiResult] = await task.multi(repositoryData, queries)
-            requestLogger.info("  store inserted")
             return {
                 status: HttpSuccessCodes.Ok,
                 query: queries,

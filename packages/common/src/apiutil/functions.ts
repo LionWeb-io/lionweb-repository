@@ -1,8 +1,7 @@
 import { RepositoryData, SCHEMA_PREFIX } from "../database/index.js";
 import { HttpServerErrors } from "./httpcodes.js"
 import { requestLogger } from "./logging.js";
-import { Job } from "./Queue.js";
-import { requestQueue } from "./RequestQueue.js";
+import { Job, requestQueue } from "./RequestQueue.js";
 import { collectUsedLanguages } from "./UsedLanguages.js"
 import { LionWebJsonChunk, LionWebJsonNode } from "@lionweb/validation"
 import { Request, Response } from "express"
@@ -188,13 +187,13 @@ export function getRepositoryData(request: Request ): RepositoryData | Parameter
 
 let index = 1
 /**
- * Catch-all wrapper function to handle exceptions for any api call
+ * Catch-all wrapper function to handle exceptions for any api call.
+ * And put the request function in the request queue.
  * @param func
  */
 export function runWithTry(func: (request: Request, response: Response) => void): (request: Request, response: Response) => void {
     return async function (request: Request, response: Response): Promise<void> {
         const myIndex = index++
-        requestLogger.info("Call " + myIndex)
         const requestFunction = async () => {
             try {
                 await func(request, response)
@@ -208,8 +207,7 @@ export function runWithTry(func: (request: Request, response: Response) => void)
                 })
             }
         }
-        requestLogger.info("Add to baseQueue requiest-" + myIndex)
-        requestQueue.add(new Job("request-" + myIndex, {requestFunction: requestFunction, requestId: myIndex}, "jobname"))
+        requestQueue.add(new Job("request-" + myIndex, requestFunction))
     }
 }
 

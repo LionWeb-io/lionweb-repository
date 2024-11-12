@@ -22,7 +22,7 @@
     "manualtest": "node dist/test/ManualTests.js",
     "setup": "npx degit https://github.com/LionWeb-io/lionweb-integration-testing/testchanges/data/ data",
     "test18": "mocha ./dist/test/tests-issue18.js", 
-    "test": "mocha ./dist/test/tests.js ./dist/test/inspectionTests.js ./dist/test/tests-issue19.js ./dist/test/history-test.js"
+    "test": "mocha ./dist/test/tests.js ./dist/test/inspectionTests.js ./dist/test/tests-issue19.js ./dist/test/history-test.js ./dist/test/sequentialize-requests-test.js"
   },
   "devDependencies": {
     "prettier": "3.1.0",

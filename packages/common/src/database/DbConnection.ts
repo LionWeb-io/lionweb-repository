@@ -128,23 +128,15 @@ export class DbConnection {
      */
     async tx<T>( body: (tsk: LionwebTask)  => Promise<T> ): Promise<T> {
         traceLogger.info("DbConnection.tx with mode " + JSON.stringify(this.transactionMode))
-        // let tries = 0
-        // while(true) {
-            try {
-                return await this.dbConnection.tx({ mode: this.transactionMode as never }, async task => {
-                    const tsk = new LionwebTask(task)
-                    return await body(tsk)
-                })
-            } catch(e) {
-            //     await new Promise(r => setTimeout(r, 2000));
-            //     if (++tries > 10) {
-            //         throw e
-            //     }
-            //     console.log("TRYING " + tries)
-                requestLogger.info("TRANSACTION ERROR " + JSON.stringify(e))
-                throw e
-            }
-        // }
+        try {
+            return await this.dbConnection.tx({ mode: this.transactionMode as never }, async task => {
+                const tsk = new LionwebTask(task)
+                return await body(tsk)
+            })
+        } catch(e) {
+            requestLogger.info("TRANSACTION ERROR " + JSON.stringify(e))
+            throw e
+        }
     }
     
 }
