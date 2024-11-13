@@ -1,5 +1,3 @@
-import { requestLogger } from "./logging.js";
-
 /**
  * The RequestQueue keeps a queue of all requests done to the server and
  * executes them one by one in the order they are put into the queue (FIFO).
@@ -7,7 +5,7 @@ import { requestLogger } from "./logging.js";
 export class RequestQueue {
     name: string
     baseQueue: BaseQueue<Job> = new BaseQueue<Job>()
-    
+
     constructor(name: string) {
         this.name = name
     }
@@ -16,36 +14,32 @@ export class RequestQueue {
      * Add _job_ to the queue.
      * @param job
      */
-    add(job: Job): void {
-        if (this.baseQueue.isEmpty() && !this.running) {
+    async add(job: Job): Promise<void> {
+        if (job === null || job === undefined) {
+            return;
+        }
+        if (this.baseQueue.isEmpty()) {
             this.baseQueue.enqueue(job)
-            this.run()
+            try {
+                while (!this.baseQueue.isEmpty()) {
+                    const job = this.baseQueue.peek()
+                    await job.requestFunction()
+                    // Dequeue only after the job has been done, so new calls to add(...) 
+                    // Will see that the queue is still being worked upon.
+                    if (this.baseQueue.size() === 1) {
+                        this.baseQueue.dequeue()
+                        break
+                    } else {
+                        // > 1, so more than one job is waiting
+                        this.baseQueue.dequeue()
+                    }
+                }
+            } finally {
+            }
         } else {
             this.baseQueue.enqueue(job)
         }
     }
-
-    /**
-     * Start executing requests that are on the queue.
-     */
-    async run() {
-        // requestLogger.info("RequestQueue.run start")
-        this.running = true
-        try {
-            while (!this.baseQueue.isEmpty()) {
-                const job = this.baseQueue.dequeue()
-                if (job !== undefined) {
-                    // requestLogger.info("RequestQueue.run job: " + job.name)
-                    // run it
-                    await job.requestFunction()
-                }
-            }
-        } finally {
-            // TODO At this point the add() function can run and think this is still running.
-            this.running = false
-        }
-    }
-    running: boolean = false
 
 }
 
@@ -55,7 +49,7 @@ export class RequestQueue {
 export class Job {
     name: string
     requestFunction: () => Promise<void>
-    
+
     constructor(name: string,   request: () => Promise<void>) {
         this.requestFunction = request
         this.name = name

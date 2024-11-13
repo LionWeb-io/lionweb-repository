@@ -2,7 +2,7 @@ import {
     EMPTY_CHUNK,
     HttpSuccessCodes, nodesToChunk,
     ListPartitionsResponse, QueryReturnType, RepositoryData,
-    RetrieveResponse, traceLogger, LionwebTask
+    RetrieveResponse, traceLogger, LionWebTask
 } from "@lionweb/repository-common";
 import { HistoryContext } from "../main.js"
 
@@ -17,7 +17,7 @@ export class HistoryApiWorker {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    async bulkPartitions(task: LionwebTask, repoData: RepositoryData, repoVersion: number): Promise<QueryReturnType<ListPartitionsResponse>> {
+    async bulkPartitions(task: LionWebTask, repoData: RepositoryData, repoVersion: number): Promise<QueryReturnType<ListPartitionsResponse>> {
         return await this.context.queries.getPartitionsForVersion(task, repoData, repoVersion)
     }
     
@@ -26,7 +26,7 @@ export class HistoryApiWorker {
      * @param nodeIdList
      * @param depthLimit
      */
-    bulkRetrieve = async (task: LionwebTask, repoData: RepositoryData, nodeIdList: string[], depthLimit: number, repoVersion: number): Promise<QueryReturnType<RetrieveResponse>> => {
+    bulkRetrieve = async (task: LionWebTask, repoData: RepositoryData, nodeIdList: string[], depthLimit: number, repoVersion: number): Promise<QueryReturnType<RetrieveResponse>> => {
         traceLogger.info("HistoryApiWorker.bulkRetrieve")
         if (nodeIdList.length === 0) {
             return {

@@ -17,7 +17,7 @@ import {
     HttpSuccessCodes,
     getStringParam,
     getIntegerParam,
-    isParameterError, getRepositoryParameter, RepositoryData, requestLogger, dbLogger, traceLogger, LionwebTask
+    isParameterError, getRepositoryParameter, RepositoryData, requestLogger, dbLogger, traceLogger, LionWebTask
 } from "@lionweb/repository-common"
 
 export interface BulkApi {
@@ -49,7 +49,7 @@ export class BulkApiImpl implements BulkApi {
             })
         } else {
             const repositoryData: RepositoryData = {clientId: clientId, repository: getRepositoryParameter(request)}
-            await this.ctx.dbConnection.tx(async (task: LionwebTask) => {
+            await this.ctx.dbConnection.tx(async (task: LionWebTask) => {
                 const result = await this.ctx.bulkApiWorker.bulkPartitions(task, repositoryData)
                 lionwebResponse<ListPartitionsResponse>(response, result.status, result.queryResult)
             })
@@ -114,7 +114,7 @@ export class BulkApiImpl implements BulkApi {
                     return
                 }
                 const repositoryData: RepositoryData = {clientId: clientId, repository: getRepositoryParameter(request)}
-                await this.ctx.dbConnection.tx(async (task: LionwebTask) => {
+                await this.ctx.dbConnection.tx(async (task: LionWebTask) => {
                     const result = await this.ctx.bulkApiWorker.createPartitions(task, repositoryData, chunk)
                     lionwebResponse<CreatePartitionsResponse>(response, result.status, result.queryResult)
                 })
@@ -134,7 +134,7 @@ export class BulkApiImpl implements BulkApi {
             })
         } else {
             const repositoryData: RepositoryData = {clientId: clientId, repository: getRepositoryParameter(request)}
-            await this.ctx.dbConnection.tx(async (task: LionwebTask) => {
+            await this.ctx.dbConnection.tx(async (task: LionWebTask) => {
                 const x = await this.ctx.bulkApiWorker.deletePartitions(task, repositoryData, idList)
                 lionwebResponse<DeletePartitionsResponse>(response, x.status, x.queryResult)
             })
@@ -147,7 +147,7 @@ export class BulkApiImpl implements BulkApi {
      * @param response `ok`  if everything is correct
      */
     store = async (request: Request, response: Response): Promise<void> => {
-        requestLogger.info(` * store request received, with body of ${request.headers["content-length"]} bytes, params ${JSON.stringify(request.query)}`)
+        requestLogger.info(` * store request received, with body of ${request.headers["content-length"]} bytes`)
         const clientId = getStringParam(request, "clientId")
         const chunk: LionWebJsonChunk = request.body
         const validator = new LionWebValidator(chunk, getLanguageRegistry())
@@ -167,7 +167,7 @@ export class BulkApiImpl implements BulkApi {
             })
         } else {
             const repositoryData: RepositoryData = {clientId: clientId, repository: getRepositoryParameter(request)}
-            await this.ctx.dbConnection.tx(async (task: LionwebTask) => {
+            await this.ctx.dbConnection.tx(async (task: LionWebTask) => {
                 const result = await this.ctx.bulkApiWorker.bulkStore(task, repositoryData, chunk)
                 result.queryResult.messages.push({ kind: "QueryFromApi", message: result.query })
                 lionwebResponse<StoreResponse>(response, result.status, result.queryResult)
@@ -187,26 +187,26 @@ export class BulkApiImpl implements BulkApi {
         const depthLimit = getIntegerParam(request, "depthLimit", Number.MAX_SAFE_INTEGER)
         const idList = request.body.ids
         if (isParameterError(depthLimit)) {
-            traceLogger.info("   * retrieve request: depthlimit error")
+            requestLogger.warn("   * retrieve request: depthlimit error")
             lionwebResponse(response, HttpClientErrors.PreconditionFailed, {
                 success: false,
                 messages: [depthLimit.error]
             })
         } else if (isParameterError(clientId)) {
-            traceLogger.info("   * retrieve request: clientId error")
+            requestLogger.warn("   * retrieve request: clientId error")
             lionwebResponse(response, HttpClientErrors.PreconditionFailed, {
                 success: false,
                 messages: [clientId.error]
             })
         } else if (!Array.isArray(idList)) {
-            traceLogger.info("   * retrieve request: idlist error")
+            requestLogger.warn("   * retrieve request: idlist error")
             lionwebResponse(response, HttpClientErrors.PreconditionFailed, {
                 success: false,
                 messages: [{ kind: "IdsIncorrect", message: `parameter 'ids' is not an array` }]
             })
         } else {
             traceLogger.info("   * retrieve request: calling worker")
-            await this.ctx.dbConnection.tx( async (task: LionwebTask)  => {
+            await this.ctx.dbConnection.tx( async (task: LionWebTask)  => {
                 const repositoryData: RepositoryData = { clientId: clientId, repository: getRepositoryParameter(request) }
                 const result = await this.ctx.bulkApiWorker.bulkRetrieve(task, repositoryData, idList, depthLimit)
                 lionwebResponse(response, result.status, result.queryResult)
@@ -235,7 +235,7 @@ export class BulkApiImpl implements BulkApi {
             })
         } else {
             const repositoryData: RepositoryData = {clientId: clientId, repository: getRepositoryParameter(request)}
-            await this.ctx.dbConnection.tx( async (task: LionwebTask)  => {
+            await this.ctx.dbConnection.tx( async (task: LionWebTask)  => {
                 const result = await this.ctx.bulkApiWorker.ids(task, repositoryData, count)
                 lionwebResponse(response, result.status, result.queryResult)
             })

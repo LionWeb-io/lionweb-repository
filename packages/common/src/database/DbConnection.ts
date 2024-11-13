@@ -2,7 +2,7 @@ import pgPromise from "pg-promise"
 import pg from "pg-promise/typescript/pg-subset.js";
 import { dbLogger, requestLogger, traceLogger } from "../apiutil/index.js";
 import {Pool} from "pg";
-import { LionwebTask } from "./LionwebTask.js";
+import { LionWebTask } from "./LionWebTask.js";
 
 /**
  * Data determining the repository and user for which a command should be executed.
@@ -38,16 +38,6 @@ export class DbConnection {
     transactionMode: object
     
     set pgp(value: pgPromise.IMain<object, pg.IClient>) {
-        requestLogger.info("SET PGP")
-        // Create a reusable transaction mode (serializable + read-only + deferrable):
-        // const {TransactionMode, isolationLevel} = value.txMode;
-        // requestLogger.info("TransactionMode " + JSON.stringify(TransactionMode))
-        // this.transactionMode = new TransactionMode({
-        //     tiLevel: isolationLevel.serializable,
-        //     readOnly: false,
-        //     deferrable: true
-        // });
-        // requestLogger.info("transaction  mode is " + JSON.stringify(this.transactionMode))
         this._pgp = value
     }
     
@@ -126,11 +116,11 @@ export class DbConnection {
      * @param repositoryData
      * @param query
      */
-    async tx<T>( body: (tsk: LionwebTask)  => Promise<T> ): Promise<T> {
+    async tx<T>( body: (tsk: LionWebTask)  => Promise<T> ): Promise<T> {
         traceLogger.info("DbConnection.tx with mode " + JSON.stringify(this.transactionMode))
         try {
             return await this.dbConnection.tx({ mode: this.transactionMode as never }, async task => {
-                const tsk = new LionwebTask(task)
+                const tsk = new LionWebTask(task)
                 return await body(tsk)
             })
         } catch(e) {

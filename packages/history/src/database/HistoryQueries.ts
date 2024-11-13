@@ -1,7 +1,7 @@
 import {
     ListPartitionsResponse,
     asError,
-    QueryReturnType, nodesToChunk, HttpSuccessCodes, HttpClientErrors, RepositoryData, dbLogger, requestLogger, LionwebTask,
+    QueryReturnType, nodesToChunk, HttpSuccessCodes, HttpClientErrors, RepositoryData, dbLogger, requestLogger, LionWebTask,
 } from "@lionweb/repository-common"
 import {
     LionWebJsonNode
@@ -27,7 +27,7 @@ export class HistoryQueries {
      * @param nodeIdList
      * @param depthLimit
      */
-    getNodeTree = async (task: LionwebTask, repoData: RepositoryData, nodeIdList: string[], depthLimit: number, repoVersion: number): Promise<QueryReturnType<NodeTreeResultType[]>> => {
+    getNodeTree = async (task: LionWebTask, repoData: RepositoryData, nodeIdList: string[], depthLimit: number, repoVersion: number): Promise<QueryReturnType<NodeTreeResultType[]>> => {
         dbLogger.debug("LionWebQueries.getNodeTree for " + nodeIdList)
         let query = ""
         try {
@@ -45,7 +45,7 @@ export class HistoryQueries {
         }
     }
 
-    getNodesFromIdList = async (task: LionwebTask, repoData: RepositoryData, nodeIdList: string[], repoVersion: number): Promise<LionWebJsonNode[]> => {
+    getNodesFromIdList = async (task: LionWebTask, repoData: RepositoryData, nodeIdList: string[], repoVersion: number): Promise<LionWebJsonNode[]> => {
         dbLogger.debug("HistoryQueries.getNodesFromIdList: " + nodeIdList)
         // this is necessary as otherwise the query would crash as it is not intended to be run on an empty set
         if (nodeIdList.length == 0) {
@@ -59,7 +59,7 @@ export class HistoryQueries {
     /**
      * Get all partitions: this returns all nodes that have parent set to null or undefined
      */
-    getPartitionsForVersion = async (task: LionwebTask, repoData: RepositoryData, repoVersion: number): Promise<QueryReturnType<ListPartitionsResponse>> => {
+    getPartitionsForVersion = async (task: LionWebTask, repoData: RepositoryData, repoVersion: number): Promise<QueryReturnType<ListPartitionsResponse>> => {
         requestLogger.info("HistoryQueries.getPartitions for version " + JSON.stringify(repoVersion))
         // TODO Combine both queries
         const query = `SELECT id FROM nodesForVersion(${repoVersion}) WHERE parent is null`

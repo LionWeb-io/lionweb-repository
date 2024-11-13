@@ -1,5 +1,5 @@
 import {LionWebJsonMetaPointer, LionWebJsonNode} from "@lionweb/validation";
-import {DbConnection, LionwebTask, RepositoryData} from "@lionweb/repository-common";
+import {DbConnection, LionWebTask, RepositoryData} from "@lionweb/repository-common";
 
 export type MetaPointersMap = Map<string, number>;
 
@@ -66,7 +66,7 @@ export class MetaPointersCollector {
         }
     }
 
-    async obtainIndexes(task: LionwebTask | DbConnection): Promise<void> {
+    async obtainIndexes(task: LionWebTask | DbConnection): Promise<void> {
         // console.log(`MetaPointersCollector.obtainIndexes: ${this.metaPointers.size}`);
         if (this.metaPointers.size == 0) {
             return
@@ -93,13 +93,13 @@ export class MetaPointersTracker {
     constructor(private repositoryData: RepositoryData) {
     }
 
-    async populateFromNodes(nodes: LionWebJsonNode[], task: LionwebTask) {
+    async populateFromNodes(nodes: LionWebJsonNode[], task: LionWebTask) {
         await this.populate((collector)=>{
             nodes.forEach((node: LionWebJsonNode) => collector.considerNode(node))
         }, task)
     }
 
-    async populate(populationLogic:(collector: MetaPointersCollector) => void, dbConnection: DbConnection | LionwebTask): Promise<void> {
+    async populate(populationLogic:(collector: MetaPointersCollector) => void, dbConnection: DbConnection | LionWebTask): Promise<void> {
         const collector = new MetaPointersCollector(this.repositoryData)
         populationLogic(collector)
         await collector.obtainIndexes(dbConnection)

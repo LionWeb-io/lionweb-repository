@@ -7,7 +7,7 @@ import { HistoryContext } from "../main.js"
 import {
     ListPartitionsResponse,
     lionwebResponse,
-    HttpClientErrors, getStringParam, getIntegerParam, isParameterError, StoreResponse, FOREVER, getRepositoryParameter, dbLogger, requestLogger, LionwebTask
+    HttpClientErrors, getStringParam, getIntegerParam, isParameterError, StoreResponse, FOREVER, getRepositoryParameter, dbLogger, requestLogger, LionWebTask
 } from "@lionweb/repository-common"
 
 export interface HistoryApi {
@@ -39,7 +39,7 @@ export class HistoryApiImpl implements HistoryApi {
                     messages: [repoVersion.error]
                 })
         } else {
-            await this.ctx.dbConnection.tx(async (task: LionwebTask) => {
+            await this.ctx.dbConnection.tx(async (task: LionWebTask) => {
                 const result = await this.ctx.historyApiWorker.bulkPartitions(task, { clientId: clientId, repository: getRepositoryParameter(request) }, repoVersion)
                 lionwebResponse<ListPartitionsResponse>(response, result.status, result.queryResult)
             })
@@ -80,7 +80,7 @@ export class HistoryApiImpl implements HistoryApi {
                 messages: [repoVersion.error]
             })
         } else {
-            await this.ctx.dbConnection.tx(async (task: LionwebTask) => {
+            await this.ctx.dbConnection.tx(async (task: LionWebTask) => {
                 const result = await this.ctx.historyApiWorker.bulkRetrieve(
                     task,
                     {

@@ -5,7 +5,7 @@ import {
     EMPTY_SUCCES_RESPONSE, HttpClientErrors, HttpSuccessCodes, IdsResponse,
     nodesToChunk,
     ListPartitionsResponse, QueryReturnType, RepositoryData,
-    ResponseMessage, RetrieveResponse, StoreResponse, requestLogger, traceLogger, LionwebTask
+    ResponseMessage, RetrieveResponse, StoreResponse, requestLogger, traceLogger, LionWebTask
 } from "@lionweb/repository-common";
 import { LionWebJsonChunk } from "@lionweb/validation"
 import { currentRepoVersionQuery, versionResultToResponse } from "../database/index.js";
@@ -23,7 +23,7 @@ export class BulkApiWorker {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    async bulkPartitions(task: LionwebTask, repositoryData: RepositoryData): Promise<QueryReturnType<ListPartitionsResponse>> {
+    async bulkPartitions(task: LionWebTask, repositoryData: RepositoryData): Promise<QueryReturnType<ListPartitionsResponse>> {
         const result = await this.context.queries.getPartitions(task, repositoryData)
         return result
     }
@@ -31,7 +31,7 @@ export class BulkApiWorker {
     /**
      * @param chunk A LionWeb chunk containing all nodes that are to be created as partitions.
      */
-    createPartitions = async (task: LionwebTask, repositoryData: RepositoryData, chunk: LionWebJsonChunk): Promise<QueryReturnType<CreatePartitionsResponse>> => {
+    createPartitions = async (task: LionWebTask, repositoryData: RepositoryData, chunk: LionWebJsonChunk): Promise<QueryReturnType<CreatePartitionsResponse>> => {
         requestLogger.info(`BulkApiWorker.createPartitions repo [${JSON.stringify(repositoryData)}]`)
         // TODO Optimize: This reuses the "getNodesFromIdList", but that retrieves full nodes, which is not needed here
         
@@ -56,7 +56,7 @@ export class BulkApiWorker {
      * Delete all partitions 
      * @param idList The list of node id's of partition nodes that are to be removed.
      */
-    deletePartitions = async(task: LionwebTask, repositoryData: RepositoryData, idList: string[]): Promise<QueryReturnType<DeletePartitionsResponse>> => {
+    deletePartitions = async(task: LionWebTask, repositoryData: RepositoryData, idList: string[]): Promise<QueryReturnType<DeletePartitionsResponse>> => {
         // TODO Optimize: only need parent, all features are not needed, can be optimized.
         const partitions = await this.context.queries.getNodesFromIdListIncludingChildren(task, repositoryData, idList)
         const issues: ResponseMessage[] = []
@@ -79,7 +79,7 @@ export class BulkApiWorker {
         return { status: HttpSuccessCodes.Ok, query: "", queryResult: EMPTY_SUCCES_RESPONSE }
     }
       
-    bulkStore = async (task: LionwebTask, repositoryData: RepositoryData, chunk: LionWebJsonChunk): Promise<QueryReturnType<StoreResponse>> => {
+    bulkStore = async (task: LionWebTask, repositoryData: RepositoryData, chunk: LionWebJsonChunk): Promise<QueryReturnType<StoreResponse>> => {
         return await this.context.queries.store(task, repositoryData, chunk)
     }
 
@@ -88,7 +88,7 @@ export class BulkApiWorker {
      * @param nodeIdList
      * @param depthLimit
      */
-    bulkRetrieve = async (task: LionwebTask, repositoryData: RepositoryData, nodeIdList: string[], depthLimit: number): Promise<QueryReturnType<RetrieveResponse>> => {
+    bulkRetrieve = async (task: LionWebTask, repositoryData: RepositoryData, nodeIdList: string[], depthLimit: number): Promise<QueryReturnType<RetrieveResponse>> => {
         traceLogger.info("BulkApiWorker.retrieve")
         if (nodeIdList.length === 0) {
             return {
@@ -119,7 +119,7 @@ export class BulkApiWorker {
      * @param clientId
      * @param count
      */
-    ids = async (task: LionwebTask, repositoryData: RepositoryData, count: number): Promise<QueryReturnType<IdsResponse>> => {
+    ids = async (task: LionWebTask, repositoryData: RepositoryData, count: number): Promise<QueryReturnType<IdsResponse>> => {
         requestLogger.info("Reserve Count ids " + count + " for " + repositoryData.clientId)
         const result: string[] = []
         // Create a bunch of ids, they are probably all free 
