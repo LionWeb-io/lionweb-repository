@@ -1,1 +1,3 @@
-https://www.postgresql.org/docs/current/mvcc-serialization-failure-handling.html
+# Server Package
+
+This package is the actual server package that receives all requests.
