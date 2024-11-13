@@ -247,7 +247,7 @@ export function initSchemaWithHistory(schema: string): string {
         $$
         DECLARE nextVersion integer;
         BEGIN
-            nextVersion := (SELECT value FROM current_data WHERE key = 'repo.version')::integer + 1;
+            nextVersion := (SELECT value FROM current_data WHERE key = 'repo.version')::integer + 1 FOR UPDATE;
             INSERT INTO repo_versions (version, date, client_id) 
             VALUES (
                 nextVersion,

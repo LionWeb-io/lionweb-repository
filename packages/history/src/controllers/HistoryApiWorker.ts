@@ -2,7 +2,7 @@ import {
     EMPTY_CHUNK,
     HttpSuccessCodes, nodesToChunk,
     ListPartitionsResponse, QueryReturnType, RepositoryData,
-    RetrieveResponse
+    RetrieveResponse, traceLogger, LionWebTask
 } from "@lionweb/repository-common";
 import { HistoryContext } from "../main.js"
 
@@ -17,8 +17,8 @@ export class HistoryApiWorker {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    async bulkPartitions(repoData: RepositoryData, repoVersion: number): Promise<QueryReturnType<ListPartitionsResponse>> {
-        return await this.context.queries.getPartitionsForVersion(repoData, repoVersion)
+    async bulkPartitions(task: LionWebTask, repoData: RepositoryData, repoVersion: number): Promise<QueryReturnType<ListPartitionsResponse>> {
+        return await this.context.queries.getPartitionsForVersion(task, repoData, repoVersion)
     }
     
     /**
@@ -26,7 +26,8 @@ export class HistoryApiWorker {
      * @param nodeIdList
      * @param depthLimit
      */
-    bulkRetrieve = async (repoData: RepositoryData, nodeIdList: string[], depthLimit: number, repoVersion: number): Promise<QueryReturnType<RetrieveResponse>> => {
+    bulkRetrieve = async (task: LionWebTask, repoData: RepositoryData, nodeIdList: string[], depthLimit: number, repoVersion: number): Promise<QueryReturnType<RetrieveResponse>> => {
+        traceLogger.info("HistoryApiWorker.bulkRetrieve")
         if (nodeIdList.length === 0) {
             return {
                 status: HttpSuccessCodes.Ok,
@@ -38,7 +39,7 @@ export class HistoryApiWorker {
                 }
             }
         }
-        const allNodes = await this.context.queries.getNodeTree(repoData, nodeIdList, depthLimit, repoVersion)
+        const allNodes = await this.context.queries.getNodeTree(task, repoData, nodeIdList, depthLimit, repoVersion)
         if (allNodes.queryResult.length === 0) {
             return {
                 status: HttpSuccessCodes.Ok,
@@ -50,7 +51,7 @@ export class HistoryApiWorker {
                 }
             }
         }
-        const nodes = await this.context.queries.getNodesFromIdList(repoData, allNodes.queryResult.map(node => node.id), repoVersion)
+        const nodes = await this.context.queries.getNodesFromIdList(task, repoData, allNodes.queryResult.map(node => node.id), repoVersion)
         return {
             status: HttpSuccessCodes.Ok,
             query: "",

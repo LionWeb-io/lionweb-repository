@@ -386,35 +386,31 @@ collection.forEach(withoutHistory => {
             describe("Multi-repo test", () => {
                 it("Check current repository", async () => {
                     assert(initError === "", initError)
-                    console.log("1")
                     const currentrepo = withoutHistory ? "MyFirstRepo" : "MyFirstHistoryRepo"
                     {
                         const repositories = await client.dbAdmin.listRepositories()
                         assert(repositories.body.repositoryNames.length === 1, "There should be exactly one repository")
                         assert(repositories.body.repositoryNames.includes(currentrepo), "Incorrect repository found: " + repositories.body.repositoryNames)
                     }
-                    console.log("2")
                     await client.dbAdmin.createRepository("Repo2", !withoutHistory)
-                    console.log("3")
                     {
                         const repositories = await client.dbAdmin.listRepositories()
                         assert(repositories.body.repositoryNames.length === 2, "There should be exactly two repositories")
                         assert(repositories.body.repositoryNames.every(repo => repo === currentrepo || repo === "Repo2"), "Incorrect repository found: " + repositories.body.repositoryNames)
                     }
-                    console.log("4")
 
                     const createResult = await client.dbAdmin.createRepository("Repo2", true)
                     assert(createResult.body.success === false, "Should not be able to create existing repo")
-                    console.log("5")
-                    await client.dbAdmin.deleteRepository("Repo2")
+                    const delete2 = await client.dbAdmin.deleteRepository("Repo2")
                     {
+                        assert(delete2.body.success === true, "Should be able to delete existiung repository")
                         const repositories = await client.dbAdmin.listRepositories()
                         assert(repositories.body.repositoryNames.length === 1, "There should be exactly one repository")
                         assert(repositories.body.repositoryNames.includes(currentrepo), "Incorrect repository found: " + repositories.body.repositoryNames)
                     }
-                    console.log("6")
-                    await client.dbAdmin.createRepository("Repo2", !withoutHistory)
+                    const createResult2 = await client.dbAdmin.createRepository("Repo2", !withoutHistory)
                     {
+                        assert(createResult2.body.success === true, "Should  be able to create existing repository: " + JSON.stringify(createResult2.body.messages))
                         const repositories = await client.dbAdmin.listRepositories()
                         assert(repositories.body.repositoryNames.length === 2, "There should be exactly two repositories")
                         assert(repositories.body.repositoryNames.every(repo => repo === currentrepo || repo === "Repo2"), "Incorrect repository found: " + repositories.body.repositoryNames)

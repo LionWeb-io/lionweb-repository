@@ -66,6 +66,14 @@ const dbConnection = DbConnection.getInstance()
 dbConnection.postgresConnection = postgresConnectionWithoutDatabase
 dbConnection.dbConnection = postgresConnectionWithDatabase
 dbConnection.pgp = pgPromise()
+const {TransactionMode} = pgPromise.txMode;
+const mode = new TransactionMode({
+    deferrable: true,
+    readOnly: false,
+    tiLevel: pgPromise.txMode.isolationLevel.serializable
+});
+dbConnection.transactionMode = mode
+requestLogger.info("mode " + JSON.stringify((mode as any)["_inner"]))
 dbConnection.pgPool = postgresPool
 // Must be first to initialize
 initializeCommons(pgp)
@@ -112,7 +120,7 @@ async function setupDatabase() {
             break;
         case "if-not-exists": {
             const dbExists = await dbAdminApi.databaseExists()
-            if (dbExists) {
+            if (dbExists.queryResult) {
                 requestLogger.info(`Database ${ServerConfig.getInstance().pgDb()} already exists, keep existing database, (config option 'if-not-exists').`)
             } else {
                 requestLogger.info(`Creating new database ${ServerConfig.getInstance().pgDb()} because it does not exist yet, (config option 'if-not-exists').`)

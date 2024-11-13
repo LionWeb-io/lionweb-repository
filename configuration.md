@@ -43,6 +43,8 @@ Below is the server-config.json with all default values
   "logging": {
     // Logging level for reuests logging
     "request": "info",
+    // Logging level for detailed tracing
+    "trace": "silent",
     // Logging level for database actions
     "database": "silent",
     // logging level for (automatic) request/response logging

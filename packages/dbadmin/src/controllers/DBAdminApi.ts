@@ -84,7 +84,7 @@ export class DBAdminApiImpl implements DBAdminApi {
     }
 
     createRepository = async (request: e.Request, response: e.Response) => {
-        requestLogger.info(` * createRepository request received, with body of ${request.headers["content-length"]} bytes`)
+        requestLogger.info(` * createRepository request received, with body of ${request.headers["content-length"]} bytes params: ${JSON.stringify(request.query)}`)
         const repositoryData: RepositoryData = { clientId: getClientIdParameter(request), repository: getRepositoryParameter(request) }
         const history = getHistoryParameter(request)
         let result: QueryReturnType<string>

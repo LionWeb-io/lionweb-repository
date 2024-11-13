@@ -30,7 +30,7 @@ export class RepositoryClient {
     private _nodePort = process.env.NODE_PORT || 3005
     private _SERVER_IP = process.env.REPO_IP || "http://127.0.0.1"
     private _SERVER_URL = `${this._SERVER_IP}:${this._nodePort}/`
-    private TIMEOUT = Number.parseInt(process.env.TIMEOUT) || 2000
+    private TIMEOUT = Number.parseInt(process.env.TIMEOUT) || 20000
 
     loggingOn = false
     /**
