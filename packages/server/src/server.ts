@@ -1,10 +1,10 @@
 import { registerHistoryApi } from "@lionweb/repository-history"
-import express, { Express, NextFunction, Response, Request } from "express"
+import express, { Express, NextFunction, Response, Request, Application } from "express"
 import bodyParser from "body-parser"
 import cors from "cors"
 import pgPromise from "pg-promise"
 import {postgresConnectionWithDatabase, pgp, postgresConnectionWithoutDatabase, postgresPool} from "./DbConnection.js"
-import { DbConnection, expressLogger, RepositoryConfig, requestLogger, SCHEMA_PREFIX, ServerConfig } from "@lionweb/repository-common"
+import { DbConnection, expressLogger, RepositoryConfig, requestLogger, runWithTry, SCHEMA_PREFIX, ServerConfig } from "@lionweb/repository-common"
 import { initializeCommons } from "@lionweb/repository-common"
 import { registerDBAdmin } from "@lionweb/repository-dbadmin"
 import { registerInspection } from "@lionweb/repository-inspection"
@@ -19,6 +19,8 @@ import { registerLanguagesApi } from "@lionweb/repository-languages"
 import { HttpClientErrors } from "@lionweb/repository-common"
 import { pinoHttp } from "pino-http"
 import * as http from "node:http";
+import expressws from "express-ws"
+import WS from "ws"
 
 export const app: Express = express()
 
@@ -60,7 +62,7 @@ function verifyToken(request: Request, response: Response, next: NextFunction) {
     }
 }
 
-app.use(verifyToken)
+app.use(verifyToken as any)
 
 const dbConnection = DbConnection.getInstance()
 dbConnection.postgresConnection = postgresConnectionWithoutDatabase
@@ -83,6 +85,36 @@ registerInspection(app, DbConnection.getInstance(), pgp)
 registerAdditionalApi(app, DbConnection.getInstance(), pgp, dbConnection.pgPool)
 registerLanguagesApi(app, DbConnection.getInstance(), pgp)
 registerHistoryApi(app, DbConnection.getInstance(), pgp)
+
+const expressWs = expressws(app)
+const appAsSocketApp = expressWs.app
+
+appAsSocketApp.ws("/sockets", (ws, req) => {
+    requestLogger.info(" * Socket echo")
+    // @ts-ignore
+    ws.onmessage('echo', (msg: any) => {
+        requestLogger.info("  on message 1")
+        ws.send(msg)
+    })
+    // @ts-ignore
+    ws.on('message', (msg) => {
+        requestLogger.info("  on message 1")
+        ws.send(msg)
+    })
+    // @ts-ignore
+    ws.on('open', (msg) => {
+        requestLogger.info("  on message 1")
+        ws.send(msg)
+    })
+    // @ts-ignore
+    ws.on('connection', (msg) => {
+        requestLogger.info("  on message 1")
+        ws.send(msg)
+    })
+})
+appAsSocketApp.on('message', (app: Application) => {
+    requestLogger.info("  on message 2")
+})
 
 /**********************************************************************
  *
@@ -168,7 +200,14 @@ async function setupDatabase() {
         }
     }
 }
-
+console.log("ROUITE")
+// @ts-ignore
+app._router.stack.forEach(function(r){
+    if (r.route && r.route.path){
+        console.log(r.route.path)
+    }
+})
+console.log("APPR: " + app.routes)
 async function createRepository(repository: RepositoryConfig) {
     if (repository?.history !== undefined && repository?.history !== null && repository?.history === true) {
         await dbAdminApi.createRepository({ clientId: "repository", repository: SCHEMA_PREFIX + repository.name })
@@ -193,4 +232,7 @@ async function startServer() {
             requestLogger.warn("WARNING! The used token is quite short. Consider using a token of 24 characters or more.")
         }
     })
+    
 }
+
+

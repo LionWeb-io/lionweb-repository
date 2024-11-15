@@ -21,7 +21,8 @@
     "lint": "eslint src",
     "manualtest": "node dist/test/ManualTests.js",
     "setup": "npx degit https://github.com/LionWeb-io/lionweb-integration-testing/testchanges/data/ data",
-    "test": "mocha ./dist/test/tests.js ./dist/test/inspectionTests.js ./dist/test/tests-issue19.js ./dist/test/history-test.js ./dist/test/sequentialize-requests-test.js"
+    "test": "mocha ./dist/test/tests.js ./dist/test/inspectionTests.js ./dist/test/tests-issue19.js ./dist/test/history-test.js ./dist/test/sequentialize-requests-test.js",
+    "test-socket": "mocha ./dist/test/test-sockets.js"
   },
   "devDependencies": {
     "prettier": "3.1.0",
@@ -48,6 +49,7 @@
     "nodemon": "3.0.1",
     "pg": "8.11.3",
     "pg-promise": "11.7.8",
-    "source-map-support": "0.5.21"
+    "source-map-support": "0.5.21",
+    "ws": "8.18.0"
   }
 }
