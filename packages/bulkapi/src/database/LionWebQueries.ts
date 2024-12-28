@@ -10,7 +10,7 @@ import {
     ReservedIdRecord,
     LionwebResponse,
     UNLIMITED_DEPTH,
-    NODES_TABLE, LionWebTask, RepositoryData, dbLogger, requestLogger
+    NODES_TABLE, LionWebTask, RepositoryData, dbLogger, requestLogger, CURRENT_DATA, CURRENT_DATA_REPO_VERSION_KEY
 } from "@lionweb/repository-common"
 import {
     LionWebJsonChunk,
@@ -110,7 +110,7 @@ export class LionWebQueries {
      * Should only be used by non-changing queries, as otherwise the _nextRepoVersion_ function should be used..
      */
     getRepoVersion = async (task: LionWebTask, repositoryData: RepositoryData): Promise<number> => {
-        const v = await task.query(repositoryData, "SELECT value FROM current_data WHERE key = 'repo.version'")
+        const v = await task.query(repositoryData, `SELECT value FROM ${CURRENT_DATA} WHERE key = '${CURRENT_DATA_REPO_VERSION_KEY}'`)
         return Number.parseInt(v.value)
     }
 

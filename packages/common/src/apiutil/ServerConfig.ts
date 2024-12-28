@@ -10,10 +10,13 @@ export function isCreationType(v: string): v is CreationType {
     return s.includes(v);
 }
 
+export type LionWebVersion = "2023.1" | "2024.1" 
+
 export type RepositoryConfig = { 
     create: CreationType, 
     name?: string; 
-    history?: boolean
+    history?: boolean;
+    lionWebVersion?: LionWebVersion
 }
 
 export type ServerConfigJson = {

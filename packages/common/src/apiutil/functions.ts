@@ -164,6 +164,18 @@ export function getHistoryParameter(request: Request): boolean {
 /**
  *
  */
+export function getLionWebVersionParameter(request: Request): string {
+    let lionWebVersion = getStringParam(request, "lionWebVersion")
+    if (isParameterError(lionWebVersion)) {
+        // use the default
+        lionWebVersion = "2023.1"
+    }
+    return lionWebVersion
+}
+
+/**
+ *
+ */
 export function getClientIdParameter(request: Request): string {
     let clientId = getStringParam(request, "clientId")
     if (isParameterError(clientId)) {

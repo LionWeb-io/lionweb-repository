@@ -42,9 +42,9 @@ export class DBAdminApiWorker {
         }
     }
 
-    async createRepository(repositoryData: RepositoryData): Promise<QueryReturnType<string>> {
+    async createRepository(repositoryData: RepositoryData, lionWebVersion: string): Promise<QueryReturnType<string>> {
         cleanGlobalPointersMap(repositoryData.repository);
-        const schemaSql = initSchemaWithHistory(repositoryData.repository)
+        const schemaSql = initSchemaWithHistory(repositoryData.repository, lionWebVersion)
         const sql = removeNewlinesBetween$$(schemaSql)
         const queryResult = await this.ctx.dbConnection.queryWithoutRepository(sql)
         return {
@@ -54,8 +54,8 @@ export class DBAdminApiWorker {
         }
     }
 
-    async createRepositoryWithoutHistory(repositoryData: RepositoryData): Promise<QueryReturnType<string>> {
-        const schemaSql = initSchemaWithoutHistory(repositoryData.repository)
+    async createRepositoryWithoutHistory(repositoryData: RepositoryData, lionWebVersion: string): Promise<QueryReturnType<string>> {
+        const schemaSql = initSchemaWithoutHistory(repositoryData.repository, lionWebVersion)
         const sql = removeNewlinesBetween$$(schemaSql)
         const queryResult = await this.ctx.dbConnection.queryWithoutRepository(sql)
         return {

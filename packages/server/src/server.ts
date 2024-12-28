@@ -171,9 +171,9 @@ async function setupDatabase() {
 
 async function createRepository(repository: RepositoryConfig) {
     if (repository?.history !== undefined && repository?.history !== null && repository?.history === true) {
-        await dbAdminApi.createRepository({ clientId: "repository", repository: SCHEMA_PREFIX + repository.name })
+        await dbAdminApi.createRepository({ clientId: "repository", repository: SCHEMA_PREFIX + repository.name }, repository.lionWebVersion)
     } else {
-        await dbAdminApi.createRepositoryWithoutHistory({ clientId: "setup", repository: SCHEMA_PREFIX + repository.name })
+        await dbAdminApi.createRepositoryWithoutHistory({ clientId: "setup", repository: SCHEMA_PREFIX + repository.name }, repository.lionWebVersion)
     }
 }
 

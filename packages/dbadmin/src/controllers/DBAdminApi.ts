@@ -9,7 +9,7 @@ import {
     QueryReturnType,
     ListRepositoriesResponse,
     SCHEMA_PREFIX,
-    requestLogger
+    requestLogger, getLionWebVersionParameter
 } from "@lionweb/repository-common"
 import { DbAdminApiContext } from "../main.js"
 
@@ -87,11 +87,12 @@ export class DBAdminApiImpl implements DBAdminApi {
         requestLogger.info(` * createRepository request received, with body of ${request.headers["content-length"]} bytes params: ${JSON.stringify(request.query)}`)
         const repositoryData: RepositoryData = { clientId: getClientIdParameter(request), repository: getRepositoryParameter(request) }
         const history = getHistoryParameter(request)
+        const lionWebVersion = getLionWebVersionParameter(request)
         let result: QueryReturnType<string>
         if (history) {
-            result = await this.ctx.dbAdminApiWorker.createRepository(repositoryData)
+            result = await this.ctx.dbAdminApiWorker.createRepository(repositoryData, lionWebVersion)
         } else {
-            result = await this.ctx.dbAdminApiWorker.createRepositoryWithoutHistory(repositoryData)
+            result = await this.ctx.dbAdminApiWorker.createRepositoryWithoutHistory(repositoryData, lionWebVersion)
         }
         lionwebResponse(response, result.status, {
             success: result.status === HttpSuccessCodes.Ok,
