@@ -29,12 +29,9 @@ class Repositories {
         const repoNames = repos.queryResult
             .filter(repo => repo.schema_name.startsWith(SCHEMA_PREFIX))
             .map(repo => repo.schema_name.substring(SCHEMA_PREFIX.length))
-        // requestLogger.info("initialize repositories 3")
         for(const repoName of repoNames) {
-            // requestLogger.info("initialize repositories 4 repoName " + repoName)
             const lionWebVersion = await this.ctx.dbConnection.query({repository: SCHEMA_PREFIX + repoName, clientId: "repository"},
                 `SELECT value FROM ${CURRENT_DATA} WHERE key = '${CURRENT_DATA_LIONWEB_VERSION_KEY}'`)
-            // requestLogger.info(`Repo ${repoName} has LionWebVersion ${JSON.stringify(lionWebVersion)}`)
             this.allRepositories.set(repoName, lionWebVersion)
         }
         requestLogger.info("done")
@@ -42,7 +39,6 @@ class Repositories {
     
     async toString(): Promise<string> {
         await this.initialize()
-        // requestLogger.info(`Building string for ${this.allRepositories.size}`)
         let result = "ALL REPOS\n"
         for(const entry of this.allRepositories.entries()) {
             result += `repo ${entry[0]} has lionweb version ${entry[1]}\n`
