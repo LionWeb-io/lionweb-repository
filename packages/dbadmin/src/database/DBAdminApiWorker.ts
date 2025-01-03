@@ -1,4 +1,11 @@
-import { HttpSuccessCodes, QueryReturnType, removeNewlinesBetween$$, RepositoryData, ServerConfig } from "@lionweb/repository-common"
+import {
+    HttpSuccessCodes,
+    LionWebTask,
+    QueryReturnType,
+    removeNewlinesBetween$$,
+    RepositoryData,
+    ServerConfig
+} from "@lionweb/repository-common"
 import { DbAdminApiContext } from "../main.js"
 import {
     CREATE_DATABASE_SQL,
@@ -23,12 +30,12 @@ export class DBAdminApiWorker {
     constructor(private ctx: DbAdminApiContext) {
     }
 
-    async deleteRepository(repositoryData: RepositoryData): Promise<QueryReturnType<string>> {
-        const queryResult = await this.ctx.dbConnection.queryWithoutRepository(dropSchema(repositoryData.repository))
-        cleanGlobalPointersMap(repositoryData.repository);
+    async deleteRepository(task: LionWebTask, repositoryData: RepositoryData): Promise<QueryReturnType<string>> {
+        const queryResult = await task.queryWithoutRepository(dropSchema(repositoryData.repository.schemaName))
+        cleanGlobalPointersMap(repositoryData.repository.repositoryName);
         return {
             status: HttpSuccessCodes.Ok,
-            query: dropSchema(repositoryData.repository),
+            query: dropSchema(repositoryData.repository.schemaName),
             queryResult: JSON.stringify(queryResult)
         }
     }
@@ -42,11 +49,12 @@ export class DBAdminApiWorker {
         }
     }
 
-    async createRepository(repositoryData: RepositoryData, lionWebVersion: string): Promise<QueryReturnType<string>> {
-        cleanGlobalPointersMap(repositoryData.repository);
-        const schemaSql = initSchemaWithHistory(repositoryData.repository, lionWebVersion)
+    async createRepository(task: LionWebTask, repositoryData: RepositoryData): Promise<QueryReturnType<string>> {
+        cleanGlobalPointersMap(repositoryData.repository.repositoryName);
+        const schemaSql = initSchemaWithHistory(repositoryData.repository.schemaName, repositoryData.repository.lionWebVersion)
         const sql = removeNewlinesBetween$$(schemaSql)
-        const queryResult = await this.ctx.dbConnection.queryWithoutRepository(sql)
+        // const queryResult = await this.ctx.dbConnection.queryWithoutRepository(sql)
+        const queryResult = await task.queryWithoutRepository(sql)
         return {
             status: HttpSuccessCodes.Ok,
             query: "",
@@ -54,10 +62,10 @@ export class DBAdminApiWorker {
         }
     }
 
-    async createRepositoryWithoutHistory(repositoryData: RepositoryData, lionWebVersion: string): Promise<QueryReturnType<string>> {
-        const schemaSql = initSchemaWithoutHistory(repositoryData.repository, lionWebVersion)
+    async createRepositoryWithoutHistory(task: LionWebTask, repositoryData: RepositoryData): Promise<QueryReturnType<string>> {
+        const schemaSql = initSchemaWithoutHistory(repositoryData.repository.schemaName, repositoryData.repository.lionWebVersion)
         const sql = removeNewlinesBetween$$(schemaSql)
-        const queryResult = await this.ctx.dbConnection.queryWithoutRepository(sql)
+        const queryResult = await task.queryWithoutRepository(sql)
         return {
             status: HttpSuccessCodes.Ok,
             query: "",
@@ -77,7 +85,7 @@ export class DBAdminApiWorker {
                 }
             }
             // Add the global functions to the public schema
-            await this.ctx.dbConnection.query({ clientId: "Repository", repository: "public" }, removeNewlinesBetween$$(CREATE_GLOBALS_SQL))
+            await this.ctx.dbConnection.queryWithoutRepository(removeNewlinesBetween$$(CREATE_GLOBALS_SQL))
             return {
                 status: HttpSuccessCodes.Ok,
                 query: sql,

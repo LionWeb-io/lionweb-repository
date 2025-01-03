@@ -9,7 +9,14 @@ import { LionWebTask } from "./LionWebTask.js";
  */
 export type RepositoryData = {
     clientId: string
-    repository: string
+    repository: RepositoryInfo
+}
+
+export type RepositoryInfo = {
+    repositoryName: string
+    schemaName: string
+    lionWebVersion: string
+    created?: string
 }
 
 /**
@@ -19,8 +26,8 @@ export type RepositoryData = {
  */
 export function addRepositorySchema(query: string, repositoryData: RepositoryData) {
     if (!query.startsWith("SET search_path TO")) {
-        query = `SET search_path TO '${repositoryData.repository}', 'public';
-                select public.existsschema('${repositoryData.repository}'::text);\n` + query
+        query = `SET search_path TO '${repositoryData.repository.schemaName}', 'public';
+                select public.existsschema('${repositoryData.repository.schemaName}'::text);\n` + query
     }
     return query
 }
@@ -113,18 +120,17 @@ export class DbConnection {
 
     /**
      * @see  IBaseProtocol.tx
-     * @param repositoryData
-     * @param query
      */
     async tx<T>( body: (tsk: LionWebTask)  => Promise<T> ): Promise<T> {
-        traceLogger.info("DbConnection.tx with mode " + JSON.stringify(this.transactionMode))
+        traceLogger.info("DbConnection.tx start with mode " + JSON.stringify(this.transactionMode))
         try {
             return await this.dbConnection.tx({ mode: this.transactionMode as never }, async task => {
                 const tsk = new LionWebTask(task)
+                traceLogger.info("DbConnection.tx return ")
                 return await body(tsk)
             })
         } catch(e) {
-            requestLogger.info("TRANSACTION ERROR " + JSON.stringify(e))
+            requestLogger.info("DbConnection.tx TRANSACTION ERROR " + JSON.stringify(e))
             throw e
         }
     }

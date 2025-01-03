@@ -4,7 +4,7 @@ import bodyParser from "body-parser"
 import cors from "cors"
 import pgPromise from "pg-promise"
 import {postgresConnectionWithDatabase, pgp, postgresConnectionWithoutDatabase, postgresPool} from "./DbConnection.js"
-import { DbConnection, expressLogger, RepositoryConfig, requestLogger, SCHEMA_PREFIX, ServerConfig } from "@lionweb/repository-common"
+import { DbConnection, expressLogger, LionWebTask, RepositoryConfig, requestLogger, SCHEMA_PREFIX, ServerConfig } from "@lionweb/repository-common"
 import { initializeCommons } from "@lionweb/repository-common"
 import { registerDBAdmin } from "@lionweb/repository-dbadmin"
 import { registerInspection } from "@lionweb/repository-inspection"
@@ -143,13 +143,23 @@ async function setupDatabase() {
                 requestLogger.info(`Creating new repository ${repository.name} (config option 'always')`)
                 if (existingRepositories.includes(repository.name)) {
                     // need to remove the repository first
-                    const deletedn = await  dbAdminApi.deleteRepository({clientId: "setup", repository: SCHEMA_PREFIX + repository.name})
-                    requestLogger.info(`Delete repository ${repository.name} result is ` + JSON.stringify(deletedn))
-                    const newEexistingRepositories = (await dbAdminApi.listRepositories()).queryResult
-                        .map(s => s.schema_name)
-                        .filter(s => s.startsWith(SCHEMA_PREFIX))
-                        .map(s => s.substring(SCHEMA_PREFIX.length))
-                    requestLogger.info("Repositories now are: " + newEexistingRepositories)
+                    this.ctx.dbConnection.tx(async (task: LionWebTask) => {
+                        const deletedn = await dbAdminApi.deleteRepository(task, 
+                            {
+                                clientId: "setup",
+                                repository: {
+                                    repositoryName: repository.name,
+                                    schemaName: SCHEMA_PREFIX + repository.name,
+                                    lionWebVersion: repository.lionWebVersion
+                                }
+                            })
+                        requestLogger.info(`Delete repository ${repository.name} result is ` + JSON.stringify(deletedn))
+                        const newEexistingRepositories = (await dbAdminApi.listRepositories()).queryResult
+                            .map(s => s.schema_name)
+                            .filter(s => s.startsWith(SCHEMA_PREFIX))
+                            .map(s => s.substring(SCHEMA_PREFIX.length))
+                        requestLogger.info("Repositories in schemata now are: " + newEexistingRepositories)
+                    })
                 }
                 await createRepository(repository)
                 break;
@@ -170,11 +180,29 @@ async function setupDatabase() {
 }
 
 async function createRepository(repository: RepositoryConfig) {
-    if (repository?.history !== undefined && repository?.history !== null && repository?.history === true) {
-        await dbAdminApi.createRepository({ clientId: "repository", repository: SCHEMA_PREFIX + repository.name }, repository.lionWebVersion)
-    } else {
-        await dbAdminApi.createRepositoryWithoutHistory({ clientId: "setup", repository: SCHEMA_PREFIX + repository.name }, repository.lionWebVersion)
-    }
+    this.ctx.dbConnection.tx(async (task: LionWebTask) => {
+        if (repository?.history !== undefined && repository?.history !== null && repository?.history === true) {
+            await dbAdminApi.createRepository(task, 
+                {
+                    clientId: "repository",
+                    repository: {
+                        repositoryName: repository.name,
+                        schemaName: SCHEMA_PREFIX + repository.name,
+                        lionWebVersion: repository.lionWebVersion
+                    }
+                })
+        } else {
+            await dbAdminApi.createRepositoryWithoutHistory(task, 
+                {
+                    clientId: "repository",
+                    repository: {
+                        repositoryName: repository.name,
+                        schemaName: SCHEMA_PREFIX + repository.name,
+                        lionWebVersion: repository.lionWebVersion
+                    }
+                })
+        }
+    })
 }
 
 async function startServer() {

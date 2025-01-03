@@ -250,13 +250,14 @@ export async function storeNodes(client: PoolClient, repositoryData: RepositoryD
     }
 }
 
-async function storeNodesThroughFlatBuffers(client: PoolClient, repositoryData: RepositoryData, dbConnection: DbConnection, bulkImport: FBBulkImport, repositoryName: string)
+async function storeNodesThroughFlatBuffers(client: PoolClient, repositoryData: RepositoryData, dbConnection: DbConnection, bulkImport: FBBulkImport)
     : Promise<MetaPointersTracker> {
     // We obtain all the indexes for all the MetaPointers we need. We will then use such indexes in successive calls
     // to pipeInputIntoQueryStream, etc.
     const metaPointersTracker = new MetaPointersTracker(repositoryData);
     await populateThroughFlatBuffers(metaPointersTracker, bulkImport, repositoryData, dbConnection);
 
+    const repositoryName = repositoryData.repository.repositoryName
     await pipeInputIntoQueryStream(client,`COPY "${repositoryName}".lionweb_nodes(id,classifier,annotations,parent) FROM STDIN`,
         prepareInputStreamNodesFlatBuffers(bulkImport, metaPointersTracker), "nodes insertion");
     await pipeInputIntoQueryStream(client,`COPY "${repositoryName}".lionweb_containments(containment,children,node_id) FROM STDIN`,
@@ -338,7 +339,7 @@ export async function performImportFromFlatBuffers(client: PoolClient, dbConnect
         }
 
         // Add all the new nodes
-        const metaPointersTracker = await storeNodesThroughFlatBuffers(client, repositoryData, dbConnection, bulkImport, repositoryData.repository)
+        const metaPointersTracker = await storeNodesThroughFlatBuffers(client, repositoryData, dbConnection, bulkImport)
 
         // Attach the root of the new nodes to existing containers
         for (let i = 0; i < bulkImport.attachPointsLength(); i++) {

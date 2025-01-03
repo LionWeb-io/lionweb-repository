@@ -7,6 +7,7 @@ export const REFERENCES_TABLE: string = "lionweb_references"
 export const PROPERTIES_TABLE: string = "lionweb_properties"
 export const RESERVED_IDS_TABLE: string = "lionweb_reserved_ids"
 export const METAPOINTERS_TABLE: string = "lionweb_metapointers"
+export const REPOSITORIES_TABLE: string = "public.repositories"
 export const CURRENT_DATA: string = "current_data"
 export const REPO_VERSIONS: string = "repo_versions"
 

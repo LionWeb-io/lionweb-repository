@@ -33,6 +33,12 @@ export class RepositoryClient {
     private TIMEOUT = Number.parseInt(process.env.TIMEOUT) || 20000
 
     loggingOn = false
+    logMessage(logMessage: string): string {
+        return (this.loggingOn && (logMessage !== undefined) ? `&clientLog=${logMessage}` : "")
+    }
+    logMessageSolo(logMessage: string): string {
+        return (this.loggingOn && (logMessage !== undefined) ? `clientLog=${logMessage}` : "")
+    }
     /**
      * The Client id that is used for all Api requests
      */

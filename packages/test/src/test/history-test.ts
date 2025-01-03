@@ -16,7 +16,8 @@ type StoredAst = {
 }
 
 describe("Repository tests", () => {
-    const client = new RepositoryClient("TestHistoryClient", "default")
+    const client = new RepositoryClient("TestHistoryClient", "history")
+    client.loggingOn = true
     let initialPartition: LionWebJsonChunk
     let baseFullChunk: LionWebJsonChunk
 
@@ -29,7 +30,7 @@ describe("Repository tests", () => {
         }
         initialPartition = readModel(DATA + "Disk_A_partition.json") as LionWebJsonChunk
         baseFullChunk = readModel(DATA + "Disk_A.json") as LionWebJsonChunk
-        const initResponse = await client.dbAdmin.init(true)
+        const initResponse = await client.dbAdmin.createRepository("history", true)
         if (initResponse.status !== HttpSuccessCodes.Ok) {
             console.log("Cannot initialize database: " + JSON.stringify(initResponse.body))
         } else {
@@ -64,7 +65,7 @@ describe("Repository tests", () => {
         const result = await client.bulk.store(changesChunk)
         return {
             chunk: changesChunk,
-            version: Number.parseInt(result.body.messages.find(m => m.kind === "RepoVersion").data["version"])
+            version: Number.parseInt(result.body.messages.find(m => m.kind === "RepoVersion")?.data?.version)
         }
     }
 

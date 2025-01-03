@@ -32,6 +32,11 @@ export class LionWebTask {
         return await this.task.query(query)
     }
 
+    async queryWithoutRepository(query: string) {
+        traceLogger.info("LionWebTask.queryWithoutRepository")
+        return await this.task.query(query)
+    }
+
     /**
      * @see IBaseProtocol.many
      * @param repositoryData

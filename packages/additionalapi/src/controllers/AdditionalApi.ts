@@ -1,12 +1,12 @@
+import { getRepositoryData } from "@lionweb/repository-dbadmin";
 import { Request, Response } from "express"
 import { AdditionalApiContext } from "../main.js"
 import {
     dbLogger,
-    getIntegerParam, getRepositoryParameter, getStringParam,
+    getIntegerParam,
     HttpClientErrors,
     HttpSuccessCodes, isParameterError,
-    lionwebResponse, ParameterError,
-    RepositoryData
+    lionwebResponse
 } from "@lionweb/repository-common"
 import {PBBulkImport, PBMetaPointer} from "../proto/index.js";
 import {BulkImport} from "../database/index.js";
@@ -57,42 +57,41 @@ export class AdditionalApiImpl implements AdditionalApi {
             })
             return
         }
-        const clientId = getStringParam(request, "clientId", "Dummy")
-        if (isParameterError(clientId)) {
+        const repositoryData = getRepositoryData(request)
+        if (isParameterError(repositoryData)) {
             lionwebResponse(response, HttpClientErrors.BadRequest, {
                 success: false,
-                messages: [(clientId as ParameterError).error]
+                messages: [repositoryData.error]
             })
             return
-        }
-        const repositoryData: RepositoryData = { clientId: clientId, repository: getRepositoryParameter(request) }
-        const depthLimit = getIntegerParam(request, "depthLimit", Number.MAX_SAFE_INTEGER)
-        if (isParameterError(depthLimit)) {
-            lionwebResponse(response, HttpClientErrors.PreconditionFailed, {
-                success: false,
-                messages: [depthLimit.error]
-            })
         } else {
-            dbLogger.info("API.getNodeTree is " + idList)
-            const result = await this.context.additionalApiWorker.getNodeTree(repositoryData, idList, depthLimit)
-            lionwebResponse(response, HttpSuccessCodes.Ok, {
-                success: true,
-                messages: [],
-                data: result.queryResult
-            })
+            const depthLimit = getIntegerParam(request, "depthLimit", Number.MAX_SAFE_INTEGER)
+            if (isParameterError(depthLimit)) {
+                lionwebResponse(response, HttpClientErrors.PreconditionFailed, {
+                    success: false,
+                    messages: [depthLimit.error]
+                })
+            } else {
+                dbLogger.info("API.getNodeTree is " + idList)
+                const result = await this.context.additionalApiWorker.getNodeTree(repositoryData, idList, depthLimit)
+                lionwebResponse(response, HttpSuccessCodes.Ok, {
+                    success: true,
+                    messages: [],
+                    data: result.queryResult
+                })
+            }
         }
     }
 
     bulkImport = async (request: Request, response: Response): Promise<void> => {
-        const clientId = getStringParam(request, "clientId", "Dummy")
-        if (isParameterError(clientId)) {
+        const repositoryData = getRepositoryData(request, "Dummy")
+        if (isParameterError(repositoryData)) {
             lionwebResponse(response, HttpClientErrors.BadRequest, {
                 success: false,
-                messages: [(clientId as ParameterError).error]
+                messages: [repositoryData.error]
             })
             return
         }
-        const repositoryData: RepositoryData = { clientId: clientId, repository: getRepositoryParameter(request) }
         if (request.is(JSON_CONTENT_TYPE)) {
             const result = await this.context.additionalApiWorker.bulkImport(repositoryData, request.body)
             lionwebResponse(response, HttpSuccessCodes.Ok, {

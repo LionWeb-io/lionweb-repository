@@ -4,7 +4,7 @@ import pg from "pg-promise/typescript/pg-subset.js"
 import { runWithTry, DbConnection, requestLogger } from "@lionweb/repository-common"
 import { DBAdminApi, DBAdminApiImpl } from "./controllers/DBAdminApi.js"
 import { DBAdminApiWorker } from "./database/DBAdminApiWorker.js"
-import { repositories } from "./database/index.js";
+import { repositoryStore } from "./database/index.js";
 
 /**
  * Object containing 'global' contextual objects for this API.
@@ -50,7 +50,7 @@ export function registerDBAdmin(
     requestLogger.info("Registering DB Admin Module")
     // Create all objects
     const dbAdminApiContext = new DbAdminApiContext(dbConnection, pgConnection, pgp)
-    repositories.setContext(dbAdminApiContext)
+    repositoryStore.setContext(dbAdminApiContext)
 
     // Add routes to app
     app.post("/init", runWithTry(dbAdminApiContext.dbAdminApi.init))

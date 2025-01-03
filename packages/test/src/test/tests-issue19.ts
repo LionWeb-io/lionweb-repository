@@ -11,8 +11,14 @@ describe("Repository tests", () => {
     const t = new RepositoryClient("TestClient", "default")
 
     beforeEach("a", async function () {
+        const createResponse = await t.dbAdmin.createDatabase()
+        if (createResponse.status !== HttpSuccessCodes.Ok) {
+            console.log("Cannot create database: " + JSON.stringify(createResponse.body))
+        } else {
+            console.log("database created: " + JSON.stringify(createResponse.body))
+        }
         await t.dbAdmin.deleteRepository("default")
-        await t.dbAdmin.init(true)
+        await t.dbAdmin.createRepository("default", true)
         await t.bulk.createPartitions(readModel(DATA + "Disk_A_partition.json") as LionWebJsonChunk)
     })
 
@@ -23,6 +29,7 @@ describe("Repository tests", () => {
                 "./data/add-new-nodes/Disk-add-new-nodes-single-node.json",
                 "./data/Disk_A.json",
             ])
+            // await t.dbAdmin.deleteRepository("default")
         })
     })
 

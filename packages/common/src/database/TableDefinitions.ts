@@ -8,7 +8,7 @@ import {
     METAPOINTERS_TABLE,
     NODES_TABLE,
     PROPERTIES_TABLE,
-    REFERENCES_TABLE,
+    REFERENCES_TABLE, REPOSITORIES_TABLE,
     RESERVED_IDS_TABLE
 } from "./TableNames.js"
 
@@ -31,6 +31,7 @@ export class TableDefinitions {
     REFERENCES_COLUMN_SET: pgPromise.ColumnSet
     RESERVED_IDS_COLUMN_SET: pgPromise.ColumnSet
     METAPOINTERS_COLUMN_SET: pgPromise.ColumnSet
+    REPOSITORIES_COLUMN_SET: pgPromise.ColumnSet
     
     constructor(private pgp: pgPromise.IMain<object, pg.IClient>) {
         this.pgp = pgp
@@ -107,5 +108,16 @@ export class TableDefinitions {
             ],
             { table: RESERVED_IDS_TABLE }
         )
+        // prettier-ignore
+        this.REPOSITORIES_COLUMN_SET = new this.pgp.helpers.ColumnSet(
+            [
+                "repositoryName",
+                "schemaName",
+                "lionWebVersion",
+                "?created"
+            ],
+            { table: REPOSITORIES_TABLE }
+        )
+
     }
 }

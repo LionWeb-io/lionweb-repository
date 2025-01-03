@@ -1,9 +1,9 @@
 import {
-    getRepositoryParameter,
-    getStringParam,
-    isParameterError,
-    RepositoryData
+    getStringParam, HttpClientErrors,
+    isParameterError, lionwebResponse,
+    StoreResponse
 } from "@lionweb/repository-common";
+import { getRepositoryData } from "@lionweb/repository-dbadmin";
 import e, { Request, Response } from "express"
 import { InspectionContext } from "../main.js";
 import {ClassifierNodes, LanguageNodes} from "../database/InspectionApiWorker.js";
@@ -92,32 +92,42 @@ class InspectionApiImpl implements InspectionApi {
 
     nodesByClassifier = async (request: e.Request, response: e.Response)=> {
         let clientId = getStringParam(request, "clientId")
-        if (isParameterError(clientId)) {
-            // Allow call without client id
-            clientId = "Dummy"
-        } 
-        const repositoryData: RepositoryData = { clientId: clientId, repository: getRepositoryParameter(request) }
-        const sql = this.context.inspectionQueries.nodesByClassifier();
-        const queryResult = await this.context.inspectionApiWorker.nodesByClassifier(repositoryData, sql)
-        const limitStr = request.query.limit
-        // TODO handle the case in which multiple query parameters are specified
-        const limit: number = limitStr === undefined ? -1 : parseInt(limitStr as string, 10)
-        response.send(this.classifierNodesToBuffer(queryResult, limit))
-    }
-
-    nodesByLanguage = async (request: e.Request, response: e.Response) => {
-        let clientId = getStringParam(request, "clientId")
+        // TODO Change using new repository structure
         if (isParameterError(clientId)) {
             // Allow call without client id
             clientId = "Dummy"
         }
-        const repositoryData: RepositoryData = { clientId: clientId, repository: getRepositoryParameter(request) }
-        const sql = this.context.inspectionQueries.nodesByLanguage();
-        const queryResult = await this.context.inspectionApiWorker.nodesByLanguage(repositoryData, sql)
-        const limitStr = request.query.limit
-        // TODO handle the case in which multiple query parameters are specified
-        const limit: number = limitStr === undefined ? -1 : parseInt(limitStr as string, 10)
-        response.send(this.languageNodesToBuffer(queryResult, limit))
+        const repositoryData = getRepositoryData(request, "Dummy")
+        if (isParameterError(repositoryData)) {
+            lionwebResponse<StoreResponse>(response, HttpClientErrors.PreconditionFailed, {
+                success: false,
+                messages: [repositoryData.error]
+            })
+        } else {
+            const sql = this.context.inspectionQueries.nodesByClassifier();
+            const queryResult = await this.context.inspectionApiWorker.nodesByClassifier(repositoryData, sql)
+            const limitStr = request.query.limit
+            // TODO handle the case in which multiple query parameters are specified
+            const limit: number = limitStr === undefined ? -1 : parseInt(limitStr as string, 10)
+            response.send(this.classifierNodesToBuffer(queryResult, limit))
+        }
+    }
+
+    nodesByLanguage = async (request: e.Request, response: e.Response) => {
+        const repositoryData = getRepositoryData(request, "Dummy")
+        if (isParameterError(repositoryData)) {
+            lionwebResponse<StoreResponse>(response, HttpClientErrors.PreconditionFailed, {
+                success: false,
+                messages: [repositoryData.error]
+            })
+        } else {
+            const sql = this.context.inspectionQueries.nodesByLanguage();
+            const queryResult = await this.context.inspectionApiWorker.nodesByLanguage(repositoryData, sql)
+            const limitStr = request.query.limit
+            // TODO handle the case in which multiple query parameters are specified
+            const limit: number = limitStr === undefined ? -1 : parseInt(limitStr as string, 10)
+            response.send(this.languageNodesToBuffer(queryResult, limit))
+        }
     }
 }
 

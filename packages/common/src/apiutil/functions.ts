@@ -1,4 +1,3 @@
-import { RepositoryData, SCHEMA_PREFIX } from "../database/index.js";
 import { HttpServerErrors } from "./httpcodes.js"
 import { requestLogger } from "./logging.js";
 import { Job, requestQueue } from "./RequestQueue.js";
@@ -138,7 +137,7 @@ export function removeNewlinesBetween$$(plpgsql: string): string {
 }
 
 /**
- * 
+ *
  */
 export function getRepositoryParameter(request: Request): string {
     let repository = getStringParam(request, "repository")
@@ -146,7 +145,19 @@ export function getRepositoryParameter(request: Request): string {
         // use the default
         repository = "default"
     }
-    return SCHEMA_PREFIX + repository
+    return repository
+}
+
+/**
+ *
+ */
+export function getClientLog(request: Request): string {
+    let logMessage = getStringParam(request, "clientLog", "")
+    if (isParameterError(logMessage)) {
+        // use the default
+        logMessage = ""
+    }
+    return logMessage
 }
 
 /**
@@ -165,7 +176,7 @@ export function getHistoryParameter(request: Request): boolean {
  *
  */
 export function getLionWebVersionParameter(request: Request): string {
-    let lionWebVersion = getStringParam(request, "lionWebVersion")
+    let lionWebVersion = getStringParam(request, "lionWebVersion", "2023.1")
     if (isParameterError(lionWebVersion)) {
         // use the default
         lionWebVersion = "2023.1"
@@ -185,18 +196,9 @@ export function getClientIdParameter(request: Request): string {
     return clientId
 }
 
-export function getRepositoryData(request: Request ): RepositoryData | ParameterError {
-    const clientId = getStringParam(request, "clientId")
-    if (isParameterError(clientId)) {
-        return clientId
-    } else {
-        return {
-            clientId: clientId,
-            repository: getRepositoryParameter(request)
-        }
-    }
-}
-
+/**
+ * Number of requests handled since start
+ */
 let index = 1
 /**
  * Catch-all wrapper function to handle exceptions for any api call.
