@@ -7,8 +7,8 @@ import {
         CURRENT_DATA, CURRENT_DATA_REPO_VERSION_KEY, CURRENT_DATA_REPO_CLIENT_ID_KEY
 } from "@lionweb/repository-common";
 
-export function dropSchema(schema: string): string {
-        return `DROP SCHEMA IF EXISTS "${schema}" CASCADE;`
+export function dropSchema(schemaName: string): string {
+        return `DROP SCHEMA IF EXISTS "${schemaName}" CASCADE;`
 }
 
 export function listSchemas(): string {
@@ -17,12 +17,12 @@ export function listSchemas(): string {
         FROM information_schema.schemata;`
 }
 
-export function initSchemaWithHistory(schema: string): string {
+export function initSchemaWithHistory(schemaName: string): string {
         return  `-- Create schema
         -- drop if empty, otherwise fail
-        DROP SCHEMA IF EXISTS "${schema}" RESTRICT;
-        CREATE SCHEMA "${schema}";
-        SET search_path TO "${schema}";
+        DROP SCHEMA IF EXISTS "${schemaName}" RESTRICT;
+        CREATE SCHEMA "${schemaName}";
+        SET search_path TO "${schemaName}";
 
         -- Drops nodes table
         DROP VIEW IF EXISTS ${NODES_TABLE};

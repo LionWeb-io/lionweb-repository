@@ -9,12 +9,12 @@ import {
     REPO_VERSIONS, CURRENT_DATA_REPO_VERSION_KEY, CURRENT_DATA_REPO_CLIENT_ID_KEY
 } from "@lionweb/repository-common";
 
-export function initSchemaWithoutHistory(schema: string): string {
+export function initSchemaWithoutHistory(schemaName: string): string {
     return `-- Create schema
     -- drop if empty, otherwise fail
-    DROP SCHEMA IF EXISTS "${schema}" RESTRICT;
-    CREATE SCHEMA "${schema}";
-    SET search_path TO "${schema}";
+    DROP SCHEMA IF EXISTS "${schemaName}" RESTRICT;
+    CREATE SCHEMA "${schemaName}";
+    SET search_path TO "${schemaName}";
     
     -- Drops nodes table
     DROP TABLE IF EXISTS ${NODES_TABLE};
