@@ -31,11 +31,11 @@ export class DBAdminApiWorker {
     }
 
     async deleteRepository(task: LionWebTask, repositoryData: RepositoryData): Promise<QueryReturnType<string>> {
-        const queryResult = await task.queryWithoutRepository(dropSchema(repositoryData.repository.schemaName))
-        cleanGlobalPointersMap(repositoryData.repository.repositoryName);
+        const queryResult = await task.queryWithoutRepository(dropSchema(repositoryData.repository.schema_name))
+        cleanGlobalPointersMap(repositoryData.repository.repository_name);
         return {
             status: HttpSuccessCodes.Ok,
-            query: dropSchema(repositoryData.repository.schemaName),
+            query: dropSchema(repositoryData.repository.schema_name),
             queryResult: JSON.stringify(queryResult)
         }
     }
@@ -50,20 +50,11 @@ export class DBAdminApiWorker {
     }
 
     async createRepository(task: LionWebTask, repositoryData: RepositoryData): Promise<QueryReturnType<string>> {
-        cleanGlobalPointersMap(repositoryData.repository.repositoryName);
-        const schemaSql = initSchemaWithHistory(repositoryData.repository.schemaName, repositoryData.repository.lionWebVersion)
-        const sql = removeNewlinesBetween$$(schemaSql)
-        // const queryResult = await this.ctx.dbConnection.queryWithoutRepository(sql)
-        const queryResult = await task.queryWithoutRepository(sql)
-        return {
-            status: HttpSuccessCodes.Ok,
-            query: "",
-            queryResult: JSON.stringify(queryResult)
-        }
-    }
-
-    async createRepositoryWithoutHistory(task: LionWebTask, repositoryData: RepositoryData): Promise<QueryReturnType<string>> {
-        const schemaSql = initSchemaWithoutHistory(repositoryData.repository.schemaName, repositoryData.repository.lionWebVersion)
+        cleanGlobalPointersMap(repositoryData.repository.repository_name);
+        const schemaSql = (repositoryData.repository.history 
+            ? initSchemaWithHistory(repositoryData.repository.schema_name, repositoryData.repository.lionweb_version)
+            : initSchemaWithoutHistory(repositoryData.repository.schema_name, repositoryData.repository.lionweb_version)
+        )
         const sql = removeNewlinesBetween$$(schemaSql)
         const queryResult = await task.queryWithoutRepository(sql)
         return {

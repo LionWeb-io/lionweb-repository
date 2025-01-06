@@ -257,7 +257,7 @@ async function storeNodesThroughFlatBuffers(client: PoolClient, repositoryData: 
     const metaPointersTracker = new MetaPointersTracker(repositoryData);
     await populateThroughFlatBuffers(metaPointersTracker, bulkImport, repositoryData, dbConnection);
 
-    const repositoryName = repositoryData.repository.repositoryName
+    const repositoryName = repositoryData.repository.repository_name
     await pipeInputIntoQueryStream(client,`COPY "${repositoryName}".lionweb_nodes(id,classifier,annotations,parent) FROM STDIN`,
         prepareInputStreamNodesFlatBuffers(bulkImport, metaPointersTracker), "nodes insertion");
     await pipeInputIntoQueryStream(client,`COPY "${repositoryName}".lionweb_containments(containment,children,node_id) FROM STDIN`,

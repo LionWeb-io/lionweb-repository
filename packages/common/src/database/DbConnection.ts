@@ -13,9 +13,10 @@ export type RepositoryData = {
 }
 
 export type RepositoryInfo = {
-    repositoryName: string
-    schemaName: string
-    lionWebVersion: string
+    repository_name: string
+    schema_name: string
+    history: boolean
+    lionweb_version: string
     created?: string
 }
 
@@ -26,8 +27,8 @@ export type RepositoryInfo = {
  */
 export function addRepositorySchema(query: string, repositoryData: RepositoryData) {
     if (!query.startsWith("SET search_path TO")) {
-        query = `SET search_path TO '${repositoryData.repository.schemaName}', 'public';
-                select public.existsschema('${repositoryData.repository.schemaName}'::text);\n` + query
+        query = `SET search_path TO '${repositoryData.repository.schema_name}', 'public';
+                select public.existsschema('${repositoryData.repository.schema_name}'::text);\n` + query
     }
     return query
 }

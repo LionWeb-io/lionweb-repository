@@ -58,7 +58,7 @@ export class MetaPointersCollector {
 
     considerAddingMetaPointer(metaPointer: LionWebJsonMetaPointer) {
         const key = `${metaPointer.language}@${metaPointer.version}@${metaPointer.key}`;
-        if (hasInGlobalMetaPointersMap(this.repositoryData.repository.repositoryName, key) || this.keysOfMetaPointers.has(key)) {
+        if (hasInGlobalMetaPointersMap(this.repositoryData.repository.repository_name, key) || this.keysOfMetaPointers.has(key)) {
             return
         } else {
             this.keysOfMetaPointers.add(key)
@@ -78,7 +78,7 @@ export class MetaPointersCollector {
         raw_res.forEach((el)=>{
             const value = el.tometapointerids;
             const parts = value.substring(1, value.length - 1).split(",")
-            insertInGlobalMetaPointersMap(this.repositoryData.repository.repositoryName, `${parts[1]}@${parts[2]}@${parts[3]}`, Number(parts[0]));
+            insertInGlobalMetaPointersMap(this.repositoryData.repository.repository_name, `${parts[1]}@${parts[2]}@${parts[3]}`, Number(parts[0]));
         })
     }
 }
@@ -106,10 +106,10 @@ export class MetaPointersTracker {
 
     forMetaPointer(metaPointer: LionWebJsonMetaPointer): number {
         const key = `${metaPointer.language}@${metaPointer.version}@${metaPointer.key}`;
-        if (!hasInGlobalMetaPointersMap(this.repositoryData.repository.repositoryName, key)) {
+        if (!hasInGlobalMetaPointersMap(this.repositoryData.repository.repository_name, key)) {
             throw new Error(`MetaPointer not found: ${JSON.stringify(metaPointer)}`);
         }
-        return getFromGlobalMetaPointersMap(this.repositoryData.repository.repositoryName, key);
+        return getFromGlobalMetaPointersMap(this.repositoryData.repository.repository_name, key);
     }
 
 }

@@ -53,7 +53,6 @@ export function registerDBAdmin(
     repositoryStore.setContext(dbAdminApiContext)
 
     // Add routes to app
-    app.post("/init", runWithTry(dbAdminApiContext.dbAdminApi.init))
     app.post("/createRepository", runWithTry(dbAdminApiContext.dbAdminApi.createRepository))
     app.post("/deleteRepository", runWithTry(dbAdminApiContext.dbAdminApi.deleteRepository))
     app.post("/createDatabase", runWithTry(dbAdminApiContext.dbAdminApi.createDatabase))
@@ -62,6 +61,3 @@ export function registerDBAdmin(
     return dbAdminApiContext.dbAdminApiWorker
 }
 
-export function initDatabase(): void {}
-
-export function createRepository(): void {}

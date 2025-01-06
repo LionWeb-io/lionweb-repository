@@ -9,7 +9,14 @@ import {
     QueryReturnType,
     ListRepositoriesResponse,
     SCHEMA_PREFIX,
-    requestLogger, getLionWebVersionParameter, isParameterError, ListPartitionsResponse, HttpClientErrors, getClientLog, LionWebTask
+    requestLogger,
+    getLionWebVersionParameter,
+    isParameterError,
+    ListPartitionsResponse,
+    HttpClientErrors,
+    getClientLog,
+    LionWebTask,
+    RepositoryData
 } from "@lionweb/repository-common"
 import { getRepositoryData, repositoryStore } from "../database/index.js";
 import { DbAdminApiContext } from "../main.js"
@@ -28,13 +35,6 @@ export interface DBAdminApi {
      * @param response
      */
     createDatabase(request: Request, response: Response): void
-
-    /**
-     * Initialize the default repository
-     * @param request
-     * @param response
-     */
-    init(request: Request, response: Response): void
 
     /**
      * Create a new repository
@@ -79,11 +79,6 @@ export class DBAdminApiImpl implements DBAdminApi {
         })
     }
 
-    init = async (request: e.Request, response: e.Response) => {
-        requestLogger.info(` * init request received, with body of ${request.headers["content-length"]} bytes`)
-        await this.createRepository(request, response)
-    }
-
     createRepository = async (request: e.Request, response: e.Response) => {
         requestLogger.info(` * createRepository request received, with body of ${request.headers["content-length"]} bytes params: ${JSON.stringify(request.query)}`)
         const clientId = getClientIdParameter(request)
@@ -119,34 +114,27 @@ export class DBAdminApiImpl implements DBAdminApi {
                 return
             }
             // Now just create it
-            const repositoryData = {
+            const history = getHistoryParameter(request)
+            const repositoryData: RepositoryData = {
                 clientId: clientId,
                 repository: {
-                    repositoryName: repositoryName,
-                    schemaName: SCHEMA_PREFIX + repositoryName,
-                    lionWebVersion: lionWebVersion
+                    repository_name: repositoryName,
+                    schema_name: SCHEMA_PREFIX + repositoryName,
+                    history: history,
+                    lionweb_version: lionWebVersion
                 }
             }
-            const history = getHistoryParameter(request)
             let result: QueryReturnType<string>
             await this.ctx.dbConnection.tx(async (task: LionWebTask) => {
-                if (history) {
-                    result = await this.ctx.dbAdminApiWorker.createRepository(task, repositoryData)
-                } else {
-                    result = await this.ctx.dbAdminApiWorker.createRepositoryWithoutHistory(task, repositoryData)
-                }
+                result = await this.ctx.dbAdminApiWorker.createRepository(task, repositoryData)
             })
-                // Update repository info table
-                const tmp = await this.ctx.dbConnection.queryWithoutRepository(`SELECT public.createRepositoryInfo('${repositoryData.repository.repositoryName}'::text, '${repositoryData.repository.schemaName}'::text, '${repositoryData.repository.lionWebVersion}'::text);\n`)
-            requestLogger.info(`++++++++++ k${JSON.stringify(tmp)}`)
-                // Recalculate the repo store
-                requestLogger.info("create repository")
-                repositoryStore.initialized = false
-                await repositoryStore.initialize()
-                lionwebResponse(response, result.status, {
-                    success: result.status === HttpSuccessCodes.Ok,
-                    messages: [{ kind: "Info", message: result.queryResult }]
-                })
+            // Update repository info table
+            const repoInfoTable = await this.ctx.dbConnection.queryWithoutRepository(`SELECT public.createRepositoryInfo('${repositoryData.repository.repository_name}'::text, '${repositoryData.repository.schema_name}'::text, '${repositoryData.repository.lionweb_version}'::text, '${history}'::boolean);\n`)
+            await repositoryStore.refresh()
+            lionwebResponse(response, result.status, {
+                success: result.status === HttpSuccessCodes.Ok,
+                messages: [{ kind: "Info", message: result.queryResult }]
+            })
         }
     }
 
@@ -190,7 +178,7 @@ export class DBAdminApiImpl implements DBAdminApi {
                 })
             })
             // Update repository info table
-            const tmp = await this.ctx.dbConnection.queryWithoutRepository(`SELECT public.deleteRepositoryInfo('${repositoryData.repository.repositoryName}'::text);\n`)
+            const tmp = await this.ctx.dbConnection.queryWithoutRepository(`SELECT public.deleteRepositoryInfo('${repositoryData.repository.repository_name}'::text);\n`)
             requestLogger.info(`--------- k${JSON.stringify(tmp)}`)
 
             repositoryStore.initialized = false

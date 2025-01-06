@@ -148,9 +148,10 @@ async function setupDatabase() {
                             {
                                 clientId: "setup",
                                 repository: {
-                                    repositoryName: repository.name,
-                                    schemaName: SCHEMA_PREFIX + repository.name,
-                                    lionWebVersion: repository.lionWebVersion
+                                    repository_name: repository.name,
+                                    schema_name: SCHEMA_PREFIX + repository.name,
+                                    history: repository.history,
+                                    lionweb_version: repository.lionWebVersion
                                 }
                             })
                         requestLogger.info(`Delete repository ${repository.name} result is ` + JSON.stringify(deletedn))
@@ -181,27 +182,17 @@ async function setupDatabase() {
 
 async function createRepository(repository: RepositoryConfig) {
     this.ctx.dbConnection.tx(async (task: LionWebTask) => {
-        if (repository?.history !== undefined && repository?.history !== null && repository?.history === true) {
+        const history = repository?.history !== undefined && repository?.history !== null && repository?.history === true 
             await dbAdminApi.createRepository(task, 
-                {
-                    clientId: "repository",
-                    repository: {
-                        repositoryName: repository.name,
-                        schemaName: SCHEMA_PREFIX + repository.name,
-                        lionWebVersion: repository.lionWebVersion
-                    }
-                })
-        } else {
-            await dbAdminApi.createRepositoryWithoutHistory(task, 
-                {
-                    clientId: "repository",
-                    repository: {
-                        repositoryName: repository.name,
-                        schemaName: SCHEMA_PREFIX + repository.name,
-                        lionWebVersion: repository.lionWebVersion
-                    }
-                })
-        }
+            {
+                clientId: "repository",
+                repository: {
+                    repository_name: repository.name,
+                    schema_name: SCHEMA_PREFIX + repository.name,
+                    history: history,
+                    lionweb_version: repository.lionWebVersion
+                }
+            })
     })
 }
 

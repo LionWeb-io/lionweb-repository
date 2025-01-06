@@ -3,7 +3,7 @@
 // - call controller to do actual work
 // - pack response
 import { Request, Response } from "express"
-import { getRepositoryData } from "@lionweb/repository-dbadmin";
+import { getRepositoryData, validateLionWebVersion } from "@lionweb/repository-dbadmin";
 import { getLanguageRegistry } from "@lionweb/repository-languages"
 import { LionWebJsonChunk, LionWebValidator } from "@lionweb/validation"
 import { BulkApiContext } from "../main.js"
@@ -67,18 +67,8 @@ export class BulkApiImpl implements BulkApi {
                 messages: [repositoryData.error]
             }) 
         } else {
-            if (chunk?.serializationFormatVersion !== repositoryData.repository.lionWebVersion) {
-                requestLogger.info(`SeralizationVersion ${chunk.serializationFormatVersion} is incorrect for repository ${repositoryData.repository} with LionWeb version ${repositoryData.repository.lionWebVersion}.`)
-                lionwebResponse<CreatePartitionsResponse>(response, HttpClientErrors.PreconditionFailed, {
-                    success: false,
-                    messages: [{
-                        kind: "IncorrectLionWebVersion",
-                        message: `SeralizationVersion ${chunk.serializationFormatVersion} is incorrect for repository with LionWeb version ${repositoryData.repository.lionWebVersion}.`
-                    }]
-                })
-                return
-            }
             const validator = new LionWebValidator(chunk, getLanguageRegistry())
+            validateLionWebVersion(chunk, repositoryData, validator.validationResult)
             validator.validateSyntax()
             validator.validateReferences()
             if (validator.validationResult.hasErrors()) {
@@ -160,28 +150,31 @@ export class BulkApiImpl implements BulkApi {
         requestLogger.info(` * store request received, with body of ${request.headers["content-length"]} bytes`)
         const repositoryData = getRepositoryData(request)
         requestLogger.debug(`    ** repository data ${JSON.stringify(repositoryData)} bytes`)
-        const chunk: LionWebJsonChunk = request.body
-        const validator = new LionWebValidator(chunk, getLanguageRegistry())
-        validator.validateSyntax()
-        validator.validateReferences()
-        if (validator.validationResult.hasErrors()) {
-            requestLogger.error("STORE VALIDATION ERROR " + validator.validationResult.issues.map(issue => issue.errorMsg()))
-            lionwebResponse<StoreResponse>(response, HttpClientErrors.PreconditionFailed, {
-                success: false,
-                messages: validator.validationResult.issues.map(issue => ({ kind: issue.issueType, message: issue.errorMsg() }))
-            })
-        } else if (isParameterError(repositoryData)) {
-            requestLogger.error("STORE CLIENT ID ERROR: clientId incorrect: " + JSON.stringify(repositoryData))
+        if (isParameterError(repositoryData)) {
+            requestLogger.error("STORE ERROR: repository data incorrect: " + JSON.stringify(repositoryData))
             lionwebResponse<StoreResponse>(response, HttpClientErrors.PreconditionFailed, {
                 success: false,
                 messages: [repositoryData.error]
             })
         } else {
-            await this.ctx.dbConnection.tx(async (task: LionWebTask) => {
-                const result = await this.ctx.bulkApiWorker.bulkStore(task, repositoryData, chunk)
-                result.queryResult.messages.push({ kind: "QueryFromApi", message: result.query })
-                lionwebResponse<StoreResponse>(response, result.status, result.queryResult)
-            })
+            const chunk: LionWebJsonChunk = request.body
+            const validator = new LionWebValidator(chunk, getLanguageRegistry())
+            validateLionWebVersion(chunk, repositoryData, validator.validationResult)
+            validator.validateSyntax()
+            validator.validateReferences()
+            if (validator.validationResult.hasErrors()) {
+                requestLogger.error("BulkApi.store validation errors: " + validator.validationResult.issues.map(issue => issue.errorMsg()))
+                lionwebResponse<StoreResponse>(response, HttpClientErrors.PreconditionFailed, {
+                    success: false,
+                    messages: validator.validationResult.issues.map(issue => ({ kind: issue.issueType, message: issue.errorMsg() }))
+                })
+            } else {
+                await this.ctx.dbConnection.tx(async (task: LionWebTask) => {
+                    const result = await this.ctx.bulkApiWorker.bulkStore(task, repositoryData, chunk)
+                    result.queryResult.messages.push({ kind: "QueryFromApi", message: result.query })
+                    lionwebResponse<StoreResponse>(response, result.status, result.queryResult)
+                })
+            }
         }
     }
 

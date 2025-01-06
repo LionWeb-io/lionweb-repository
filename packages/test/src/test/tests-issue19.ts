@@ -9,6 +9,7 @@ const DATA: string = "./data/"
 
 describe("Repository tests", () => {
     const t = new RepositoryClient("TestClient", "default")
+    t.loggingOn = true
 
     beforeEach("a", async function () {
         const createResponse = await t.dbAdmin.createDatabase()
@@ -18,7 +19,7 @@ describe("Repository tests", () => {
             console.log("database created: " + JSON.stringify(createResponse.body))
         }
         await t.dbAdmin.deleteRepository("default")
-        await t.dbAdmin.createRepository("default", true)
+        await t.dbAdmin.createRepository("default", true, "2023.1")
         await t.bulk.createPartitions(readModel(DATA + "Disk_A_partition.json") as LionWebJsonChunk)
     })
 

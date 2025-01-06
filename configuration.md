@@ -36,7 +36,9 @@ Below is the server-config.json with all default values
         // Values are "always" | "never" | "if-not-exists"
         create: "if-not-exists"
         // Whether the repository should keep the history
-        "history": false
+        "history": false,
+        // Values can be: "2023.1" | "2024.1"
+        lionWebVersion: "2023.1"
       }
     ]
   },

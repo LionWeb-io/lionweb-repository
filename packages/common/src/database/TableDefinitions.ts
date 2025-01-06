@@ -111,9 +111,10 @@ export class TableDefinitions {
         // prettier-ignore
         this.REPOSITORIES_COLUMN_SET = new this.pgp.helpers.ColumnSet(
             [
-                "repositoryName",
-                "schemaName",
-                "lionWebVersion",
+                "repository_name",
+                "schema_name",
+                "lionweb_version",
+                "history",
                 "?created"
             ],
             { table: REPOSITORIES_TABLE }

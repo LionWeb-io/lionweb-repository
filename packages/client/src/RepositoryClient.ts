@@ -18,6 +18,8 @@ export type ClientResponse<T extends LionwebResponse> = {
     status: Status
 }
 
+export type LionWebVersionType = "2023.1" | "2024.1"
+
 /**
  *  Access to the LionWeb repository API's.
  *  Can be configured by environment variables:
