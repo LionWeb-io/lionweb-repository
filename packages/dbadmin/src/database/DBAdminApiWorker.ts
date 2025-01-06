@@ -42,8 +42,8 @@ export class DBAdminApiWorker {
     async createRepository(task: LionWebTask, repositoryData: RepositoryData): Promise<QueryReturnType<string>> {
         cleanGlobalPointersMap(repositoryData.repository.repository_name);
         const schemaSql = (repositoryData.repository.history 
-            ? initSchemaWithHistory(repositoryData.repository.schema_name, repositoryData.repository.lionweb_version)
-            : initSchemaWithoutHistory(repositoryData.repository.schema_name, repositoryData.repository.lionweb_version)
+            ? initSchemaWithHistory(repositoryData.repository.schema_name)
+            : initSchemaWithoutHistory(repositoryData.repository.schema_name)
         )
         const sql = removeNewlinesBetween$$(schemaSql)
         const queryResult = await task.queryWithoutRepository(sql)
