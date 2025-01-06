@@ -68,34 +68,16 @@ export class RepositoryStore {
             return
         }
         this.repositoryName2repository.clear()
-        // const repos = await this.ctx.dbAdminApiWorker.listRepositories()
-        // select schemas that represent a repository, make sure to remove the SCHEMA_PREFIX
-        // TODO DRY with DbAdminApi.ts
-        // const repoNames = repos.queryResult
-        //     .filter(repo => repo.schema_name.startsWith(SCHEMA_PREFIX))
-        //     .map(repo => repo.schema_name.substring(SCHEMA_PREFIX.length))
-        // for(const repoName of repoNames) {
-        //     const lionWebVersion = await this.ctx.dbConnection.queryWithoutRepository(
-        //         `SELECT value FROM ${CURRENT_DATA} WHERE key = '${CURRENT_DATA_LIONWEB_VERSION_KEY}'`)
-        //     requestLogger.info("VERSION FOUND IS " + JSON.stringify(lionWebVersion))
-        //     const repo: RepositoryInfo = {
-        //         repository_name: repoName,
-        //         lionweb_version: lionWebVersion[0].value,
-        //         history: true, // TODO Remmove
-        //         schema_name: SCHEMA_PREFIX + repoName
-        //     }
-        //     // this.repositoryName2repository.set(repoName, repo)
-        // }
-        // requestLogger.info("done with repos " + repoNames)
-        
-        // Alternative listRepositories
         const repoTable = await this.ctx.dbConnection.queryWithoutRepository(`SELECT * FROM ${REPOSITORIES_TABLE};\n`) as
             RepositoryInfo[]
         repoTable.forEach(repo => {
             this.repositoryName2repository.set(repo.repository_name, repo)
             requestLogger.info("Repo row: " + JSON.stringify(repo))
         })
-        
+    }
+
+    allRepositories(): RepositoryInfo[] {
+        return Array.from(this.repositoryName2repository.values())    
     }
     
     getRepository(repoName: string): RepositoryInfo {

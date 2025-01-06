@@ -45,7 +45,7 @@ export interface DBAdminApi {
 
     /**
      * Delete a repository
-     * @param request  _clientId_, _repository_
+     * @param request  Has parameters: `clientId`, `repository_name`
      * @param response
      */
     deleteRepository(request: Request, response: Response): void
@@ -61,6 +61,11 @@ export interface DBAdminApi {
 export class DBAdminApiImpl implements DBAdminApi {
     constructor(private ctx: DbAdminApiContext) {}
 
+    /**
+     * @see DBAdminApi.databaseExists
+     * @param request
+     * @param response
+     */
     databaseExists = async (request: e.Request, response: e.Response) => {
         requestLogger.info(` * databaseExists request received, with body of ${request.headers["content-length"]} bytes`)
         await this.ctx.dbAdminApiWorker.databaseExists()
@@ -70,6 +75,11 @@ export class DBAdminApiImpl implements DBAdminApi {
         })
     }
 
+    /**
+     * @see DBAdminApi.createDatabase
+     * @param request
+     * @param response
+     */
     createDatabase = async (request: e.Request, response: e.Response) => {
         requestLogger.info(` * createDatabase request received, with body of ${request.headers["content-length"]} bytes`)
         await this.ctx.dbAdminApiWorker.createDatabase()
@@ -79,6 +89,11 @@ export class DBAdminApiImpl implements DBAdminApi {
         })
     }
 
+    /**
+     * @see DBAdminApi.createRepository
+     * @param request
+     * @param response
+     */
     createRepository = async (request: e.Request, response: e.Response) => {
         requestLogger.info(` * createRepository request received, with body of ${request.headers["content-length"]} bytes params: ${JSON.stringify(request.query)}`)
         const clientId = getClientIdParameter(request)
@@ -129,7 +144,7 @@ export class DBAdminApiImpl implements DBAdminApi {
                 result = await this.ctx.dbAdminApiWorker.createRepository(task, repositoryData)
             })
             // Update repository info table
-            const repoInfoTable = await this.ctx.dbConnection.queryWithoutRepository(`SELECT public.createRepositoryInfo('${repositoryData.repository.repository_name}'::text, '${repositoryData.repository.schema_name}'::text, '${repositoryData.repository.lionweb_version}'::text, '${history}'::boolean);\n`)
+            await this.ctx.dbConnection.queryWithoutRepository(`SELECT public.createRepositoryInfo('${repositoryData.repository.repository_name}'::text, '${repositoryData.repository.schema_name}'::text, '${repositoryData.repository.lionweb_version}'::text, '${history}'::boolean);\n`)
             await repositoryStore.refresh()
             lionwebResponse(response, result.status, {
                 success: result.status === HttpSuccessCodes.Ok,
@@ -138,20 +153,25 @@ export class DBAdminApiImpl implements DBAdminApi {
         }
     }
 
+    /**
+     * @see DBAdminApi.listRepositories
+     * @param request
+     * @param response
+     */
     listRepositories = async (request: Request, response: Response) => {
         requestLogger.info(` * listRepositories request received, with body of ${request.headers["content-length"]} bytes. ${getClientLog(request)}`)
-        const result = await this.ctx.dbAdminApiWorker.listRepositories()
-        // select schemas that represent a repository, make sure to remove the SCHEMA_PREFIX
-        const repoNames = result.queryResult
-            .filter(repo => repo.schema_name.startsWith(SCHEMA_PREFIX))
-            .map(repo => repo.schema_name.substring(SCHEMA_PREFIX.length))
-        lionwebResponse<ListRepositoriesResponse>(response, result.status, {
-            success: result.status === HttpSuccessCodes.Ok,
-            repositoryNames: repoNames,
+        lionwebResponse<ListRepositoriesResponse>(response, HttpSuccessCodes.Ok, {
+            success: true,
+            repositoryNames: Array.from(repositoryStore.repositoryName2repository.keys()),
             messages: []
         })
     }
 
+    /**
+     * @see DBAdminApi.deleteRepository
+     * @param request
+     * @param response
+     */
     deleteRepository = async (request: e.Request, response: e.Response): Promise<void> => {
         requestLogger.info(` * deleteRepository request received, with body of ${request.headers["content-length"]} bytes`)
         const repositoryData = getRepositoryData(request)

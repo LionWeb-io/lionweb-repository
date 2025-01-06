@@ -6,7 +6,7 @@ import pgPromise from "pg-promise"
 import {postgresConnectionWithDatabase, pgp, postgresConnectionWithoutDatabase, postgresPool} from "./DbConnection.js"
 import { DbConnection, expressLogger, LionWebTask, RepositoryConfig, requestLogger, SCHEMA_PREFIX, ServerConfig } from "@lionweb/repository-common"
 import { initializeCommons } from "@lionweb/repository-common"
-import { registerDBAdmin } from "@lionweb/repository-dbadmin"
+import { registerDBAdmin, repositoryStore } from "@lionweb/repository-dbadmin"
 import { registerInspection } from "@lionweb/repository-inspection"
 import { registerBulkApi } from "@lionweb/repository-bulkapi"
 import {
@@ -131,17 +131,14 @@ async function setupDatabase() {
     }
 
     // Initialize repositories
-    const existingRepositories = (await dbAdminApi.listRepositories()).queryResult
-        .map(s => s.schema_name)
-        .filter(s => s.startsWith(SCHEMA_PREFIX))
-        .map(s => s.substring(SCHEMA_PREFIX.length))
-    requestLogger.info("Existing repositories " + existingRepositories)
+    const existingRepositoryNames = repositoryStore.allRepositories().map(r => r.repository_name)
+    requestLogger.info("Existing repositories " + existingRepositoryNames)
     for (const repository of ServerConfig.getInstance().createRepositories()) {
         const repoCreation = repository.create
         switch (repoCreation) {
             case "always":
                 requestLogger.info(`Creating new repository ${repository.name} (config option 'always')`)
-                if (existingRepositories.includes(repository.name)) {
+                if (existingRepositoryNames.includes(repository.name)) {
                     // need to remove the repository first
                     this.ctx.dbConnection.tx(async (task: LionWebTask) => {
                         const deletedn = await dbAdminApi.deleteRepository(task, 
@@ -155,11 +152,8 @@ async function setupDatabase() {
                                 }
                             })
                         requestLogger.info(`Delete repository ${repository.name} result is ` + JSON.stringify(deletedn))
-                        const newEexistingRepositories = (await dbAdminApi.listRepositories()).queryResult
-                            .map(s => s.schema_name)
-                            .filter(s => s.startsWith(SCHEMA_PREFIX))
-                            .map(s => s.substring(SCHEMA_PREFIX.length))
-                        requestLogger.info("Repositories in schemata now are: " + newEexistingRepositories)
+                        const newExistingRepositoryNames = repositoryStore.allRepositories().map(r => r.repository_name)
+                        requestLogger.info("Repositories in schemata now are: " + newExistingRepositoryNames)
                     })
                 }
                 await createRepository(repository)
@@ -168,7 +162,7 @@ async function setupDatabase() {
                 requestLogger.info(`Not creating repository ${repository.name} (config option 'never')`)
                 break;
             case "if-not-exists": {
-                if (existingRepositories.includes(repository.name)) {
+                if (existingRepositoryNames.includes(repository.name)) {
                     requestLogger.info(`Repository ${repository} already exists, keep existing repository, (config option 'if-not-exists').`)
                 } else {
                     requestLogger.info(`Creating new repository ${repository} because it does not exist yet, (config option 'if-not-exists').`)

@@ -40,15 +40,6 @@ export class DBAdminApiWorker {
         }
     }
 
-    async listRepositories(): Promise<QueryReturnType<ListRepositoriesResult>> {
-        const queryResult = await this.ctx.dbConnection.queryWithoutRepository(listSchemas())
-        return {
-            status: HttpSuccessCodes.Ok,
-            query: "",
-            queryResult: queryResult as ListRepositoriesResult
-        }
-    }
-
     async createRepository(task: LionWebTask, repositoryData: RepositoryData): Promise<QueryReturnType<string>> {
         cleanGlobalPointersMap(repositoryData.repository.repository_name);
         const schemaSql = (repositoryData.repository.history 
