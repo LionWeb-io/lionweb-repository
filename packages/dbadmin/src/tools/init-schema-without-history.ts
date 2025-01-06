@@ -6,10 +6,10 @@ import {
     RESERVED_IDS_TABLE,
     METAPOINTERS_TABLE,
     CURRENT_DATA,
-    REPO_VERSIONS, CURRENT_DATA_REPO_VERSION_KEY, CURRENT_DATA_REPO_CLIENT_ID_KEY, CURRENT_DATA_LIONWEB_VERSION_KEY
+    REPO_VERSIONS, CURRENT_DATA_REPO_VERSION_KEY, CURRENT_DATA_REPO_CLIENT_ID_KEY
 } from "@lionweb/repository-common";
 
-export function initSchemaWithoutHistory(schema: string, lionWebVersion: string): string {
+export function initSchemaWithoutHistory(schema: string): string {
     return `-- Create schema
     -- drop if empty, otherwise fail
     DROP SCHEMA IF EXISTS "${schema}" RESTRICT;
@@ -110,8 +110,7 @@ export function initSchemaWithoutHistory(schema: string, lionWebVersion: string)
         ( key, value )  
     VALUES
         ('${CURRENT_DATA_REPO_VERSION_KEY}', '0'),
-        ('${CURRENT_DATA_REPO_CLIENT_ID_KEY}', 'repository_id'),
-        ('${CURRENT_DATA_LIONWEB_VERSION_KEY}', '${lionWebVersion}');
+        ('${CURRENT_DATA_REPO_CLIENT_ID_KEY}', 'repository_id');
         
     -- TODO: Create indices to enable finding features for nodes quickly
     

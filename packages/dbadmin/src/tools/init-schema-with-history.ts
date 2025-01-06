@@ -4,7 +4,7 @@ import {
         PROPERTIES_TABLE, PROPERTIES_TABLE_HISTORY,
         REFERENCES_TABLE, REFERENCES_TABLE_HISTORY,
         RESERVED_IDS_TABLE, METAPOINTERS_TABLE, REPO_VERSIONS,
-        CURRENT_DATA, CURRENT_DATA_REPO_VERSION_KEY, CURRENT_DATA_REPO_CLIENT_ID_KEY, CURRENT_DATA_LIONWEB_VERSION_KEY
+        CURRENT_DATA, CURRENT_DATA_REPO_VERSION_KEY, CURRENT_DATA_REPO_CLIENT_ID_KEY
 } from "@lionweb/repository-common";
 
 export function dropSchema(schema: string): string {
@@ -17,7 +17,7 @@ export function listSchemas(): string {
         FROM information_schema.schemata;`
 }
 
-export function initSchemaWithHistory(schema: string, lionWebVersion: string): string {
+export function initSchemaWithHistory(schema: string): string {
         return  `-- Create schema
         -- drop if empty, otherwise fail
         DROP SCHEMA IF EXISTS "${schema}" RESTRICT;
@@ -224,8 +224,7 @@ export function initSchemaWithHistory(schema: string, lionWebVersion: string): s
             ( key, value )  
         VALUES
             ('${CURRENT_DATA_REPO_VERSION_KEY}', '0'),
-            ('${CURRENT_DATA_REPO_CLIENT_ID_KEY}', 'repository_id'),
-            ('${CURRENT_DATA_LIONWEB_VERSION_KEY}', '${lionWebVersion}');
+            ('${CURRENT_DATA_REPO_CLIENT_ID_KEY}', 'repository_id');
 
 
         -- TODO: Create indices to enable finding features for nodes quickly

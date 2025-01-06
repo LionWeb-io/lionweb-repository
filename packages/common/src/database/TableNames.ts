@@ -16,7 +16,6 @@ export const REPO_VERSIONS: string = "repo_versions"
  */
 export const CURRENT_DATA_REPO_VERSION_KEY = "repo.version"
 export const CURRENT_DATA_REPO_CLIENT_ID_KEY = "repo.client_id"
-export const CURRENT_DATA_LIONWEB_VERSION_KEY = "repo.lionweb_version"
 
 /**
  * Table names for history tables

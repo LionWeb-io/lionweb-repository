@@ -42,7 +42,7 @@ import {
     QueryNodeForIdList,
     versionResultToResponse
 } from "./QueryNode.js"
-import {MetaPointersCollector, MetaPointersTracker} from "@lionweb/repository-dbadmin";
+import {MetaPointersTracker} from "@lionweb/repository-dbadmin";
 
 export type NodeTreeResultType = {
     id: string

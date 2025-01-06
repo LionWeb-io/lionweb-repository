@@ -1,17 +1,13 @@
 import {
-    CreatePartitionsResponse,
-    CURRENT_DATA,
-    CURRENT_DATA_LIONWEB_VERSION_KEY,
     getRepositoryParameter,
-    getStringParam, HttpClientErrors,
-    isParameterError, lionwebResponse,
+    getStringParam,
+    isParameterError,
     ParameterError, REPOSITORIES_TABLE,
     RepositoryData,
     RepositoryInfo,
-    requestLogger,
-    SCHEMA_PREFIX
+    requestLogger
 } from "@lionweb/repository-common";
-import { GenericIssue, IncorrectLionCoreVersion_Issue, JsonContext, LionWebJsonChunk, ValidationResult } from "@lionweb/validation";
+import { GenericIssue, JsonContext, LionWebJsonChunk, ValidationResult } from "@lionweb/validation";
 import { Request } from "express";
 import { DbAdminApiContext } from "../main.js";
 

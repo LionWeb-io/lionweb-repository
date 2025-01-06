@@ -12,8 +12,7 @@ import {
     CREATE_GLOBALS_SQL,
     dropSchema,
     initSchemaWithHistory,
-    initSchemaWithoutHistory,
-    listSchemas
+    initSchemaWithoutHistory
 } from "../tools/index.js"
 import {cleanGlobalPointersMap} from "./MetaPointers.js";
 
