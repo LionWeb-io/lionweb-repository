@@ -18,7 +18,7 @@ import {
     LionWebTask,
     RepositoryData
 } from "@lionweb/repository-common"
-import { getRepositoryData, repositoryStore } from "../database/index.js";
+import { getRepositoryData, repositoryStore } from "../database/index.js"
 import { DbAdminApiContext } from "../main.js"
 
 export interface DBAdminApi {
@@ -95,7 +95,11 @@ export class DBAdminApiImpl implements DBAdminApi {
      * @param response
      */
     createRepository = async (request: e.Request, response: e.Response) => {
-        requestLogger.info(` * createRepository request received, with body of ${request.headers["content-length"]} bytes params: ${JSON.stringify(request.query)}`)
+        requestLogger.info(
+            ` * createRepository request received, with body of ${request.headers["content-length"]} bytes params: ${JSON.stringify(
+                request.query
+            )}`
+        )
         const clientId = getClientIdParameter(request)
         const repositoryName = getRepositoryParameter(request)
         const lionWebVersion = getLionWebVersionParameter(request)
@@ -124,7 +128,14 @@ export class DBAdminApiImpl implements DBAdminApi {
                 lionwebResponse<ListPartitionsResponse>(response, HttpClientErrors.PreconditionFailed, {
                     success: false,
                     chunk: null,
-                    messages: [{ kind: "RepositoryExists", message: `Cannot create repository ${repositoryName}, because it already exists: ${JSON.stringify(existingRepo)}` }]
+                    messages: [
+                        {
+                            kind: "RepositoryExists",
+                            message: `Cannot create repository ${repositoryName}, because it already exists: ${JSON.stringify(
+                                existingRepo
+                            )}`
+                        }
+                    ]
                 })
                 return
             }
@@ -144,7 +155,9 @@ export class DBAdminApiImpl implements DBAdminApi {
                 result = await this.ctx.dbAdminApiWorker.createRepository(task, repositoryData)
             })
             // Update repository info table
-            await this.ctx.dbConnection.queryWithoutRepository(`SELECT public.createRepositoryInfo('${repositoryData.repository.repository_name}'::text, '${repositoryData.repository.schema_name}'::text, '${repositoryData.repository.lionweb_version}'::text, '${history}'::boolean);\n`)
+            await this.ctx.dbConnection.queryWithoutRepository(
+                `SELECT public.createRepositoryInfo('${repositoryData.repository.repository_name}'::text, '${repositoryData.repository.schema_name}'::text, '${repositoryData.repository.lionweb_version}'::text, '${history}'::boolean);\n`
+            )
             await repositoryStore.refresh()
             lionwebResponse(response, result.status, {
                 success: result.status === HttpSuccessCodes.Ok,
@@ -159,7 +172,9 @@ export class DBAdminApiImpl implements DBAdminApi {
      * @param response
      */
     listRepositories = async (request: Request, response: Response) => {
-        requestLogger.info(` * listRepositories request received, with body of ${request.headers["content-length"]} bytes. ${getClientLog(request)}`)
+        requestLogger.info(
+            ` * listRepositories request received, with body of ${request.headers["content-length"]} bytes. ${getClientLog(request)}`
+        )
         lionwebResponse<ListRepositoriesResponse>(response, HttpSuccessCodes.Ok, {
             success: true,
             repositoryNames: Array.from(repositoryStore.repositoryName2repository.keys()),
@@ -186,23 +201,21 @@ export class DBAdminApiImpl implements DBAdminApi {
             lionwebResponse<ListPartitionsResponse>(response, HttpClientErrors.PreconditionFailed, {
                 success: false,
                 chunk: null,
-                messages: [{kind: "RepositoryNotFound", message: `Repository ${getRepositoryParameter(request)} not found`}]
+                messages: [{ kind: "RepositoryNotFound", message: `Repository ${getRepositoryParameter(request)} not found` }]
             })
         } else {
             await this.ctx.dbConnection.tx(async (task: LionWebTask) => {
                 const result = await this.ctx.dbAdminApiWorker.deleteRepository(task, repositoryData)
-                // Recalculate the repo store
+                // Update repository info table
+                await this.ctx.dbConnection.queryWithoutRepository(
+                    `SELECT public.deleteRepositoryInfo('${repositoryData.repository.repository_name}'::text);\n`
+                )
+                await repositoryStore.refresh()
                 lionwebResponse(response, result.status, {
                     success: result.status === HttpSuccessCodes.Ok,
                     messages: [{ kind: "Info", message: result.queryResult }]
                 })
             })
-            // Update repository info table
-            const tmp = await this.ctx.dbConnection.queryWithoutRepository(`SELECT public.deleteRepositoryInfo('${repositoryData.repository.repository_name}'::text);\n`)
-            requestLogger.info(`--------- k${JSON.stringify(tmp)}`)
-
-            repositoryStore.initialized = false
-                await repositoryStore.initialize()
         }
     }
 }

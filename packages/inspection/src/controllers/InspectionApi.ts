@@ -1,12 +1,8 @@
-import {
-    getStringParam, HttpClientErrors,
-    isParameterError, lionwebResponse,
-    StoreResponse
-} from "@lionweb/repository-common";
-import { getRepositoryData } from "@lionweb/repository-dbadmin";
+import { getStringParam, HttpClientErrors, isParameterError, lionwebResponse, StoreResponse } from "@lionweb/repository-common"
+import { getRepositoryData } from "@lionweb/repository-dbadmin"
 import e, { Request, Response } from "express"
-import { InspectionContext } from "../main.js";
-import {ClassifierNodes, LanguageNodes} from "../database/InspectionApiWorker.js";
+import { InspectionContext } from "../main.js"
+import { ClassifierNodes, LanguageNodes } from "../database/InspectionApiWorker.js"
 
 export interface InspectionApi {
     nodesByClassifier(request: Request, response: Response): void
@@ -44,12 +40,11 @@ class BufferHolder {
 }
 
 class InspectionApiImpl implements InspectionApi {
-    constructor(private context: InspectionContext) {
-    }
+    constructor(private context: InspectionContext) {}
 
     private serializeInBufferIDsList(buffer: BufferHolder, ids: string[], limit: number) {
-        const idsToSend = (limit < 0 || limit >= ids.length) ? ids : ids.slice(0, limit)
-        idsToSend.forEach((id, index)=>{
+        const idsToSend = limit < 0 || limit >= ids.length ? ids : ids.slice(0, limit)
+        idsToSend.forEach((id, index) => {
             if (index != 0) {
                 buffer.write(",\n")
             }
@@ -60,7 +55,7 @@ class InspectionApiImpl implements InspectionApi {
     private classifierNodesToBuffer(classifierNodes: ClassifierNodes[], limit: number): Buffer {
         const bufferHolder = new BufferHolder()
         bufferHolder.write("[")
-        classifierNodes.forEach((element, index)=>{
+        classifierNodes.forEach((element, index) => {
             if (index != 0) {
                 bufferHolder.write(",")
             }
@@ -77,7 +72,7 @@ class InspectionApiImpl implements InspectionApi {
     private languageNodesToBuffer(languageNodes: LanguageNodes[], limit: number): Buffer {
         const bufferHolder = new BufferHolder()
         bufferHolder.write("[")
-        languageNodes.forEach((element, index)=>{
+        languageNodes.forEach((element, index) => {
             if (index != 0) {
                 bufferHolder.write(",")
             }
@@ -90,7 +85,7 @@ class InspectionApiImpl implements InspectionApi {
         return bufferHolder.getBuffer()
     }
 
-    nodesByClassifier = async (request: e.Request, response: e.Response)=> {
+    nodesByClassifier = async (request: e.Request, response: e.Response) => {
         let clientId = getStringParam(request, "clientId")
         // TODO Change using new repository structure
         if (isParameterError(clientId)) {
@@ -104,7 +99,7 @@ class InspectionApiImpl implements InspectionApi {
                 messages: [repositoryData.error]
             })
         } else {
-            const sql = this.context.inspectionQueries.nodesByClassifier();
+            const sql = this.context.inspectionQueries.nodesByClassifier()
             const queryResult = await this.context.inspectionApiWorker.nodesByClassifier(repositoryData, sql)
             const limitStr = request.query.limit
             // TODO handle the case in which multiple query parameters are specified
@@ -121,7 +116,7 @@ class InspectionApiImpl implements InspectionApi {
                 messages: [repositoryData.error]
             })
         } else {
-            const sql = this.context.inspectionQueries.nodesByLanguage();
+            const sql = this.context.inspectionQueries.nodesByLanguage()
             const queryResult = await this.context.inspectionApiWorker.nodesByLanguage(repositoryData, sql)
             const limitStr = request.query.limit
             // TODO handle the case in which multiple query parameters are specified
@@ -132,6 +127,5 @@ class InspectionApiImpl implements InspectionApi {
 }
 
 export function createInspectionApi(context: InspectionContext): InspectionApi {
-    return new InspectionApiImpl(context);
+    return new InspectionApiImpl(context)
 }
-

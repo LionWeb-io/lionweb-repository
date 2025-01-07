@@ -1,15 +1,26 @@
 import {
     createId,
     CreatePartitionsResponse,
-    DeletePartitionsResponse, EMPTY_CHUNK,
-    EMPTY_SUCCES_RESPONSE, HttpClientErrors, HttpSuccessCodes, IdsResponse,
+    DeletePartitionsResponse,
+    EMPTY_CHUNK,
+    EMPTY_SUCCES_RESPONSE,
+    HttpClientErrors,
+    HttpSuccessCodes,
+    IdsResponse,
+    LionWebTask,
+    ListPartitionsResponse,
     nodesToChunk,
-    ListPartitionsResponse, QueryReturnType, RepositoryData,
-    ResponseMessage, RetrieveResponse, StoreResponse, requestLogger, traceLogger, LionWebTask
-} from "@lionweb/repository-common";
+    QueryReturnType,
+    RepositoryData,
+    requestLogger,
+    ResponseMessage,
+    RetrieveResponse,
+    StoreResponse,
+    traceLogger
+} from "@lionweb/repository-common"
 import { LionWebJsonChunk } from "@lionweb/validation"
-import { currentRepoVersionQuery, versionResultToResponse } from "../database/index.js";
-import { retrieveWith } from "../database/RetrieveInOneQuery.js";
+import { currentRepoVersionQuery, versionResultToResponse } from "../database/index.js"
+import { retrieveWith } from "../database/RetrieveInOneQuery.js"
 import { BulkApiContext } from "../main.js"
 
 /**
@@ -31,38 +42,57 @@ export class BulkApiWorker {
     /**
      * @param chunk A LionWeb chunk containing all nodes that are to be created as partitions.
      */
-    createPartitions = async (task: LionWebTask, repositoryData: RepositoryData, chunk: LionWebJsonChunk): Promise<QueryReturnType<CreatePartitionsResponse>> => {
+    createPartitions = async (
+        task: LionWebTask,
+        repositoryData: RepositoryData,
+        chunk: LionWebJsonChunk
+    ): Promise<QueryReturnType<CreatePartitionsResponse>> => {
         requestLogger.info(`BulkApiWorker.createPartitions repo [${JSON.stringify(repositoryData)}]`)
         // TODO Optimize: This reuses the "getNodesFromIdList", but that retrieves full nodes, which is not needed here
-        
-        const existingNodes = await this.context.queries.getNodesFromIdListIncludingChildren(task, repositoryData, chunk.nodes.map(n => n.id))
+
+        const existingNodes = await this.context.queries.getNodesFromIdListIncludingChildren(
+            task,
+            repositoryData,
+            chunk.nodes.map(n => n.id)
+        )
         if (existingNodes.length > 0) {
-            return { 
-                status: HttpClientErrors.PreconditionFailed, 
-                query: "", 
+            return {
+                status: HttpClientErrors.PreconditionFailed,
+                query: "",
                 queryResult: {
                     success: false,
-                    messages: [{
-                        kind: "PartitionAlreadyExists",
-                        message: `Nodes with ids "${existingNodes.map(n => n.id)}" cannot be created as partitions, because they already exist.`
-                    }]
-                } 
+                    messages: [
+                        {
+                            kind: "PartitionAlreadyExists",
+                            message: `Nodes with ids "${existingNodes.map(
+                                n => n.id
+                            )}" cannot be created as partitions, because they already exist.`
+                        }
+                    ]
+                }
             }
         }
         return await this.context.queries.createPartitions(task, repositoryData, chunk)
-    }   
+    }
 
     /**
-     * Delete all partitions 
+     * Delete all partitions
      * @param idList The list of node id's of partition nodes that are to be removed.
      */
-    deletePartitions = async(task: LionWebTask, repositoryData: RepositoryData, idList: string[]): Promise<QueryReturnType<DeletePartitionsResponse>> => {
+    deletePartitions = async (
+        task: LionWebTask,
+        repositoryData: RepositoryData,
+        idList: string[]
+    ): Promise<QueryReturnType<DeletePartitionsResponse>> => {
         // TODO Optimize: only need parent, all features are not needed, can be optimized.
         const partitions = await this.context.queries.getNodesFromIdListIncludingChildren(task, repositoryData, idList)
         const issues: ResponseMessage[] = []
         partitions.forEach(part => {
             if (part.parent !== null) {
-                issues.push({kind: "NodeIsNotPartition", message: `Node with id "${part.id}" cannot be deleted because it is not a partition, it has parent with id "${part.parent}"`})
+                issues.push({
+                    kind: "NodeIsNotPartition",
+                    message: `Node with id "${part.id}" cannot be deleted because it is not a partition, it has parent with id "${part.parent}"`
+                })
             }
         })
         if (issues.length !== 0) {
@@ -78,8 +108,12 @@ export class BulkApiWorker {
         await this.context.queries.deletePartitions(task, repositoryData, idList)
         return { status: HttpSuccessCodes.Ok, query: "", queryResult: EMPTY_SUCCES_RESPONSE }
     }
-      
-    bulkStore = async (task: LionWebTask, repositoryData: RepositoryData, chunk: LionWebJsonChunk): Promise<QueryReturnType<StoreResponse>> => {
+
+    bulkStore = async (
+        task: LionWebTask,
+        repositoryData: RepositoryData,
+        chunk: LionWebJsonChunk
+    ): Promise<QueryReturnType<StoreResponse>> => {
         return await this.context.queries.store(task, repositoryData, chunk)
     }
 
@@ -88,7 +122,12 @@ export class BulkApiWorker {
      * @param nodeIdList
      * @param depthLimit
      */
-    bulkRetrieve = async (task: LionWebTask, repositoryData: RepositoryData, nodeIdList: string[], depthLimit: number): Promise<QueryReturnType<RetrieveResponse>> => {
+    bulkRetrieve = async (
+        task: LionWebTask,
+        repositoryData: RepositoryData,
+        nodeIdList: string[],
+        depthLimit: number
+    ): Promise<QueryReturnType<RetrieveResponse>> => {
         traceLogger.info("BulkApiWorker.retrieve")
         if (nodeIdList.length === 0) {
             return {
@@ -101,7 +140,7 @@ export class BulkApiWorker {
                 }
             }
         }
-        
+
         const [versionResult, nodes] = await task.multi(repositoryData, currentRepoVersionQuery() + retrieveWith(nodeIdList, depthLimit))
         return {
             status: HttpSuccessCodes.Ok,
@@ -122,7 +161,7 @@ export class BulkApiWorker {
     ids = async (task: LionWebTask, repositoryData: RepositoryData, count: number): Promise<QueryReturnType<IdsResponse>> => {
         requestLogger.info("Reserve Count ids " + count + " for " + repositoryData.clientId)
         const result: string[] = []
-        // Create a bunch of ids, they are probably all free 
+        // Create a bunch of ids, they are probably all free
         let done = false
         while (!done) {
             for (let i = 0; i < count; i++) {

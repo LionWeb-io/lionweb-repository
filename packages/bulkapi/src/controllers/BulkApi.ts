@@ -1,24 +1,27 @@
 // functions implementing the LionWeb bulk API
+import {
+    CreatePartitionsResponse,
+    DeletePartitionsResponse,
+    getIntegerParam,
+    HttpClientErrors,
+    HttpSuccessCodes,
+    isParameterError,
+    lionwebResponse,
+    LionWebTask,
+    ListPartitionsResponse,
+    requestLogger,
+    ResponseMessage,
+    StoreResponse,
+    traceLogger
+} from "@lionweb/repository-common"
+import { getRepositoryData, validateLionWebVersion } from "@lionweb/repository-dbadmin"
+import { getLanguageRegistry } from "@lionweb/repository-languages"
+import { LionWebJsonChunk, LionWebValidator } from "@lionweb/validation"
 // - unpack the request
 // - call controller to do actual work
 // - pack response
 import { Request, Response } from "express"
-import { getRepositoryData, validateLionWebVersion } from "@lionweb/repository-dbadmin";
-import { getLanguageRegistry } from "@lionweb/repository-languages"
-import { LionWebJsonChunk, LionWebValidator } from "@lionweb/validation"
 import { BulkApiContext } from "../main.js"
-import {
-    CreatePartitionsResponse,
-    ListPartitionsResponse,
-    lionwebResponse,
-    ResponseMessage,
-    DeletePartitionsResponse,
-    StoreResponse,
-    HttpClientErrors,
-    HttpSuccessCodes,
-    getIntegerParam,
-    isParameterError, requestLogger, traceLogger, LionWebTask
-} from "@lionweb/repository-common"
 
 export interface BulkApi {
     listPartitions: (request: Request, response: Response) => void
@@ -65,7 +68,7 @@ export class BulkApiImpl implements BulkApi {
             lionwebResponse<StoreResponse>(response, HttpClientErrors.PreconditionFailed, {
                 success: false,
                 messages: [repositoryData.error]
-            }) 
+            })
         } else {
             const validator = new LionWebValidator(chunk, getLanguageRegistry())
             validateLionWebVersion(chunk, repositoryData, validator.validationResult)
@@ -210,7 +213,7 @@ export class BulkApiImpl implements BulkApi {
             })
         } else {
             traceLogger.info("   * retrieve request: calling worker")
-            await this.ctx.dbConnection.tx( async (task: LionWebTask)  => {
+            await this.ctx.dbConnection.tx(async (task: LionWebTask) => {
                 const result = await this.ctx.bulkApiWorker.bulkRetrieve(task, repositoryData, idList, depthLimit)
                 lionwebResponse(response, result.status, result.queryResult)
             })
@@ -238,7 +241,7 @@ export class BulkApiImpl implements BulkApi {
                 messages: [repositoryData.error]
             })
         } else {
-            await this.ctx.dbConnection.tx( async (task: LionWebTask)  => {
+            await this.ctx.dbConnection.tx(async (task: LionWebTask) => {
                 const result = await this.ctx.bulkApiWorker.ids(task, repositoryData, count)
                 lionwebResponse(response, result.status, result.queryResult)
             })

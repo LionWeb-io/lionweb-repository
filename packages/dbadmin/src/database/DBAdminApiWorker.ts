@@ -7,14 +7,8 @@ import {
     ServerConfig
 } from "@lionweb/repository-common"
 import { DbAdminApiContext } from "../main.js"
-import {
-    CREATE_DATABASE_SQL,
-    CREATE_GLOBALS_SQL,
-    dropSchema,
-    initSchemaWithHistory,
-    initSchemaWithoutHistory
-} from "../tools/index.js"
-import {cleanGlobalPointersMap} from "./MetaPointers.js";
+import { CREATE_DATABASE_SQL, CREATE_GLOBALS_SQL, dropSchema, initSchemaWithHistory, initSchemaWithoutHistory } from "../tools/index.js"
+import { cleanGlobalPointersMap } from "./MetaPointers.js"
 
 export type ListRepositoriesResult = {
     schema_name: string
@@ -26,12 +20,11 @@ export type ListRepositoriesResult = {
 export class DBAdminApiWorker {
     done: boolean = false
 
-    constructor(private ctx: DbAdminApiContext) {
-    }
+    constructor(private ctx: DbAdminApiContext) {}
 
     async deleteRepository(task: LionWebTask, repositoryData: RepositoryData): Promise<QueryReturnType<string>> {
         const queryResult = await task.queryWithoutRepository(dropSchema(repositoryData.repository.schema_name))
-        cleanGlobalPointersMap(repositoryData.repository.repository_name);
+        cleanGlobalPointersMap(repositoryData.repository.repository_name)
         return {
             status: HttpSuccessCodes.Ok,
             query: dropSchema(repositoryData.repository.schema_name),
@@ -40,11 +33,10 @@ export class DBAdminApiWorker {
     }
 
     async createRepository(task: LionWebTask, repositoryData: RepositoryData): Promise<QueryReturnType<string>> {
-        cleanGlobalPointersMap(repositoryData.repository.repository_name);
-        const schemaSql = (repositoryData.repository.history 
+        cleanGlobalPointersMap(repositoryData.repository.repository_name)
+        const schemaSql = repositoryData.repository.history
             ? initSchemaWithHistory(repositoryData.repository.schema_name)
             : initSchemaWithoutHistory(repositoryData.repository.schema_name)
-        )
         const sql = removeNewlinesBetween$$(schemaSql)
         const queryResult = await task.queryWithoutRepository(sql)
         return {
@@ -85,7 +77,7 @@ export class DBAdminApiWorker {
         const dbName = ServerConfig.getInstance().pgDb()
         const query = `select exists(SELECT datname FROM pg_catalog.pg_database WHERE '${dbName}' = datname);`
         const exists = await this.ctx.postgresConnection.one(query)
-        return { 
+        return {
             status: HttpSuccessCodes.Ok,
             query: query,
             queryResult: exists.exists as boolean

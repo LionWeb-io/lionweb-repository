@@ -6,7 +6,9 @@ import {
     RESERVED_IDS_TABLE,
     METAPOINTERS_TABLE,
     CURRENT_DATA,
-    REPO_VERSIONS, CURRENT_DATA_REPO_VERSION_KEY, CURRENT_DATA_REPO_CLIENT_ID_KEY
+    REPO_VERSIONS,
+    CURRENT_DATA_REPO_VERSION_KEY, 
+    CURRENT_DATA_REPO_CLIENT_ID_KEY
 } from "@lionweb/repository-common";
 
 export function initSchemaWithoutHistory(schemaName: string): string {

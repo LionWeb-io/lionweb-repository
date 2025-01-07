@@ -1,6 +1,6 @@
 import { HttpServerErrors } from "./httpcodes.js"
-import { requestLogger } from "./logging.js";
-import { Job, requestQueue } from "./RequestQueue.js";
+import { requestLogger } from "./logging.js"
+import { Job, requestQueue } from "./RequestQueue.js"
 import { collectUsedLanguages } from "./UsedLanguages.js"
 import { LionWebJsonChunk, LionWebJsonNode } from "@lionweb/validation"
 import { Request, Response } from "express"
@@ -26,8 +26,9 @@ export type ParameterError = {
  * @param object
  */
 export function isParameterError(object: unknown): object is ParameterError {
-    // @ts-expect-error TS7053
-    return object["success"] !== undefined &&
+    return (
+        //@ts-expect-error TS7053
+        object["success"] !== undefined &&
         // @ts-expect-error TS7053
         typeof object["success"] === "boolean" &&
         // @ts-expect-error TS7053
@@ -38,8 +39,8 @@ export function isParameterError(object: unknown): object is ParameterError {
         typeof object["error"]["kind"] === "string" &&
         // @ts-expect-error TS7053
         object["error"]["kind"].endsWith("-ParameterIncorrect")
+    )
 }
-
 
 /**
  * Get the query parameter named _paramName_ as a string value
@@ -130,8 +131,8 @@ export function removeNewlinesBetween$$(plpgsql: string): string {
     let result = plpgsql
     // Match all substrings between $$ and $$ markers (PLPGSQL specific)
     const first = plpgsql.match(/\$\$[^$]*\$\$/g) ?? []
-    first.forEach((text) => {
-        result = result.replace(text.substring(2, text.length-3), text.substring(2, text.length-3).replaceAll("\n", " "))
+    first.forEach(text => {
+        result = result.replace(text.substring(2, text.length - 3), text.substring(2, text.length - 3).replaceAll("\n", " "))
     })
     return result
 }
@@ -200,6 +201,7 @@ export function getClientIdParameter(request: Request): string {
  * Number of requests handled since start
  */
 let index = 1
+
 /**
  * Catch-all wrapper function to handle exceptions for any api call.
  * And put the request function in the request queue.
@@ -237,8 +239,8 @@ export function createId(clientId: string): string {
  * @param error
  */
 export function asError(error: unknown): Error {
-    if (error instanceof Error) return error;
-    return new Error(JSON.stringify(error));
+    if (error instanceof Error) return error
+    return new Error(JSON.stringify(error))
 }
 
 /**
@@ -259,9 +261,8 @@ export function nodesToChunk(nodes: LionWebJsonNode[]): LionWebJsonChunk {
     return {
         serializationFormatVersion: "2023.1",
         languages: collectUsedLanguages(nodes),
-        nodes: nodes,
+        nodes: nodes
     }
 }
 
 export const EMPTY_CHUNK = nodesToChunk([])
-

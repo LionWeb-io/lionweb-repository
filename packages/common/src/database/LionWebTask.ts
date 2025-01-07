@@ -1,23 +1,23 @@
 import pgPromise from "pg-promise"
-import { traceLogger } from "../apiutil/index.js";
-import { addRepositorySchema, RepositoryData } from "./DbConnection.js";
+import { traceLogger } from "../apiutil/index.js"
+import { addRepositorySchema, RepositoryData } from "./DbConnection.js"
 
 /**
  * All database transactions will go through an instance of this class.
  * This enables logging, but also tweaking queries when needed.
- * Current tweak: add the repository schema for each query 
- * 
+ * Current tweak: add the repository schema for each query
+ *
  * This is a wrapper for a pg-promise task.
  * @see pgPromise.ITask
  */
 export class LionWebTask {
-    task:  pgPromise.ITask<object> & object
+    task: pgPromise.ITask<object> & object
 
     /**
-     * Create a LionWebTask wrapped around a pg-promise task 
+     * Create a LionWebTask wrapped around a pg-promise task
      * @param task The pg-promise task that is doing the actual work
      */
-    constructor(task:  pgPromise.ITask<object> & object) {
+    constructor(task: pgPromise.ITask<object> & object) {
         this.task = task
     }
 
@@ -61,5 +61,5 @@ export class LionWebTask {
         multiResult.shift()
         multiResult.shift()
         return multiResult
-   }
+    }
 }

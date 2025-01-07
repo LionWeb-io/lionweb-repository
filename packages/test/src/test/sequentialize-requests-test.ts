@@ -1,9 +1,9 @@
-import { ClientResponse, RepositoryClient, StoreResponse } from "@lionweb/repository-client";
+import { ClientResponse, RepositoryClient, StoreResponse } from "@lionweb/repository-client"
 import { LionWebJsonChunk } from "@lionweb/validation"
 import { assert } from "chai"
 
 import sm from "source-map-support"
-import { readModel } from "./utils.js";
+import { readModel } from "./utils.js"
 
 sm.install()
 
@@ -13,7 +13,7 @@ describe("Transaction isolation tests", () => {
 
     beforeEach("a", async function () {
         await t.dbAdmin.deleteRepository("isolation")
-        await t.dbAdmin.createRepository("default", true, "2023.1")
+        await t.dbAdmin.createRepository("isolation", true, "2023.1")
         await t.bulk.createPartitions(readModel("./data/Disk_A_partition.json") as LionWebJsonChunk)
     })
 

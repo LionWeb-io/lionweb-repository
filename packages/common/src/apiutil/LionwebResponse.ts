@@ -32,8 +32,12 @@ export type ResponseMessage = {
  */
 export function isResponseMessage(object: unknown): object is ResponseMessage {
     const castObject = object as ResponseMessage
-    return castObject.kind !== undefined && typeof castObject.kind === "string" &&
-        castObject.message !== undefined && typeof castObject.message === "string"
+    return (
+        castObject.kind !== undefined &&
+        typeof castObject.kind === "string" &&
+        castObject.message !== undefined &&
+        typeof castObject.message === "string"
+    )
 }
 
 export interface LionwebResponse {
@@ -65,7 +69,7 @@ export interface ListRepositoriesResponse extends LionwebResponse {
 
 export function lionwebResponse<T extends LionwebResponse>(response: Response, status: number, body: T): void {
     response.status(status)
-    new JsonStreamStringify(body).pipe(response);
+    new JsonStreamStringify(body).pipe(response)
 }
 
 export const EMPTY_SUCCES_RESPONSE: LionwebResponse = {
