@@ -152,7 +152,7 @@ async function setupDatabase() {
                 requestLogger.info(`Creating new repository ${repository.name} (config option 'always')`)
                 if (existingRepositoryNames.includes(repository.name)) {
                     // need to remove the repository first
-                    this.ctx.dbConnection.tx(async (task: LionWebTask) => {
+                    dbAdminApi.tx(async (task: LionWebTask) => {
                         const deletedn = await dbAdminApi.deleteRepository(task, {
                             clientId: "setup",
                             repository: {
@@ -175,11 +175,11 @@ async function setupDatabase() {
             case "if-not-exists": {
                 if (existingRepositoryNames.includes(repository.name)) {
                     requestLogger.info(
-                        `Repository ${repository} already exists, keep existing repository, (config option 'if-not-exists').`
+                        `Repository ${repository.name} already exists, keep existing repository, (config option 'if-not-exists').`
                     )
                 } else {
                     requestLogger.info(
-                        `Creating new repository ${repository} because it does not exist yet, (config option 'if-not-exists').`
+                        `Creating new repository ${repository.name} because it does not exist yet, (config option 'if-not-exists').`
                     )
                     await createRepository(repository)
                 }
@@ -201,6 +201,7 @@ async function createRepository(repository: RepositoryConfig) {
                 lionweb_version: repository.lionWebVersion
             }
         })
+        requestLogger.info(`creation of repository ${JSON.stringify(repository)} completed`)
     })
 }
 
