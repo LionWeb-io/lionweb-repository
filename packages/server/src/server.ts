@@ -107,6 +107,7 @@ if (setupOnly && noSetup) {
 if (setupOnly) {
     await setupDatabase()
 } else if (noSetup) {
+    await repositoryStore.refresh()
     await startServer()
 } else {
     requestLogger.error("Server should be called with either flag --setup or --run")
