@@ -22,6 +22,10 @@ export class DBAdminApiWorker {
 
     constructor(private ctx: DbAdminApiContext) {}
 
+    tx(task: (task: LionWebTask)=>Promise<void>) {
+         this.ctx.dbConnection.tx(task);
+    }
+
     async deleteRepository(task: LionWebTask, repositoryData: RepositoryData): Promise<QueryReturnType<string>> {
         const queryResult = await task.queryWithoutRepository(dropSchema(repositoryData.repository.schema_name))
         cleanGlobalPointersMap(repositoryData.repository.repository_name)

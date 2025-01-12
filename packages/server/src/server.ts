@@ -190,7 +190,7 @@ async function setupDatabase() {
 }
 
 async function createRepository(repository: RepositoryConfig) {
-    dbAdminApi.ctx.dbConnection.tx(async (task: LionWebTask) => {
+    dbAdminApi.tx(async (task: LionWebTask) => {
         const history = repository?.history !== undefined && repository?.history !== null && repository?.history === true
         await dbAdminApi.createRepository(task, {
             clientId: "repository",
