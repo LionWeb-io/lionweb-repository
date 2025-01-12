@@ -22,8 +22,12 @@ export class DBAdminApiWorker {
 
     constructor(private ctx: DbAdminApiContext) {}
 
-    tx(task: (task: LionWebTask)=>Promise<void>) {
+    async tx(task: (task: LionWebTask)=>Promise<void>) {
          return this.ctx.dbConnection.tx(task);
+    }
+
+    async queryWithoutRepository(query: string) {
+        return this.ctx.dbConnection.queryWithoutRepository(query);
     }
 
     async deleteRepository(task: LionWebTask, repositoryData: RepositoryData): Promise<QueryReturnType<string>> {

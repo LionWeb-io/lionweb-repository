@@ -201,6 +201,9 @@ async function createRepository(repository: RepositoryConfig) {
                 lionweb_version: repository.lionWebVersion
             }
         })
+        await dbAdminApi.queryWithoutRepository(
+            `SELECT public.createRepositoryInfo('${repository.name}'::text, '${SCHEMA_PREFIX + repository.name}'::text, '${repository.lionWebVersion}'::text, '${repository.history}'::boolean);\n`
+        )
         requestLogger.info(`creation of repository ${JSON.stringify(repository)} completed`)
     })
 }
