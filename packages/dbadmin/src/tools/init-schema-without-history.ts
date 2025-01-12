@@ -13,22 +13,28 @@ import {
 
 export function initSchemaWithoutHistory(schemaName: string): string {
     return `-- Create schema
+    
+    -- Delete table first, so that we can then delete the schema
+    DROP TABLE IF EXISTS "${schemaName}".${NODES_TABLE};
+    DROP TABLE IF EXISTS "${schemaName}".${PROPERTIES_TABLE};
+    DROP TABLE IF EXISTS "${schemaName}".${CONTAINMENTS_TABLE};
+    DROP TABLE IF EXISTS "${schemaName}".${REFERENCES_TABLE};
+    
+    DROP TABLE IF EXISTS "${schemaName}".${METAPOINTERS_TABLE};
+    
+    DROP TABLE IF EXISTS "${schemaName}".${RESERVED_IDS_TABLE};
+    DROP TABLE IF EXISTS "${schemaName}".${REPO_VERSIONS};
+    DROP TABLE IF EXISTS "${schemaName}".${CURRENT_DATA};
+    
+    DROP FUNCTION IF EXISTS "${schemaName}".nextrepoversion;
+    DROP FUNCTION IF EXISTS "${schemaName}".currentrepoversion;
+    DROP FUNCTION IF EXISTS "${schemaName}".tometapointerids;
+    
     -- drop if empty, otherwise fail
     DROP SCHEMA IF EXISTS "${schemaName}" RESTRICT;
     CREATE SCHEMA "${schemaName}";
     SET search_path TO "${schemaName}";
-    
-    -- Drops nodes table
-    DROP TABLE IF EXISTS ${NODES_TABLE};
-    DROP TABLE IF EXISTS ${PROPERTIES_TABLE};
-    DROP TABLE IF EXISTS ${CONTAINMENTS_TABLE};
-    DROP TABLE IF EXISTS ${REFERENCES_TABLE};
-    
-    DROP TABLE IF EXISTS ${METAPOINTERS_TABLE};
-    
-    DROP TABLE IF EXISTS ${RESERVED_IDS_TABLE};
-    DROP TABLE IF EXISTS ${REPO_VERSIONS};
-    DROP TABLE IF EXISTS ${CURRENT_DATA};
+   
     
     -- Drop indices
     -- DROP INDEX IF EXISTS ContainmentsNodesIndex;
