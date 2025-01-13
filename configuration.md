@@ -38,7 +38,7 @@ Below is the server-config.json with all default values
         // Whether the repository should keep the history
         "history": false,
         // Values can be: "2023.1" | "2024.1"
-        lionWebVersion: "2024.1"
+        "lionWebVersion": "2024.1"
       }
     ]
   },
