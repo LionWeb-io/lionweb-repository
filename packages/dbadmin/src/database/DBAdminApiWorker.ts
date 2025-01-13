@@ -56,7 +56,7 @@ export class DBAdminApiWorker {
 
     async addRepositoryToTable(task: LionWebTask, repositoryData: RepositoryData) : Promise<unknown> {
         return await task.queryWithoutRepository(
-            `SELECT public.createRepositoryInfo('${repositoryData.repository.repository_name}'::text, '${repositoryData.repository.schema_name}'::text, '${repositoryData.repository.lionweb_version}'::text, '${history}'::boolean);\n`
+            `SELECT public.createRepositoryInfo('${repositoryData.repository.repository_name}'::text, '${repositoryData.repository.schema_name}'::text, '${repositoryData.repository.lionweb_version}'::text, '${repositoryData.repository.history}'::boolean);\n`
         )
     }
 
