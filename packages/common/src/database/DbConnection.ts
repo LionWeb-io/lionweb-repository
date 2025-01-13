@@ -1,3 +1,4 @@
+import { LionWebVersionType } from "@lionweb/repository-client"
 import pgPromise from "pg-promise"
 import pg from "pg-promise/typescript/pg-subset.js"
 import {dbLogger, LionWebVersion, requestLogger, traceLogger} from "../apiutil/index.js"
@@ -16,7 +17,7 @@ export type RepositoryInfo = {
     repository_name: string
     schema_name: string
     history: boolean
-    lionweb_version: LionWebVersion
+    lionweb_version: LionWebVersionType
     created?: string
 }
 

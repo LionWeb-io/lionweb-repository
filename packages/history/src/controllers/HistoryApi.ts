@@ -1,8 +1,8 @@
 // functions implementing the LionWeb bulk API
-import { getRepositoryData } from "@lionweb/repository-dbadmin"
 // - unpack the request
 // - call controller to do actual work
 // - pack response
+import { getRepositoryData } from "@lionweb/repository-dbadmin"
 import { Request, Response } from "express"
 import { HistoryContext } from "../main.js"
 import {

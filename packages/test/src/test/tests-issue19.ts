@@ -25,21 +25,15 @@ describe("Repository tests", () => {
 
     describe("Add new node", async () => {
         it("test update single node", async () => {
-            await storeFiles([
-                "./data/Disk_A.json",
-                "./data/add-new-nodes/Disk-add-new-nodes-single-node.json",
-                "./data/Disk_A.json",
-            ])
-            // await t.dbAdmin.deleteRepository("default")
+            await storeFiles(["./data/Disk_A.json", "./data/add-new-nodes/Disk-add-new-nodes-single-node.json", "./data/Disk_A.json"])
         })
     })
 
     async function storeFiles(files: string[]) {
-        for(const file of files) {
+        for (const file of files) {
             const changesChunk = readModel(file) as LionWebJsonChunk
             const result = await t.bulk.store(changesChunk)
             assert.isTrue(result.status === HttpSuccessCodes.Ok, "Incorrect HTTP status: something went wrong")
         }
     }
 })
-

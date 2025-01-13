@@ -86,12 +86,6 @@ class InspectionApiImpl implements InspectionApi {
     }
 
     nodesByClassifier = async (request: e.Request, response: e.Response) => {
-        let clientId = getStringParam(request, "clientId")
-        // TODO Change using new repository structure
-        if (isParameterError(clientId)) {
-            // Allow call without client id
-            clientId = "Dummy"
-        }
         const repositoryData = getRepositoryData(request, "Dummy")
         if (isParameterError(repositoryData)) {
             lionwebResponse<StoreResponse>(response, HttpClientErrors.PreconditionFailed, {

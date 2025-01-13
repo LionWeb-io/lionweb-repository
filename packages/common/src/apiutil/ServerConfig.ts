@@ -11,14 +11,19 @@ export function isCreationType(v: string): v is CreationType {
     return s.includes(v)
 }
 
-export type LionWebVersion = "2023.1" | "2024.1"
-export const LIONWEB_VERSIONS = ["2023.1", "2024.1"];
+export const LionWebVersionValues = ["2023.1", "2024.1"] as const
+export type LionWebVersionType = (typeof LionWebVersionValues)[number]
+
+export function isLionWebVersion(v: string): v is LionWebVersionType {
+    const s: readonly string[] = LionWebVersionValues
+    return s.includes(v)
+}
 
 export type RepositoryConfig = {
     create: CreationType
     name?: string
     history?: boolean
-    lionWebVersion?: LionWebVersion
+    lionWebVersion?: LionWebVersionType
 }
 
 export type ServerConfigJson = {
