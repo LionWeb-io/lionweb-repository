@@ -1,5 +1,5 @@
 import {
-    EMPTY_CHUNK,
+    EMPTY_CHUNKS,
     HttpSuccessCodes,
     nodesToChunk,
     ListPartitionsResponse,
@@ -50,7 +50,7 @@ export class HistoryApiWorker {
                 queryResult: {
                     success: true,
                     messages: [{ kind: "EmptyIdList", message: "The list of ids is empty, empty chunk returned" }],
-                    chunk: EMPTY_CHUNK
+                    chunk: EMPTY_CHUNKS[repoData.repository.lionweb_version]
                 }
             }
         }
@@ -62,7 +62,7 @@ export class HistoryApiWorker {
                 queryResult: {
                     success: true,
                     messages: [{ kind: "IdsNotFound", message: "None of the ids can be found, empty chunk returned" }],
-                    chunk: EMPTY_CHUNK
+                    chunk: EMPTY_CHUNKS[repoData.repository.lionweb_version]
                 }
             }
         }
@@ -78,7 +78,7 @@ export class HistoryApiWorker {
             queryResult: {
                 success: true,
                 messages: [],
-                chunk: nodesToChunk(nodes)
+                chunk: nodesToChunk(nodes, repoData.repository.lionweb_version)
             }
         }
     }

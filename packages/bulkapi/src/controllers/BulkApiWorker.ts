@@ -2,12 +2,12 @@ import {
     createId,
     CreatePartitionsResponse,
     DeletePartitionsResponse,
-    EMPTY_CHUNK,
+    EMPTY_CHUNKS,
     EMPTY_SUCCES_RESPONSE,
     HttpClientErrors,
     HttpSuccessCodes,
     IdsResponse,
-    LionWebTask,
+    LionWebTask, LionWebVersion,
     ListPartitionsResponse,
     nodesToChunk,
     QueryReturnType,
@@ -136,7 +136,7 @@ export class BulkApiWorker {
                 queryResult: {
                     success: true,
                     messages: [{ kind: "EmptyIdList", message: "The list of ids is empty, empty chunk returned" }],
-                    chunk: EMPTY_CHUNK
+                    chunk: EMPTY_CHUNKS[repositoryData.repository.lionweb_version]
                 }
             }
         }
@@ -148,7 +148,7 @@ export class BulkApiWorker {
             queryResult: {
                 success: true,
                 messages: [versionResultToResponse(versionResult)],
-                chunk: nodesToChunk(nodes)
+                chunk: nodesToChunk(nodes, repositoryData.repository.lionweb_version)
             }
         }
     }

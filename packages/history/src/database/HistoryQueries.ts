@@ -95,7 +95,7 @@ export class HistoryQueries {
             status: HttpSuccessCodes.Ok,
             query: "query",
             queryResult: {
-                chunk: nodesToChunk(nodes),
+                chunk: nodesToChunk(nodes, repoData.repository.lionweb_version),
                 success: true,
                 messages: []
             }

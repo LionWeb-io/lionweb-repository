@@ -1,6 +1,6 @@
 import pgPromise from "pg-promise"
 import pg from "pg-promise/typescript/pg-subset.js"
-import { dbLogger, requestLogger, traceLogger } from "../apiutil/index.js"
+import {dbLogger, LionWebVersion, requestLogger, traceLogger} from "../apiutil/index.js"
 import { Pool } from "pg"
 import { LionWebTask } from "./LionWebTask.js"
 
@@ -16,7 +16,7 @@ export type RepositoryInfo = {
     repository_name: string
     schema_name: string
     history: boolean
-    lionweb_version: string
+    lionweb_version: LionWebVersion
     created?: string
 }
 

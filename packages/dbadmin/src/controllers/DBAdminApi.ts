@@ -16,7 +16,7 @@ import {
     HttpClientErrors,
     getClientLog,
     LionWebTask,
-    RepositoryData
+    RepositoryData, LionWebVersion
 } from "@lionweb/repository-common"
 import { getRepositoryData, repositoryStore } from "../database/index.js"
 import { DbAdminApiContext } from "../main.js"
@@ -147,7 +147,7 @@ export class DBAdminApiImpl implements DBAdminApi {
                     repository_name: repositoryName,
                     schema_name: SCHEMA_PREFIX + repositoryName,
                     history: history,
-                    lionweb_version: lionWebVersion
+                    lionweb_version: lionWebVersion as LionWebVersion
                 }
             }
             let result: QueryReturnType<string>
