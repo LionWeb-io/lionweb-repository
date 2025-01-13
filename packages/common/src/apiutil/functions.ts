@@ -1,6 +1,9 @@
+import { LionWebVersionType } from "@lionweb/repository-client"
+import { RepositoryData } from "../database/index.js"
 import { HttpServerErrors } from "./httpcodes.js"
 import { requestLogger } from "./logging.js"
 import { Job, requestQueue } from "./RequestQueue.js"
+import { isLionWebVersion, LionWebVersionValues } from "./ServerConfig.js"
 import { collectUsedLanguages } from "./UsedLanguages.js"
 import { LionWebJsonChunk, LionWebJsonNode } from "@lionweb/validation"
 import { Request, Response } from "express"
@@ -176,13 +179,21 @@ export function getHistoryParameter(request: Request): boolean {
 /**
  *
  */
-export function getLionWebVersionParameter(request: Request): string {
-    let lionWebVersion = getStringParam(request, "lionWebVersion", "2023.1")
-    if (isParameterError(lionWebVersion)) {
-        // use the default
-        lionWebVersion = "2023.1"
+export function getLionWebVersionParameter(request: Request): LionWebVersionType | ParameterError {
+    let lionWebVersionString = getStringParam(request, "lionWebVersion", "2024.1")
+    if (isParameterError(lionWebVersionString)) {
+        return lionWebVersionString
     }
-    return lionWebVersion
+    if (isLionWebVersion(lionWebVersionString)) {
+        return lionWebVersionString
+    }
+    return {
+        success: false,
+        error: {
+            kind: "LionWebVersionError",
+            message: `The LionWeb version is ${lionWebVersionString}, but should be one of ${LionWebVersionValues}`
+        }
+    }
 }
 
 /**
@@ -257,12 +268,15 @@ export function assertIsDefined<T>(value: T): asserts value is NonNullable<T> {
  * Create a chunk around _nodes_
  * * @param nodes
  */
-export function nodesToChunk(nodes: LionWebJsonNode[]): LionWebJsonChunk {
+export function nodesToChunk(nodes: LionWebJsonNode[], lionWebVersion: LionWebVersionType): LionWebJsonChunk {
     return {
-        serializationFormatVersion: "2023.1",
+        serializationFormatVersion: lionWebVersion,
         languages: collectUsedLanguages(nodes),
         nodes: nodes
     }
 }
 
-export const EMPTY_CHUNK = nodesToChunk([])
+export const EMPTY_CHUNKS: { [K in LionWebVersionType]: LionWebJsonChunk } = {
+    "2023.1": nodesToChunk([], "2023.1"),
+    "2024.1": nodesToChunk([], "2024.1")
+}

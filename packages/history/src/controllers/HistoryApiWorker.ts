@@ -1,5 +1,4 @@
 import {
-    EMPTY_CHUNK,
     HttpSuccessCodes,
     nodesToChunk,
     ListPartitionsResponse,
@@ -7,7 +6,8 @@ import {
     RepositoryData,
     RetrieveResponse,
     traceLogger,
-    LionWebTask
+    LionWebTask,
+    EMPTY_CHUNKS
 } from "@lionweb/repository-common"
 import { HistoryContext } from "../main.js"
 
@@ -37,7 +37,7 @@ export class HistoryApiWorker {
      */
     bulkRetrieve = async (
         task: LionWebTask,
-        repoData: RepositoryData,
+        repositoryData: RepositoryData,
         nodeIdList: string[],
         depthLimit: number,
         repoVersion: number
@@ -50,11 +50,11 @@ export class HistoryApiWorker {
                 queryResult: {
                     success: true,
                     messages: [{ kind: "EmptyIdList", message: "The list of ids is empty, empty chunk returned" }],
-                    chunk: EMPTY_CHUNK
+                    chunk: EMPTY_CHUNKS[repositoryData.repository.lionweb_version]
                 }
             }
         }
-        const allNodes = await this.context.queries.getNodeTree(task, repoData, nodeIdList, depthLimit, repoVersion)
+        const allNodes = await this.context.queries.getNodeTree(task, repositoryData, nodeIdList, depthLimit, repoVersion)
         if (allNodes.queryResult.length === 0) {
             return {
                 status: HttpSuccessCodes.Ok,
@@ -62,13 +62,13 @@ export class HistoryApiWorker {
                 queryResult: {
                     success: true,
                     messages: [{ kind: "IdsNotFound", message: "None of the ids can be found, empty chunk returned" }],
-                    chunk: EMPTY_CHUNK
+                    chunk: EMPTY_CHUNKS[repositoryData.repository.lionweb_version]
                 }
             }
         }
         const nodes = await this.context.queries.getNodesFromIdList(
             task,
-            repoData,
+            repositoryData,
             allNodes.queryResult.map(node => node.id),
             repoVersion
         )
@@ -78,7 +78,7 @@ export class HistoryApiWorker {
             queryResult: {
                 success: true,
                 messages: [],
-                chunk: nodesToChunk(nodes)
+                chunk: nodesToChunk(nodes, repositoryData.repository.lionweb_version)
             }
         }
     }

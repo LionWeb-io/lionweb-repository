@@ -76,18 +76,18 @@ export class HistoryQueries {
      */
     getPartitionsForVersion = async (
         task: LionWebTask,
-        repoData: RepositoryData,
+        repositoryData: RepositoryData,
         repoVersion: number
     ): Promise<QueryReturnType<ListPartitionsResponse>> => {
         requestLogger.info("HistoryQueries.getPartitions for version " + JSON.stringify(repoVersion))
         // TODO Combine both queries
         const query = `SELECT id FROM nodesForVersion(${repoVersion}) WHERE parent is null`
-        const partitionIds = (await await task.query(repoData, query)) as { id: string }[]
+        const partitionIds = (await await task.query(repositoryData, query)) as { id: string }[]
 
         dbLogger.debug("HistoryQueries.getPartitions.Result: " + JSON.stringify(partitionIds))
         const nodes = await this.getNodesFromIdList(
             task,
-            repoData,
+            repositoryData,
             partitionIds.map(n => n.id),
             repoVersion
         )
@@ -95,7 +95,7 @@ export class HistoryQueries {
             status: HttpSuccessCodes.Ok,
             query: "query",
             queryResult: {
-                chunk: nodesToChunk(nodes),
+                chunk: nodesToChunk(nodes, repositoryData.repository.lionweb_version),
                 success: true,
                 messages: []
             }

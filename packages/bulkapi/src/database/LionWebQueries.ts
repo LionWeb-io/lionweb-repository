@@ -113,7 +113,7 @@ export class LionWebQueries {
             status: HttpSuccessCodes.Ok,
             query: "query",
             queryResult: {
-                chunk: nodesToChunk(result),
+                chunk: nodesToChunk(result, repositoryData.repository.lionweb_version),
                 success: true,
                 messages: [versionResultToResponse(versionResult)]
             }

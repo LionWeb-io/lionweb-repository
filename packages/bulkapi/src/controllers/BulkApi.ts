@@ -1,4 +1,9 @@
-// functions implementing the LionWeb bulk API
+/**
+ *  functions implementing the LionWeb bulk API:
+ *   - unpack the request
+ *   - call controller to do actual work
+ *   - pack response
+ */
 import {
     CreatePartitionsResponse,
     DeletePartitionsResponse,
@@ -17,9 +22,6 @@ import {
 import { getRepositoryData, validateLionWebVersion } from "@lionweb/repository-dbadmin"
 import { getLanguageRegistry } from "@lionweb/repository-languages"
 import { LionWebJsonChunk, LionWebValidator } from "@lionweb/validation"
-// - unpack the request
-// - call controller to do actual work
-// - pack response
 import { Request, Response } from "express"
 import { BulkApiContext } from "../main.js"
 
