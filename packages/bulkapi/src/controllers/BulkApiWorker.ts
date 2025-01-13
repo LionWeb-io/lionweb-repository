@@ -7,7 +7,7 @@ import {
     HttpClientErrors,
     HttpSuccessCodes,
     IdsResponse,
-    LionWebTask, LionWebVersion,
+    LionWebTask,
     ListPartitionsResponse,
     nodesToChunk,
     QueryReturnType,

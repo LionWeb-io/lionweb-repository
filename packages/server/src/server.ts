@@ -81,7 +81,7 @@ const mode = new TransactionMode({
     tiLevel: pgPromise.txMode.isolationLevel.serializable
 })
 dbConnection.transactionMode = mode
-requestLogger.info("mode " + JSON.stringify((mode as any)["_inner"]))
+requestLogger.info("mode " + JSON.stringify((mode as never)["_inner"]))
 dbConnection.pgPool = postgresPool
 // Must be first to initialize
 initializeCommons(pgp)
