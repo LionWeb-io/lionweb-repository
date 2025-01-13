@@ -7,7 +7,6 @@ import { LionWebJsonChunk, LionWebJsonNode } from "@lionweb/validation"
 import { Request, Response } from "express"
 import { lionwebResponse, ResponseMessage } from "./LionwebResponse.js"
 import { v4 as uuidv4 } from "uuid"
-import {LIONWEB_VERSIONS, LionWebVersion} from "./ServerConfig.js";
 
 export type UnknownObjectType = { [key: string]: unknown }
 
@@ -179,7 +178,7 @@ export function getHistoryParameter(request: Request): boolean {
  *
  */
 export function getLionWebVersionParameter(request: Request): LionWebVersionType | ParameterError {
-    let lionWebVersionString = getStringParam(request, "lionWebVersion", "2024.1")
+    const lionWebVersionString = getStringParam(request, "lionWebVersion", "2024.1")
     if (isParameterError(lionWebVersionString)) {
         return lionWebVersionString
     }

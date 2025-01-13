@@ -146,13 +146,13 @@ export class DBAdminApiImpl implements DBAdminApi {
                     repository_name: repositoryName,
                     schema_name: SCHEMA_PREFIX + repositoryName,
                     history: history,
-                    lionweb_version: lionWebVersion as LionWebVersion
+                    lionweb_version: lionWebVersion
                 }
             }
             let result: QueryReturnType<string>
             await this.ctx.dbConnection.tx(async (task: LionWebTask) => {
                 result = await this.ctx.dbAdminApiWorker.createRepository(task, repositoryData)
-                await this.ctx.dbAdminApiWorker.addRepositoryToTable(task, repositoryData);
+                await this.ctx.dbAdminApiWorker.addRepositoryToTable(task, repositoryData)
             })
             await repositoryStore.refresh()
             lionwebResponse(response, result.status, {
