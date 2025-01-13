@@ -34,11 +34,11 @@ Below is the server-config.json with all default values
         "name": "default",
         //
         // Values are "always" | "never" | "if-not-exists"
-        create: "if-not-exists"
+        "create": "if-not-exists",
         // Whether the repository should keep the history
         "history": false,
         // Values can be: "2023.1" | "2024.1"
-        lionWebVersion: "2023.1"
+        lionWebVersion: "2024.1"
       }
     ]
   },
@@ -60,7 +60,7 @@ Below is the server-config.json with all default values
       // The username used to connect to the Postgres server
       "user": "postgres",
       // The name of the admin database
-      maintenanceDb: "postgres" ,
+      "maintenanceDb": "postgres" ,
       // The name of the Postgres database to be used within the Postgres server.
       "db": "lionweb",
       // The password used to connect to the Postgres server
