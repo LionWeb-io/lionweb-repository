@@ -16,7 +16,8 @@ import {
     HttpClientErrors,
     getClientLog,
     LionWebTask,
-    RepositoryData, LionWebVersion
+    LionWebVersion,
+    RepositoryData
 } from "@lionweb/repository-common"
 import { getRepositoryData, repositoryStore } from "../database/index.js"
 import { DbAdminApiContext } from "../main.js"
@@ -153,11 +154,8 @@ export class DBAdminApiImpl implements DBAdminApi {
             let result: QueryReturnType<string>
             await this.ctx.dbConnection.tx(async (task: LionWebTask) => {
                 result = await this.ctx.dbAdminApiWorker.createRepository(task, repositoryData)
+                await this.ctx.dbAdminApiWorker.addRepositoryToTable(task, repositoryData);
             })
-            // Update repository info table
-            await this.ctx.dbConnection.queryWithoutRepository(
-                `SELECT public.createRepositoryInfo('${repositoryData.repository.repository_name}'::text, '${repositoryData.repository.schema_name}'::text, '${repositoryData.repository.lionweb_version}'::text, '${history}'::boolean);\n`
-            )
             await repositoryStore.refresh()
             lionwebResponse(response, result.status, {
                 success: result.status === HttpSuccessCodes.Ok,

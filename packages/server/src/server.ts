@@ -191,9 +191,9 @@ async function setupDatabase() {
 }
 
 async function createRepository(repository: RepositoryConfig) {
-    dbAdminApi.tx(async (task: LionWebTask) => {
+    await dbAdminApi.tx(async (task: LionWebTask) => {
         const history = repository?.history !== undefined && repository?.history !== null && repository?.history === true
-        await dbAdminApi.createRepository(task, {
+        const repositoryData = {
             clientId: "repository",
             repository: {
                 repository_name: repository.name,
@@ -201,10 +201,9 @@ async function createRepository(repository: RepositoryConfig) {
                 history: history,
                 lionweb_version: repository.lionWebVersion
             }
-        })
-        await dbAdminApi.queryWithoutRepository(
-            `SELECT public.createRepositoryInfo('${repository.name}'::text, '${SCHEMA_PREFIX + repository.name}'::text, '${repository.lionWebVersion}'::text, '${repository.history}'::boolean);\n`
-        )
+        };
+        await dbAdminApi.createRepository(task, repositoryData)
+        await dbAdminApi.addRepositoryToTable(task, repositoryData)
         requestLogger.info(`creation of repository ${JSON.stringify(repository)} completed`)
     })
 }

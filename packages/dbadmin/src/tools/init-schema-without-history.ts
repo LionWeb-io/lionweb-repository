@@ -14,7 +14,7 @@ import {
 export function initSchemaWithoutHistory(schemaName: string): string {
     return `-- Create schema
     
-    -- Delete table first, so that we can then delete the schema
+    -- Delete tables and functions first, so that we can then delete the schema
     DROP TABLE IF EXISTS "${schemaName}".${NODES_TABLE};
     DROP TABLE IF EXISTS "${schemaName}".${PROPERTIES_TABLE};
     DROP TABLE IF EXISTS "${schemaName}".${CONTAINMENTS_TABLE};
@@ -30,18 +30,17 @@ export function initSchemaWithoutHistory(schemaName: string): string {
     DROP FUNCTION IF EXISTS "${schemaName}".currentrepoversion;
     DROP FUNCTION IF EXISTS "${schemaName}".tometapointerids;
     
-    -- drop if empty, otherwise fail
-    DROP SCHEMA IF EXISTS "${schemaName}" RESTRICT;
-    CREATE SCHEMA "${schemaName}";
-    SET search_path TO "${schemaName}";
-   
-    
     -- Drop indices
     -- DROP INDEX IF EXISTS ContainmentsNodesIndex;
     -- DROP INDEX IF EXISTS PropertiesNodesIndex;
     -- DROP INDEX IF EXISTS ReferencesNodesIndex;
     -- DROP INDEX IF EXISTS MpsValuesIndex;
     -- DROP INDEX IF EXISTS MpsIdIndex;
+    
+    -- drop if empty, otherwise fail
+    DROP SCHEMA IF EXISTS "${schemaName}" RESTRICT;
+    CREATE SCHEMA "${schemaName}";
+    SET search_path TO "${schemaName}";
     
     -- Creates metapointers table
     CREATE TABLE IF NOT EXISTS ${METAPOINTERS_TABLE} (

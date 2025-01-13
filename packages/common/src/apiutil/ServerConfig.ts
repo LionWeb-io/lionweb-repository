@@ -12,6 +12,7 @@ export function isCreationType(v: string): v is CreationType {
 }
 
 export type LionWebVersion = "2023.1" | "2024.1"
+export const LIONWEB_VERSIONS = ["2023.1", "2024.1"];
 
 export type RepositoryConfig = {
     create: CreationType

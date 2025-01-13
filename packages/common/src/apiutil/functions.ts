@@ -6,7 +6,7 @@ import { LionWebJsonChunk, LionWebJsonNode } from "@lionweb/validation"
 import { Request, Response } from "express"
 import { lionwebResponse, ResponseMessage } from "./LionwebResponse.js"
 import { v4 as uuidv4 } from "uuid"
-import {LionWebVersion} from "./ServerConfig.js";
+import {LIONWEB_VERSIONS, LionWebVersion} from "./ServerConfig.js";
 
 export type UnknownObjectType = { [key: string]: unknown }
 
@@ -255,8 +255,9 @@ export function assertIsDefined<T>(value: T): asserts value is NonNullable<T> {
 }
 
 /**
- * Create a chunk around _nodes_
- * * @param nodes
+ * Create a chunk around _nodes_.
+ * @param nodes nodes to insert in the chunk
+ * @param lionWebVersion LionWeb version to use for the serialization
  */
 export function nodesToChunk(nodes: LionWebJsonNode[], lionWebVersion: LionWebVersion): LionWebJsonChunk {
     return {
@@ -266,8 +267,9 @@ export function nodesToChunk(nodes: LionWebJsonNode[], lionWebVersion: LionWebVe
     }
 }
 
-export const EMPTY_CHUNKS: { [K in LionWebVersion]: LionWebJsonChunk } = {
-    "2023.1": nodesToChunk([], "2023.1"),
-    "2024.1": nodesToChunk([], "2024.1"),
-};
-
+/**
+ * We pre-calculate the empty chunks for each version of LionWeb we support.
+ */
+export const EMPTY_CHUNKS = Object.fromEntries(
+    LIONWEB_VERSIONS.map((version) => [version, nodesToChunk([], version as LionWebVersion)])
+) as { [K in LionWebVersion]: LionWebJsonChunk };
