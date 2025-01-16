@@ -1,11 +1,10 @@
-import {METAPOINTERS_TABLE, NODES_TABLE} from "@lionweb/repository-common";
+import { METAPOINTERS_TABLE, NODES_TABLE } from "@lionweb/repository-common"
 
 /**
  * Database functions.
  */
 export class InspectionQueries {
-    constructor() {
-    }
+    constructor() {}
 
     nodesByClassifier(): string {
         return `select mp.language as language, mp.key as key, string_agg(n.id, ',') AS ids from ${NODES_TABLE} n

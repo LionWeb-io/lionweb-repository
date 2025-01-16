@@ -4,16 +4,26 @@ import { expressLogger, verbosity } from "./logging.js"
 
 // Define the possible values of database creation both as a type, and as an array of strings and a type
 const CreationValues = ["always", "never", "if-not-exists"] as const
-export type CreationType = typeof CreationValues[number];
+export type CreationType = (typeof CreationValues)[number]
+
 export function isCreationType(v: string): v is CreationType {
-    const s: readonly string[] = CreationValues;
-    return s.includes(v);
+    const s: readonly string[] = CreationValues
+    return s.includes(v)
 }
 
-export type RepositoryConfig = { 
-    create: CreationType, 
-    name?: string; 
+export const LionWebVersionValues = ["2023.1", "2024.1"] as const
+export type LionWebVersionType = (typeof LionWebVersionValues)[number]
+
+export function isLionWebVersion(v: string): v is LionWebVersionType {
+    const s: readonly string[] = LionWebVersionValues
+    return s.includes(v)
+}
+
+export type RepositoryConfig = {
+    create: CreationType
+    name?: string
     history?: boolean
+    lionWebVersion?: LionWebVersionType
 }
 
 export type ServerConfigJson = {

@@ -1,6 +1,6 @@
-import pgPromise from "pg-promise";
-import pg from "pg-promise/typescript/pg-subset.js";
-import { TableDefinitions } from "./database/TableDefinitions.js";
+import pgPromise from "pg-promise"
+import pg from "pg-promise/typescript/pg-subset.js"
+import { TableDefinitions } from "./database/TableDefinitions.js"
 
 export let TableHelpers: TableDefinitions
 

@@ -1,14 +1,15 @@
 /**
  * The table definitions for use with pg-promise helpers
  */
-import pgPromise from "pg-promise";
-import pg from "pg-promise/typescript/pg-subset.js";
+import pgPromise from "pg-promise"
+import pg from "pg-promise/typescript/pg-subset.js"
 import {
     CONTAINMENTS_TABLE,
     METAPOINTERS_TABLE,
     NODES_TABLE,
     PROPERTIES_TABLE,
     REFERENCES_TABLE,
+    REPOSITORIES_TABLE,
     RESERVED_IDS_TABLE
 } from "./TableNames.js"
 
@@ -31,7 +32,8 @@ export class TableDefinitions {
     REFERENCES_COLUMN_SET: pgPromise.ColumnSet
     RESERVED_IDS_COLUMN_SET: pgPromise.ColumnSet
     METAPOINTERS_COLUMN_SET: pgPromise.ColumnSet
-    
+    REPOSITORIES_COLUMN_SET: pgPromise.ColumnSet
+
     constructor(private pgp: pgPromise.IMain<object, pg.IClient>) {
         this.pgp = pgp
         // prettier-ignore
@@ -106,6 +108,17 @@ export class TableDefinitions {
                 "client_id"     // The client for which the node id has been reserved
             ],
             { table: RESERVED_IDS_TABLE }
+        )
+        // prettier-ignore
+        this.REPOSITORIES_COLUMN_SET = new this.pgp.helpers.ColumnSet(
+            [
+                "repository_name",
+                "schema_name",
+                "lionweb_version",
+                "history",
+                "?created"
+            ],
+            { table: REPOSITORIES_TABLE }
         )
     }
 }

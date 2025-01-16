@@ -4,7 +4,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Library to access repository server from a TypeScript/JavaScript client",
   "main": "dist/index.js",
   "exports": "./dist/index.js",
@@ -35,10 +35,10 @@
     "@typescript-eslint/eslint-plugin": "6.13.2",
     "@typescript-eslint/parser": "6.13.2",
     "@types/chai": "4.3.11",
-    "@types/mocha": "10.0.1",
+    "@types/mocha": "10.0.10",
     "eslint": "8.56.0",
     "chai": "4.3.10",
-    "mocha": "10.2.0",
+    "mocha": "11.0.1",
     "typescript": "5.2.2"
   }
 }

@@ -1,11 +1,16 @@
 import {
     ListPartitionsResponse,
     asError,
-    QueryReturnType, nodesToChunk, HttpSuccessCodes, HttpClientErrors, RepositoryData, dbLogger, requestLogger, LionWebTask,
+    QueryReturnType,
+    nodesToChunk,
+    HttpSuccessCodes,
+    HttpClientErrors,
+    RepositoryData,
+    dbLogger,
+    requestLogger,
+    LionWebTask
 } from "@lionweb/repository-common"
-import {
-    LionWebJsonNode
-} from "@lionweb/validation"
+import { LionWebJsonNode } from "@lionweb/validation"
 import { HistoryContext } from "../main.js"
 import { makeQueryNodeTreeForIdList, QueryNodeForIdList } from "./QueryNodeHistory.js"
 
@@ -19,15 +24,20 @@ export type NodeTreeResultType = {
  * Database functions.
  */
 export class HistoryQueries {
-    constructor(private context: HistoryContext) {
-    }
+    constructor(private context: HistoryContext) {}
 
     /**
      * Get recursively the ids of all children/annotations of _nodeIdList_ with depth _depthLimit_
      * @param nodeIdList
      * @param depthLimit
      */
-    getNodeTree = async (task: LionWebTask, repoData: RepositoryData, nodeIdList: string[], depthLimit: number, repoVersion: number): Promise<QueryReturnType<NodeTreeResultType[]>> => {
+    getNodeTree = async (
+        task: LionWebTask,
+        repoData: RepositoryData,
+        nodeIdList: string[],
+        depthLimit: number,
+        repoVersion: number
+    ): Promise<QueryReturnType<NodeTreeResultType[]>> => {
         dbLogger.debug("LionWebQueries.getNodeTree for " + nodeIdList)
         let query = ""
         try {
@@ -45,7 +55,12 @@ export class HistoryQueries {
         }
     }
 
-    getNodesFromIdList = async (task: LionWebTask, repoData: RepositoryData, nodeIdList: string[], repoVersion: number): Promise<LionWebJsonNode[]> => {
+    getNodesFromIdList = async (
+        task: LionWebTask,
+        repoData: RepositoryData,
+        nodeIdList: string[],
+        repoVersion: number
+    ): Promise<LionWebJsonNode[]> => {
         dbLogger.debug("HistoryQueries.getNodesFromIdList: " + nodeIdList)
         // this is necessary as otherwise the query would crash as it is not intended to be run on an empty set
         if (nodeIdList.length == 0) {
@@ -59,19 +74,28 @@ export class HistoryQueries {
     /**
      * Get all partitions: this returns all nodes that have parent set to null or undefined
      */
-    getPartitionsForVersion = async (task: LionWebTask, repoData: RepositoryData, repoVersion: number): Promise<QueryReturnType<ListPartitionsResponse>> => {
+    getPartitionsForVersion = async (
+        task: LionWebTask,
+        repositoryData: RepositoryData,
+        repoVersion: number
+    ): Promise<QueryReturnType<ListPartitionsResponse>> => {
         requestLogger.info("HistoryQueries.getPartitions for version " + JSON.stringify(repoVersion))
         // TODO Combine both queries
         const query = `SELECT id FROM nodesForVersion(${repoVersion}) WHERE parent is null`
-        const partitionIds = await await task.query(repoData, query) as { id: string }[]
+        const partitionIds = (await await task.query(repositoryData, query)) as { id: string }[]
 
         dbLogger.debug("HistoryQueries.getPartitions.Result: " + JSON.stringify(partitionIds))
-        const nodes = await this.getNodesFromIdList(task, repoData, partitionIds.map(n => n.id), repoVersion)
+        const nodes = await this.getNodesFromIdList(
+            task,
+            repositoryData,
+            partitionIds.map(n => n.id),
+            repoVersion
+        )
         return {
             status: HttpSuccessCodes.Ok,
             query: "query",
-            queryResult:{ 
-                chunk: nodesToChunk(nodes),
+            queryResult: {
+                chunk: nodesToChunk(nodes, repositoryData.repository.lionweb_version),
                 success: true,
                 messages: []
             }

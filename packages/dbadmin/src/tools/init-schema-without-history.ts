@@ -4,27 +4,31 @@ import {
     PROPERTIES_TABLE,
     REFERENCES_TABLE,
     RESERVED_IDS_TABLE,
-    METAPOINTERS_TABLE
+    METAPOINTERS_TABLE,
+    CURRENT_DATA,
+    REPO_VERSIONS,
+    CURRENT_DATA_REPO_VERSION_KEY, 
+    CURRENT_DATA_REPO_CLIENT_ID_KEY
 } from "@lionweb/repository-common";
 
-export function initSchemaWithoutHistory(schema: string): string {
+export function initSchemaWithoutHistory(schemaName: string): string {
     return `-- Create schema
-    -- drop if empty, otherwise fail
-    DROP SCHEMA IF EXISTS "${schema}" RESTRICT;
-    CREATE SCHEMA "${schema}";
-    SET search_path TO "${schema}";
     
-    -- Drops nodes table
-    DROP TABLE IF EXISTS ${NODES_TABLE};
-    DROP TABLE IF EXISTS ${PROPERTIES_TABLE};
-    DROP TABLE IF EXISTS ${CONTAINMENTS_TABLE};
-    DROP TABLE IF EXISTS ${REFERENCES_TABLE};
+    -- Delete tables and functions first, so that we can then delete the schema
+    DROP TABLE IF EXISTS "${schemaName}".${NODES_TABLE};
+    DROP TABLE IF EXISTS "${schemaName}".${PROPERTIES_TABLE};
+    DROP TABLE IF EXISTS "${schemaName}".${CONTAINMENTS_TABLE};
+    DROP TABLE IF EXISTS "${schemaName}".${REFERENCES_TABLE};
     
-    DROP TABLE IF EXISTS ${METAPOINTERS_TABLE};
+    DROP TABLE IF EXISTS "${schemaName}".${METAPOINTERS_TABLE};
     
-    DROP TABLE IF EXISTS ${RESERVED_IDS_TABLE};
-    DROP TABLE IF EXISTS REPO_VERSIONS;
-    DROP TABLE IF EXISTS CURRENT_DATA;
+    DROP TABLE IF EXISTS "${schemaName}".${RESERVED_IDS_TABLE};
+    DROP TABLE IF EXISTS "${schemaName}".${REPO_VERSIONS};
+    DROP TABLE IF EXISTS "${schemaName}".${CURRENT_DATA};
+    
+    DROP FUNCTION IF EXISTS "${schemaName}".nextrepoversion;
+    DROP FUNCTION IF EXISTS "${schemaName}".currentrepoversion;
+    DROP FUNCTION IF EXISTS "${schemaName}".tometapointerids;
     
     -- Drop indices
     -- DROP INDEX IF EXISTS ContainmentsNodesIndex;
@@ -32,6 +36,11 @@ export function initSchemaWithoutHistory(schema: string): string {
     -- DROP INDEX IF EXISTS ReferencesNodesIndex;
     -- DROP INDEX IF EXISTS MpsValuesIndex;
     -- DROP INDEX IF EXISTS MpsIdIndex;
+    
+    -- drop if empty, otherwise fail
+    DROP SCHEMA IF EXISTS "${schemaName}" RESTRICT;
+    CREATE SCHEMA "${schemaName}";
+    SET search_path TO "${schemaName}";
     
     -- Creates metapointers table
     CREATE TABLE IF NOT EXISTS ${METAPOINTERS_TABLE} (
@@ -87,28 +96,28 @@ export function initSchemaWithoutHistory(schema: string): string {
         PRIMARY KEY(node_id)
     );
     
-    CREATE TABLE IF NOT EXISTS REPO_VERSIONS (
+    CREATE TABLE IF NOT EXISTS ${REPO_VERSIONS} (
         version    integer NOT NULL,
         date       timestamp,
         client_id  text,
         PRIMARY KEY(version)
     );
     
-    INSERT INTO REPO_VERSIONS 
+    INSERT INTO ${REPO_VERSIONS} 
         VALUES (0, NOW(), 'repository_id');
     
     -- this table contains "global variables per transaction"
-    CREATE TABLE IF NOT EXISTS CURRENT_DATA (
+    CREATE TABLE IF NOT EXISTS ${CURRENT_DATA} (
         key    text,
         value  text,
         PRIMARY KEY(key)
     );
     -- initialize current data
-    INSERT INTO CURRENT_DATA 
+    INSERT INTO ${CURRENT_DATA} 
         ( key, value )  
     VALUES
-        ('repo.version', '0'),
-        ('repo.client_id', 'repository_id');                 
+        ('${CURRENT_DATA_REPO_VERSION_KEY}', '0'),
+        ('${CURRENT_DATA_REPO_CLIENT_ID_KEY}', 'repository_id');
         
     -- TODO: Create indices to enable finding features for nodes quickly
     
@@ -120,7 +129,7 @@ export function initSchemaWithoutHistory(schema: string): string {
     -- CREATE INDEX MpsIdIndex       ON ${METAPOINTERS_TABLE} (id)
     
     -- SET repo.version = 0;
-    -- SET repo.version = (SELECT value FROM CURRENT_DATA WHERE key = 'repo.version');
+    -- SET repo.version = (SELECT value FROM ${CURRENT_DATA} WHERE key = 'repo.version');
     
     
     --------------------------------------------------------------------        
@@ -134,16 +143,16 @@ export function initSchemaWithoutHistory(schema: string): string {
     $$
     DECLARE nextVersion integer;
     BEGIN
-        nextVersion := (SELECT value FROM current_data WHERE key = 'repo.version')::integer + 1 FOR UPDATE;
+        nextVersion := (SELECT value FROM ${CURRENT_DATA} WHERE key = '${CURRENT_DATA_REPO_VERSION_KEY}')::integer + 1 FOR UPDATE;
         INSERT INTO repo_versions (version, date, client_id) 
         VALUES (
             nextVersion,
             NOW(),
             client
         );
-        UPDATE current_data
+        UPDATE ${CURRENT_DATA}
             SET value = nextVersion
-        WHERE key = 'repo.version';
+        WHERE key = '${CURRENT_DATA_REPO_VERSION_KEY}';
         
         RETURN nextVersion;
     END;
@@ -158,7 +167,7 @@ export function initSchemaWithoutHistory(schema: string): string {
     $$
     DECLARE version integer;
     BEGIN
-        version := (SELECT value FROM current_data WHERE key = 'repo.version')::integer;
+        version := (SELECT value FROM ${CURRENT_DATA} WHERE key = '${CURRENT_DATA_REPO_VERSION_KEY}')::integer;
         RETURN version;
     END;
     $$ LANGUAGE plpgsql;

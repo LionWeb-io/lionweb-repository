@@ -37,7 +37,7 @@ collection.forEach(withoutHistory => {
                 initError = ""
                 initialPartition = readModel(DATA + "Disk_A_partition.json") as LionWebJsonChunk
                 baseFullChunk = readModel(DATA + "Disk_A.json") as LionWebJsonChunk
-                const initResponse = await client.dbAdmin.createRepository(repository, !withoutHistory)
+                const initResponse = await client.dbAdmin.createRepository(repository, !withoutHistory, "2023.1")
                 if (initResponse.status !== HttpSuccessCodes.Ok) {
                     console.log("Cannot initialize database: " + JSON.stringify(initResponse.body))
                     initError = JSON.stringify(initResponse.body)
@@ -66,7 +66,7 @@ collection.forEach(withoutHistory => {
                 const repositories = await client.dbAdmin.listRepositories()
                 console.log("repositories: " + repositories.body.repositoryNames)
             })
-            
+
             afterEach("a", async function () {
                 await client.dbAdmin.deleteRepository(repository)
             })
@@ -87,7 +87,7 @@ collection.forEach(withoutHistory => {
                     assert(retrieve.body.success === false, "Non exiting repository should fail")
                 })
             })
-            
+
             describe("Partition tests", () => {
                 it("retrieve nodes", async () => {
                     assert(initError === "", initError)
@@ -392,14 +392,14 @@ collection.forEach(withoutHistory => {
                         assert(repositories.body.repositoryNames.length === 1, "There should be exactly one repository")
                         assert(repositories.body.repositoryNames.includes(currentrepo), "Incorrect repository found: " + repositories.body.repositoryNames)
                     }
-                    await client.dbAdmin.createRepository("Repo2", !withoutHistory)
+                    await client.dbAdmin.createRepository("Repo2", !withoutHistory, "2023.1")
                     {
                         const repositories = await client.dbAdmin.listRepositories()
                         assert(repositories.body.repositoryNames.length === 2, "There should be exactly two repositories")
                         assert(repositories.body.repositoryNames.every(repo => repo === currentrepo || repo === "Repo2"), "Incorrect repository found: " + repositories.body.repositoryNames)
                     }
 
-                    const createResult = await client.dbAdmin.createRepository("Repo2", true)
+                    const createResult = await client.dbAdmin.createRepository("Repo2", true, "2023.1")
                     assert(createResult.body.success === false, "Should not be able to create existing repo")
                     const delete2 = await client.dbAdmin.deleteRepository("Repo2")
                     {
@@ -408,7 +408,7 @@ collection.forEach(withoutHistory => {
                         assert(repositories.body.repositoryNames.length === 1, "There should be exactly one repository")
                         assert(repositories.body.repositoryNames.includes(currentrepo), "Incorrect repository found: " + repositories.body.repositoryNames)
                     }
-                    const createResult2 = await client.dbAdmin.createRepository("Repo2", !withoutHistory)
+                    const createResult2 = await client.dbAdmin.createRepository("Repo2", !withoutHistory, "2023.1")
                     {
                         assert(createResult2.body.success === true, "Should  be able to create existing repository: " + JSON.stringify(createResult2.body.messages))
                         const repositories = await client.dbAdmin.listRepositories()
@@ -416,8 +416,33 @@ collection.forEach(withoutHistory => {
                         assert(repositories.body.repositoryNames.every(repo => repo === currentrepo || repo === "Repo2"), "Incorrect repository found: " + repositories.body.repositoryNames)
                     }
                 })
-
-
+            })
+            
+            describe("Multiple LionWeb versions test", () => {
+                it("Check repository LionWeb versions does not accept other versions", async () => {
+                    assert(initError === "", initError)
+                    const incorrectVersion: LionWebJsonChunk = {
+                        serializationFormatVersion: "2024.1",
+                        nodes: [],
+                        languages: []
+                    }
+                    const nonsenseVersion: LionWebJsonChunk = {
+                        serializationFormatVersion: "nonsense-version",
+                        nodes: [],
+                        languages: []
+                    }
+                    const correctVersion: LionWebJsonChunk = {
+                        serializationFormatVersion: "2023.1",
+                        nodes: [],
+                        languages: []
+                    }
+                    const incorrect = await client.bulk.createPartitions(incorrectVersion)
+                    assert(incorrect.body.success === false, "incorrect LionWeb version should be refused: " + + incorrect.body.messages.map(m => m.message))
+                    const nonsense = await client.bulk.createPartitions(nonsenseVersion)
+                    assert(nonsense.body.success === false, "nonsense LionWeb version should be refused: " + nonsense.body.messages.map(m => m.message))
+                    const correct = await client.bulk.createPartitions(correctVersion)
+                    assert(correct.body.success === true, "correct LionWeb version should be accepted: " + correct.body.messages.map(m => m.message))
+                })
             })
 
             async function testResult(originalJsonFile: string, changesFile: string) {
@@ -468,8 +493,8 @@ collection.forEach(withoutHistory => {
 
 
         })
-    }    
-    
+    }
+
 )
 
 

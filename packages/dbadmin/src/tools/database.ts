@@ -1,6 +1,6 @@
 // import pgPromise from "pg-promise"
-import { ServerConfig } from "@lionweb/repository-common";
-import * as fs from "node:fs";
+import { ServerConfig } from "@lionweb/repository-common"
+import * as fs from "node:fs"
 
 export type PostgresConfig = {
     host: string
@@ -16,9 +16,9 @@ if (ServerConfig.getInstance().pgRootcert() && ServerConfig.getInstance().pgRoot
 }
 export let pgSSLConf: { ca: string } | undefined = undefined
 if (ServerConfig.getInstance().pgRootcertcontents()) {
-    pgSSLConf = {ca: ServerConfig.getInstance().pgRootcertcontents()}
+    pgSSLConf = { ca: ServerConfig.getInstance().pgRootcertcontents() }
 } else if (ServerConfig.getInstance().pgRootcert()) {
-    pgSSLConf = {ca: fs.readFileSync(ServerConfig.getInstance().pgRootcert()).toString()}
+    pgSSLConf = { ca: fs.readFileSync(ServerConfig.getInstance().pgRootcert()).toString() }
 }
 
 export const CREATE_CONFIG: PostgresConfig = {

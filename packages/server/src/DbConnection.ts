@@ -1,12 +1,8 @@
-import { dbLogger, ServerConfig } from "@lionweb/repository-common";
-import {
-    CREATE_CONFIG,
-    PostgresConfig,
-    pgSSLConf
-} from "@lionweb/repository-dbadmin";
+import { dbLogger, ServerConfig } from "@lionweb/repository-common"
+import { CREATE_CONFIG, PostgresConfig, pgSSLConf } from "@lionweb/repository-dbadmin"
 import pgPromise from "pg-promise"
 import dotenv from "dotenv"
-import pg from "pg";
+import pg from "pg"
 
 // Initialize and export the database connection with configuration from _env_
 

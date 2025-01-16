@@ -10,22 +10,17 @@ import {
     RepositoryData,
     dbLogger
 } from "@lionweb/repository-common"
-import {
-    LionWebJsonNode,
-    LionWebJsonReferenceTarget,
-    ReferenceChange
-} from "@lionweb/validation"
+import { LionWebJsonNode, LionWebJsonReferenceTarget, ReferenceChange } from "@lionweb/validation"
 import { BulkApiContext } from "../main.js"
-import { DbChanges } from "./DbChanges.js";
+import { DbChanges } from "./DbChanges.js"
 import { sqlArrayFromNodeIdArray } from "./QueryNode.js"
-import {MetaPointersTracker} from "@lionweb/repository-dbadmin";
+import { MetaPointersTracker } from "@lionweb/repository-dbadmin"
 
 /**
  * Class that builds SQL queries.
  */
 export class QueryMaker {
-    constructor(private context: BulkApiContext) {
-    }
+    constructor(private context: BulkApiContext) {}
 
     public makeQueriesForOrphans(orphanIds: string[]) {
         if (orphanIds.length === 0) {
@@ -51,7 +46,7 @@ export class QueryMaker {
         let queries = ""
         const db = new DbChanges(this.context)
         db.addChanges(referenceChanges)
-        const metaPointersTracker = new MetaPointersTracker(repositoryData);
+        const metaPointersTracker = new MetaPointersTracker(repositoryData)
         queries += db.createPostgresQuery(metaPointersTracker)
         return queries + "\n"
     }
@@ -61,7 +56,6 @@ export class QueryMaker {
         result += targets.map(target => "'" + JSON.stringify(target) + "'::jsonb").join(", ")
         return result + "]"
     }
-
 
     /**
      * Create a query to insert _tbsNodesToCreate_ in the lionweb_nodes table
@@ -89,10 +83,11 @@ export class QueryMaker {
 
             // INSERT Properties
             const insertProperties = tbsNodesToCreate.flatMap(node =>
-                node.properties.map(prop => ({ 
+                node.properties.map(prop => ({
                     node_id: node.id,
                     property: this.context.pgp.as.format(metaPointersTracker.forMetaPointer(prop.property).toString()),
-                    value: prop.value }))
+                    value: prop.value
+                }))
             )
             if (insertProperties.length !== 0) {
                 query += this.context.pgp.helpers.insert(insertProperties, TableHelpers.PROPERTIES_COLUMN_SET) + ";\n"
@@ -100,9 +95,9 @@ export class QueryMaker {
 
             // INSERT References
             const insertReferences = tbsNodesToCreate.flatMap(node =>
-                node.references.map(reference => ({ 
+                node.references.map(reference => ({
                     node_id: node.id,
-                    reference:this.context.pgp.as.format(metaPointersTracker.forMetaPointer(reference.reference).toString()),
+                    reference: this.context.pgp.as.format(metaPointersTracker.forMetaPointer(reference.reference).toString()),
                     targets: reference.targets
                 }))
             )
@@ -117,7 +112,7 @@ export class QueryMaker {
         let query = "-- insert containments for new node\n"
         // INSERT Containments
         const insertRowData = tbsNodesToCreate.flatMap(node =>
-            node.containments.map(c => ({ 
+            node.containments.map(c => ({
                 node_id: node.id,
                 containment: this.context.pgp.as.format(metaPointersTracker.forMetaPointer(c.containment).toString()),
                 children: c.children
@@ -147,7 +142,7 @@ export class QueryMaker {
     }
 
     /**
-     * Return the subset of _nodeIdList_ that are currently in use in the repository. 
+     * Return the subset of _nodeIdList_ that are currently in use in the repository.
      * @param nodeIdList The list of node is's to be checked.
      */
     public findNodeIdsInUse(nodeIdList: string[]): string {
@@ -162,12 +157,10 @@ export class QueryMaker {
     }
 
     public storeReservedNodeIds(repositoryData: RepositoryData, nodeIdList: string[]): string {
-        const insertReservation: ReservedIdRecord[]  = nodeIdList.map(id =>
-            ({ 
-                node_id: id,
-                client_id: repositoryData.clientId
-            })
-        )
+        const insertReservation: ReservedIdRecord[] = nodeIdList.map(id => ({
+            node_id: id,
+            client_id: repositoryData.clientId
+        }))
         if (insertReservation.length !== 0) {
             return this.context.pgp.helpers.insert(insertReservation, TableHelpers.RESERVED_IDS_COLUMN_SET) + ";\n"
         }

@@ -2,12 +2,20 @@
 // - unpack the request
 // - call controller to do actual work
 // - pack response
+import { getRepositoryData } from "@lionweb/repository-dbadmin"
 import { Request, Response } from "express"
 import { HistoryContext } from "../main.js"
 import {
     ListPartitionsResponse,
     lionwebResponse,
-    HttpClientErrors, getStringParam, getIntegerParam, isParameterError, StoreResponse, FOREVER, getRepositoryParameter, dbLogger, requestLogger, LionWebTask
+    HttpClientErrors,
+    getIntegerParam,
+    isParameterError,
+    StoreResponse,
+    FOREVER,
+    dbLogger,
+    requestLogger,
+    LionWebTask
 } from "@lionweb/repository-common"
 
 export interface HistoryApi {
@@ -16,9 +24,7 @@ export interface HistoryApi {
 }
 
 export class HistoryApiImpl implements HistoryApi {
-    
-    constructor(private ctx: HistoryContext) {
-    }
+    constructor(private ctx: HistoryContext) {}
     /**
      * Bulk API: Get all partitions (nodes without parent) from the repo
      * @param request no `parameters` or `body`
@@ -26,26 +32,28 @@ export class HistoryApiImpl implements HistoryApi {
      */
     listPartitions = async (request: Request, response: Response): Promise<void> => {
         requestLogger.info(` * history listPartitions request received, with body of ${request.headers["content-length"]} bytes`)
-        const clientId = getStringParam(request, "clientId")
+        const repositoryData = getRepositoryData(request)
+        requestLogger.debug(`    ** repository data ${JSON.stringify(repositoryData)} bytes`)
         const repoVersion = getIntegerParam(request, "repoVersion", FOREVER)
-        if (isParameterError(clientId)) {
-            lionwebResponse<StoreResponse>(response, HttpClientErrors.PreconditionFailed, {
+        if (isParameterError(repositoryData)) {
+            lionwebResponse<ListPartitionsResponse>(response, HttpClientErrors.PreconditionFailed, {
                 success: false,
-                messages: [clientId.error]
+                chunk: null,
+                messages: [repositoryData.error]
             })
         } else if (isParameterError(repoVersion)) {
-                lionwebResponse<StoreResponse>(response, HttpClientErrors.PreconditionFailed, {
-                    success: false,
-                    messages: [repoVersion.error]
-                })
+            lionwebResponse<StoreResponse>(response, HttpClientErrors.PreconditionFailed, {
+                success: false,
+                messages: [repoVersion.error]
+            })
         } else {
             await this.ctx.dbConnection.tx(async (task: LionWebTask) => {
-                const result = await this.ctx.historyApiWorker.bulkPartitions(task, { clientId: clientId, repository: getRepositoryParameter(request) }, repoVersion)
+                const result = await this.ctx.historyApiWorker.bulkPartitions(task, repositoryData, repoVersion)
                 lionwebResponse<ListPartitionsResponse>(response, result.status, result.queryResult)
             })
         }
     }
-    
+
     /**
      * Bulk API: Retrieve a set of nodes including its parts to a given level
      * @param request `body.ids` contains the list of nodes to be found.
@@ -54,20 +62,23 @@ export class HistoryApiImpl implements HistoryApi {
      */
     retrieve = async (request: Request, response: Response): Promise<void> => {
         requestLogger.info(` * retrieve request received, with body of ${request.headers["content-length"]} bytes`)
-        const clientId = getStringParam(request, "clientId")
+        const repositoryData = getRepositoryData(request)
+        requestLogger.debug(`    ** repository data ${JSON.stringify(repositoryData)} bytes`)
         const depthLimit = getIntegerParam(request, "depthLimit", Number.MAX_SAFE_INTEGER)
         const idList = request.body.ids
         const repoVersion = getIntegerParam(request, "repoVersion", FOREVER)
-        dbLogger.debug("Api.getNodes: " + JSON.stringify(request.body) + " depth " + depthLimit + " clientId: " + clientId)
+        dbLogger.debug(
+            "Api.getNodes: " + JSON.stringify(request.body) + " depth " + depthLimit + " repo: " + JSON.stringify(repositoryData)
+        )
         if (isParameterError(depthLimit)) {
             lionwebResponse(response, HttpClientErrors.PreconditionFailed, {
                 success: false,
                 messages: [depthLimit.error]
             })
-        } else if (isParameterError(clientId)) {
+        } else if (isParameterError(repositoryData)) {
             lionwebResponse(response, HttpClientErrors.PreconditionFailed, {
                 success: false,
-                messages: [clientId.error]
+                messages: [repositoryData.error]
             })
         } else if (!Array.isArray(idList)) {
             lionwebResponse(response, HttpClientErrors.PreconditionFailed, {
@@ -81,18 +92,9 @@ export class HistoryApiImpl implements HistoryApi {
             })
         } else {
             await this.ctx.dbConnection.tx(async (task: LionWebTask) => {
-                const result = await this.ctx.historyApiWorker.bulkRetrieve(
-                    task,
-                    {
-                        clientId: clientId,
-                        repository: getRepositoryParameter(request)
-                    },
-                    idList, depthLimit, repoVersion)
+                const result = await this.ctx.historyApiWorker.bulkRetrieve(task, repositoryData, idList, depthLimit, repoVersion)
                 lionwebResponse(response, result.status, result.queryResult)
             })
         }
     }
-
-
 }
-

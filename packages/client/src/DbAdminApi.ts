@@ -1,4 +1,4 @@
-import { ClientResponse, RepositoryClient } from "./RepositoryClient.js";
+import { ClientResponse, LionWebVersionType, RepositoryClient } from "./RepositoryClient.js";
 import { LionwebResponse, ListRepositoriesResponse } from "./responses.js"
 
 export class DbAdminApi {
@@ -8,26 +8,21 @@ export class DbAdminApi {
         this.client = client
     }
 
-    async init(history: boolean): Promise<ClientResponse<LionwebResponse>> {
+    async createRepository(repository: string, history: boolean, lionWebVersion: LionWebVersionType, logMessage?: string): Promise<ClientResponse<LionwebResponse>> {
         const historyParameter = history ? "true" : "false"
-        return await this.client.postWithTimeout("init", { body: {}, params: `history=${historyParameter}` })
+        return await this.client.postWithTimeout("createRepository", { body: {}, params: `repository=${repository}&history=${historyParameter}&lionWebVersion=${lionWebVersion}${this.client.logMessage(logMessage)}` })
     }
 
-    async createRepository(repository: string, history: boolean): Promise<ClientResponse<LionwebResponse>> {
-        const historyParameter = history ? "true" : "false"
-        return await this.client.postWithTimeout("createRepository", { body: {}, params: `repository=${repository}&history=${historyParameter}` })
+    async deleteRepository(repository: string, logMessage?: string): Promise<ClientResponse<LionwebResponse>> {
+        return await this.client.postWithTimeout("deleteRepository", { body: {}, params: `repository=${repository}${this.client.logMessage(logMessage)}` })
     }
 
-    async deleteRepository(repository: string): Promise<ClientResponse<LionwebResponse>> {
-        return await this.client.postWithTimeout("deleteRepository", { body: {}, params: `repository=${repository}` })
-    }
-
-    async listRepositories(): Promise<ClientResponse<ListRepositoriesResponse>> {
-        return await this.client.postWithTimeout("listRepositories", { body: {}, params: `` })  as ClientResponse<ListRepositoriesResponse>
+    async listRepositories(logMessage?: string): Promise<ClientResponse<ListRepositoriesResponse>> {
+        return await this.client.postWithTimeout("listRepositories", { body: {}, params: `${this.client.logMessageSolo(logMessage)}` })  as ClientResponse<ListRepositoriesResponse>
     }
     
-    async createDatabase(): Promise<ClientResponse<LionwebResponse>> {
-        return await this.client.postWithTimeout("createDatabase", { body: {}, params: "" })
+    async createDatabase(logMessage?: string): Promise<ClientResponse<LionwebResponse>> {
+        return await this.client.postWithTimeout("createDatabase", { body: {}, params: `${this.client.logMessageSolo(logMessage)}` })
     }
 }
 
