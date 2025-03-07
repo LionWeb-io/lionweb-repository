@@ -73,5 +73,9 @@ export interface IdsResponse extends LionwebResponse {
 }
 
 export interface ListRepositoriesResponse extends LionwebResponse {
-    repositoryNames: string[]
+    repositories: {
+        name: string
+        lionweb_version: string
+        history: boolean
+    }[]
 }
