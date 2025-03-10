@@ -3,6 +3,7 @@
  */
 import { LionWebJsonChunk } from "@lionweb/validation";
 import { ClientResponse } from "./RepositoryClient.js";
+import { RepositoryConfiguration } from "@lionweb/repository-common";
 
 export type MessageKind =
     "PartitionHasParent"
@@ -70,15 +71,6 @@ export interface DeletePartitionsResponse extends LionwebResponse {
 
 export interface IdsResponse extends LionwebResponse {
     ids: string[]
-}
-
-/**
- * Indicates the configuration of an existing repository.
- */
-export interface RepositoryConfiguration {
-    name: string
-    lionweb_version: string
-    history: boolean
 }
 
 export interface ListRepositoriesResponse extends LionwebResponse {

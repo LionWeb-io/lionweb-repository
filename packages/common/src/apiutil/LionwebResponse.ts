@@ -1,7 +1,6 @@
 import { Response } from "express"
 import { LionWebJsonChunk } from "@lionweb/validation"
 import { JsonStreamStringify } from "json-stream-stringify"
-import { RepositoryConfiguration } from "@lionweb/repository-client";
 
 // "string" is needed as MessageKind can also be any of the ValidationIssue kinds.
 export type MessageKind =
@@ -62,6 +61,15 @@ export interface DeletePartitionsResponse extends LionwebResponse {}
 
 export interface IdsResponse extends LionwebResponse {
     ids: string[]
+}
+
+/**
+ * Indicates the configuration of an existing repository.
+ */
+export interface RepositoryConfiguration {
+    name: string
+    lionweb_version: string
+    history: boolean
 }
 
 export interface ListRepositoriesResponse extends LionwebResponse {
