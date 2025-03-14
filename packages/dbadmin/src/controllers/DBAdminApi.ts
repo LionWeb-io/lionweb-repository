@@ -171,9 +171,14 @@ export class DBAdminApiImpl implements DBAdminApi {
         requestLogger.info(
             ` * listRepositories request received, with body of ${request.headers["content-length"]} bytes. ${getClientLog(request)}`
         )
+        const repositories = Array.from(repositoryStore.repositoryName2repository.values()).map(repo => ({
+            name: repo.repository_name,
+            lionweb_version: repo.lionweb_version,
+            history: repo.history
+        }))
         lionwebResponse<ListRepositoriesResponse>(response, HttpSuccessCodes.Ok, {
             success: true,
-            repositoryNames: Array.from(repositoryStore.repositoryName2repository.keys()),
+            repositories,
             messages: []
         })
     }

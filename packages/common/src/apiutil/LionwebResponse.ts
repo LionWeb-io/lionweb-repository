@@ -63,8 +63,17 @@ export interface IdsResponse extends LionwebResponse {
     ids: string[]
 }
 
+/**
+ * Indicates the configuration of an existing repository.
+ */
+export interface RepositoryConfiguration {
+    name: string
+    lionweb_version: string
+    history: boolean
+}
+
 export interface ListRepositoriesResponse extends LionwebResponse {
-    repositoryNames: string[]
+    repositories: RepositoryConfiguration[]
 }
 
 export function lionwebResponse<T extends LionwebResponse>(response: Response, status: number, body: T): void {

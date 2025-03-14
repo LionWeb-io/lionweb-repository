@@ -3,6 +3,7 @@
  */
 import { LionWebJsonChunk } from "@lionweb/validation";
 import { ClientResponse } from "./RepositoryClient.js";
+import { RepositoryConfiguration } from "@lionweb/repository-common";
 
 export type MessageKind =
     "PartitionHasParent"
@@ -73,5 +74,5 @@ export interface IdsResponse extends LionwebResponse {
 }
 
 export interface ListRepositoriesResponse extends LionwebResponse {
-    repositoryNames: string[]
+    repositories: RepositoryConfiguration[]
 }

@@ -12,6 +12,9 @@ export type RepositoryData = {
     repository: RepositoryInfo
 }
 
+/**
+ * Indicates the configuration of a repository that may have yet to be created.
+ */
 export type RepositoryInfo = {
     repository_name: string
     schema_name: string
