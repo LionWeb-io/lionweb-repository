@@ -85,7 +85,7 @@ export class RepositoryClient {
         return this
     }
 
-    withClientIdAndRepository(id: string, repository: string): RepositoryClient {
+    withClientIdAndRepository(id: string, repository: string | null): RepositoryClient {
         this.clientId = id
         this.repository = repository
         return this
