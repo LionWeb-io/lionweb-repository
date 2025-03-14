@@ -1,7 +1,7 @@
-import { RepositoryClient, HttpSuccessCodes } from "@lionweb/repository-client"
+import { HttpSuccessCodes } from "@lionweb/repository-shared"
+import { RepositoryClient } from "@lionweb/repository-client"
 import { LanguageChange, LionWebJsonChunk, LionWebJsonDiff } from "@lionweb/validation"
 import { readModel } from "./utils.js"
-
 
 import { assert } from "chai"
 const { deepEqual, fail } = assert
@@ -11,7 +11,7 @@ sm.install()
 const DATA: string = "./data/"
 
 type StoredAst = {
-    chunk: LionWebJsonChunk,
+    chunk: LionWebJsonChunk
     version: number
 }
 
@@ -83,5 +83,4 @@ describe("Repository tests", () => {
             []
         )
     }
-}) 
-
+})

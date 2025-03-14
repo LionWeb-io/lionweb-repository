@@ -4,18 +4,20 @@ import {
     getHistoryParameter,
     getLionWebVersionParameter,
     getRepositoryParameter,
-    HttpClientErrors,
-    HttpSuccessCodes,
     isParameterError,
-    lionwebResponse,
     LionWebTask,
-    ListPartitionsResponse,
-    ListRepositoriesResponse,
     QueryReturnType,
     RepositoryData,
     requestLogger,
     SCHEMA_PREFIX
 } from "@lionweb/repository-common"
+import {
+    HttpClientErrors,
+    HttpSuccessCodes,
+    lionwebResponse,
+    ListPartitionsResponse,
+    ListRepositoriesResponse
+} from "@lionweb/repository-shared"
 import e, { Request, Response } from "express"
 import { getRepositoryData, repositoryStore } from "../database/index.js"
 import { DbAdminApiContext } from "../main.js"

@@ -7,18 +7,14 @@
 import {
     CreatePartitionsResponse,
     DeletePartitionsResponse,
-    getIntegerParam,
     HttpClientErrors,
     HttpSuccessCodes,
-    isParameterError,
     lionwebResponse,
-    LionWebTask,
     ListPartitionsResponse,
-    requestLogger,
     ResponseMessage,
-    StoreResponse,
-    traceLogger
-} from "@lionweb/repository-common"
+    StoreResponse
+} from "@lionweb/repository-shared"
+import { getIntegerParam, isParameterError, LionWebTask, requestLogger, traceLogger } from "@lionweb/repository-common"
 import { getRepositoryData, validateLionWebVersion } from "@lionweb/repository-dbadmin"
 import { getLanguageRegistry } from "@lionweb/repository-languages"
 import { LionWebJsonChunk, LionWebValidator } from "@lionweb/validation"

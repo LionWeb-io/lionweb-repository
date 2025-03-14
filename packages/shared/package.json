@@ -1,0 +1,28 @@
+{
+  "name": "@lionweb/repository-shared",
+  "version": "0.3.0",
+  "private": false,
+  "description": "Shared code between client and server",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "typings": "dist/index.d.ts",
+  "type": "module",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LionWeb-io/lionweb-repository.git"
+  },
+  "bugs": {
+    "url": "https://github.com/LionWeb-io/lionweb-repository/issues"
+  },
+  "scripts": {
+    "clean": "rm -rf node_modules/ && rm -rf dist/",
+    "build": "tsc",
+    "lint": "eslint src"
+  },
+  "devDependencies": {
+  },
+  "dependencies": {
+    "source-map-support": "0.5.21"
+  }
+}

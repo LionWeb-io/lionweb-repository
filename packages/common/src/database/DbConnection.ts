@@ -1,6 +1,7 @@
+import { LionWebVersionType } from "@lionweb/repository-shared"
 import pgPromise from "pg-promise"
 import pg from "pg-promise/typescript/pg-subset.js"
-import { dbLogger, LionWebVersionType, requestLogger, traceLogger } from "../apiutil/index.js"
+import { dbLogger, requestLogger, traceLogger } from "../apiutil/index.js"
 import { Pool } from "pg"
 import { LionWebTask } from "./LionWebTask.js"
 
