@@ -1,7 +1,14 @@
-import { HttpClientErrors} from "./httpcodes.js";
-import { LionWebJsonChunk } from "@lionweb/validation";
-import { ClientResponse, RepositoryClient } from "./RepositoryClient.js";
-import { CreatePartitionsResponse, DeletePartitionsResponse, IdsResponse, ListPartitionsResponse, RetrieveResponse, StoreResponse } from "./responses.js";
+import { HttpClientErrors } from "@lionweb/repository-shared"
+import { LionWebJsonChunk } from "@lionweb/validation"
+import { ClientResponse, RepositoryClient } from "./RepositoryClient.js"
+import {
+    CreatePartitionsResponse,
+    DeletePartitionsResponse,
+    IdsResponse,
+    ListPartitionsResponse,
+    RetrieveResponse,
+    StoreResponse
+} from "@lionweb/repository-shared"
 
 // Re-export for usage convenience
 export type { LionWebJsonChunk } from "@lionweb/validation";
@@ -12,14 +19,17 @@ export type { LionWebJsonChunk } from "@lionweb/validation";
  */
 export class BulkApi {
     client: RepositoryClient
-    
+
     constructor(client: RepositoryClient) {
         this.client = client
     }
 
     async listPartitions(): Promise<ClientResponse<ListPartitionsResponse>> {
         this.client.log(`BulkApi.listPartitions`)
-        return await this.client.postWithTimeout("bulk/listPartitions", { body: {}, params: "" }) as ClientResponse<ListPartitionsResponse>
+        return (await this.client.postWithTimeout("bulk/listPartitions", {
+            body: {},
+            params: ""
+        })) as ClientResponse<ListPartitionsResponse>
     }
 
     async createPartitions(data: LionWebJsonChunk): Promise<ClientResponse<CreatePartitionsResponse>> {
@@ -27,12 +37,15 @@ export class BulkApi {
         if (data === null || data === undefined) {
             this.client.logError(`createPartitions: json data is '${data}'`)
             return {
-                status: HttpClientErrors.PreconditionFailed, body: {
+                status: HttpClientErrors.PreconditionFailed,
+                body: {
                     success: false,
-                    messages: [{
-                        kind: "ClientError",
-                        message: "Repository.testClient: cannot read partitions to create"
-                    }]
+                    messages: [
+                        {
+                            kind: "ClientError",
+                            message: "Repository.testClient: cannot read partitions to create"
+                        }
+                    ]
                 }
             }
         }
@@ -47,10 +60,12 @@ export class BulkApi {
                 status: HttpClientErrors.PreconditionFailed,
                 body: {
                     success: false,
-                    messages: [{
-                        message: "BulkApi.deletePartitions: cannot read partitions to delete",
-                        kind: "ClientError"
-                    }]
+                    messages: [
+                        {
+                            message: "BulkApi.deletePartitions: cannot read partitions to delete",
+                            kind: "ClientError"
+                        }
+                    ]
                 }
             }
         }
@@ -62,12 +77,15 @@ export class BulkApi {
         if (data === null) {
             this.client.log(`testStore: Json data is '${data}'`)
             return {
-                status: HttpClientErrors.PreconditionFailed, body: {
+                status: HttpClientErrors.PreconditionFailed,
+                body: {
                     success: false,
-                    messages: [{
-                        kind: "ClientError",
-                        message: "Repository.testClient: cannot read data to store"
-                    }]
+                    messages: [
+                        {
+                            kind: "ClientError",
+                            message: "Repository.testClient: cannot read data to store"
+                        }
+                    ]
                 }
             }
         }
@@ -76,13 +94,15 @@ export class BulkApi {
 
     async ids(count: number): Promise<ClientResponse<IdsResponse>> {
         this.client.log(`BulkApi.ids count '${count}'`)
-        return await this.client.postWithTimeout(`bulk/ids`, { body: {}, params: `count=${count}` })  as ClientResponse<IdsResponse>
+        return (await this.client.postWithTimeout(`bulk/ids`, { body: {}, params: `count=${count}` })) as ClientResponse<IdsResponse>
     }
 
     async retrieve(nodeIds: string[], depth?: number): Promise<ClientResponse<RetrieveResponse>> {
         this.client.log(`BulkApi.retrieve '${nodeIds}' with depth '${depth}'`)
-        const params = (depth === undefined) ? "" : `depthLimit=${depth}`
-        return await this.client.postWithTimeout(`bulk/retrieve`, { body: { ids: nodeIds }, params: `${params}` }) as ClientResponse<RetrieveResponse>
+        const params = depth === undefined ? "" : `depthLimit=${depth}`
+        return (await this.client.postWithTimeout(`bulk/retrieve`, {
+            body: { ids: nodeIds },
+            params: `${params}`
+        })) as ClientResponse<RetrieveResponse>
     }
 }
-

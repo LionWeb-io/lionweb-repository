@@ -11,9 +11,9 @@ import {
     RepositoryConfig,
     requestLogger,
     SCHEMA_PREFIX,
-    ServerConfig
+    ServerConfig,
+    initializeCommons
 } from "@lionweb/repository-common"
-import { initializeCommons } from "@lionweb/repository-common"
 import { registerDBAdmin, repositoryStore } from "@lionweb/repository-dbadmin"
 import { registerInspection } from "@lionweb/repository-inspection"
 import { registerBulkApi } from "@lionweb/repository-bulkapi"
@@ -24,7 +24,7 @@ import {
     registerAdditionalApi
 } from "@lionweb/repository-additionalapi"
 import { registerLanguagesApi } from "@lionweb/repository-languages"
-import { HttpClientErrors } from "@lionweb/repository-common"
+import { HttpClientErrors } from "@lionweb/repository-shared"
 import { pinoHttp } from "pino-http"
 import * as http from "node:http"
 
@@ -201,7 +201,7 @@ async function createRepository(repository: RepositoryConfig) {
                 history: history,
                 lionweb_version: repository.lionWebVersion
             }
-        };
+        }
         await dbAdminApi.createRepository(task, repositoryData)
         await dbAdminApi.addRepositoryToTable(task, repositoryData)
         requestLogger.info(`creation of repository ${JSON.stringify(repository)} completed`)

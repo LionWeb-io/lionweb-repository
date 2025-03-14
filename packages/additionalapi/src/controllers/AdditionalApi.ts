@@ -1,18 +1,13 @@
-import { getRepositoryData } from "@lionweb/repository-dbadmin";
+import { getRepositoryData } from "@lionweb/repository-dbadmin"
 import { Request, Response } from "express"
 import { AdditionalApiContext } from "../main.js"
-import {
-    dbLogger,
-    getIntegerParam,
-    HttpClientErrors,
-    HttpSuccessCodes, isParameterError,
-    lionwebResponse
-} from "@lionweb/repository-common"
-import {PBBulkImport, PBMetaPointer} from "../proto/index.js";
-import {BulkImport} from "../database/index.js";
-import {LionWebJsonMetaPointer} from "@lionweb/validation";
-import {ByteBuffer} from "flatbuffers";
-import {FBBulkImport} from "../io/lionweb/serialization/flatbuffers/index.js";
+import { HttpClientErrors, HttpSuccessCodes, lionwebResponse } from "@lionweb/repository-shared"
+import { dbLogger, getIntegerParam, isParameterError } from "@lionweb/repository-common"
+import { PBBulkImport, PBMetaPointer } from "../proto/index.js"
+import { BulkImport } from "../database/index.js"
+import { LionWebJsonMetaPointer } from "@lionweb/validation"
+import { ByteBuffer } from "flatbuffers"
+import { FBBulkImport } from "../io/lionweb/serialization/flatbuffers/index.js"
 
 export const JSON_CONTENT_TYPE = "application/json"
 export const PROTOBUF_CONTENT_TYPE = "application/protobuf"
@@ -36,8 +31,7 @@ export interface AdditionalApi {
 }
 
 export class AdditionalApiImpl implements AdditionalApi {
-    constructor(private context: AdditionalApiContext) {
-    }
+    constructor(private context: AdditionalApiContext) {}
     /**
      * Get the tree with root `id`, for a list of node ids.
      * Note that the tree could be overlapping, and the same nodes could appear multiple times in the response.
@@ -49,11 +43,13 @@ export class AdditionalApiImpl implements AdditionalApi {
         if (idList === undefined) {
             lionwebResponse(response, HttpClientErrors.BadRequest, {
                 success: false,
-                messages: [{
-                    kind: "EmptyIdList",
-                    message: "ids not found",
-                    data: idList
-                }]
+                messages: [
+                    {
+                        kind: "EmptyIdList",
+                        message: "ids not found",
+                        data: idList
+                    }
+                ]
             })
             return
         }
@@ -103,8 +99,10 @@ export class AdditionalApiImpl implements AdditionalApi {
             const data = new Uint8Array(request.body.buffer, request.body.byteOffset, request.body.byteLength)
             const bulkImport = PBBulkImport.decode(data)
 
-            const result = await this.context.additionalApiWorker.bulkImport(repositoryData,
-                this.convertPBBulkImportToBulkImport(bulkImport))
+            const result = await this.context.additionalApiWorker.bulkImport(
+                repositoryData,
+                this.convertPBBulkImportToBulkImport(bulkImport)
+            )
             lionwebResponse(response, HttpSuccessCodes.Ok, {
                 success: result.success,
                 messages: [],
@@ -112,11 +110,10 @@ export class AdditionalApiImpl implements AdditionalApi {
             })
         } else if (request.is(FLATBUFFERS_CONTENT_TYPE)) {
             const data = new Uint8Array(request.body.buffer, request.body.byteOffset, request.body.byteLength)
-            const buf = new ByteBuffer(data);
-            const fbBulkImport = FBBulkImport.getRootAsFBBulkImport(buf);
+            const buf = new ByteBuffer(data)
+            const fbBulkImport = FBBulkImport.getRootAsFBBulkImport(buf)
 
-            const result = await this.context.additionalApiWorker.bulkImportFromFlatBuffers(repositoryData,
-                fbBulkImport)
+            const result = await this.context.additionalApiWorker.bulkImportFromFlatBuffers(repositoryData, fbBulkImport)
             lionwebResponse(response, HttpSuccessCodes.Ok, {
                 success: result.success,
                 messages: [],
@@ -125,12 +122,12 @@ export class AdditionalApiImpl implements AdditionalApi {
         } else {
             throw new Error("Content-type not recognized")
         }
-
     }
 
     private convertPBBulkImportToBulkImport(pbBulkImport: PBBulkImport): BulkImport {
-        const bulkImport : BulkImport = {
-           nodes: [], attachPoints: []
+        const bulkImport: BulkImport = {
+            nodes: [],
+            attachPoints: []
         }
 
         // In the ProtoBuf format we use a map of strings, to save space, given the node id and strings describing
@@ -143,7 +140,7 @@ export class AdditionalApiImpl implements AdditionalApi {
         // We do the same also for metapointer, which are duplicated over and over
         const metaPointersMap = new Map<number, LionWebJsonMetaPointer>()
         pbBulkImport.metaPointers.forEach((pbMetaPointer: PBMetaPointer, index: number) => {
-            const metaPointer : LionWebJsonMetaPointer = {
+            const metaPointer: LionWebJsonMetaPointer = {
                 language: stringsMap.get(pbMetaPointer.language),
                 version: stringsMap.get(pbMetaPointer.version),
                 key: stringsMap.get(pbMetaPointer.key)
@@ -151,53 +148,53 @@ export class AdditionalApiImpl implements AdditionalApi {
             metaPointersMap.set(index, metaPointer)
         })
 
-        const findMetaPointer = (metaPointerIndex: number) : LionWebJsonMetaPointer => {
+        const findMetaPointer = (metaPointerIndex: number): LionWebJsonMetaPointer => {
             const res = metaPointersMap.get(metaPointerIndex)
             if (res == null) {
                 throw new Error(`Metapointer with index ${metaPointerIndex} not found. Metapointer index known: ${metaPointersMap.keys()}`)
             }
-            return res;
+            return res
         }
 
         pbBulkImport.attachPoints.forEach(pbAttachPoint => {
             bulkImport.attachPoints.push({
                 container: stringsMap.get(pbAttachPoint.container),
                 containment: findMetaPointer(pbAttachPoint.metaPointerIndex),
-                root: stringsMap.get(pbAttachPoint.rootId),
+                root: stringsMap.get(pbAttachPoint.rootId)
             })
         })
 
         pbBulkImport.nodes.forEach(pbNode => {
-                bulkImport.nodes.push({
-                    id: stringsMap.get(pbNode.id),
-                    parent: stringsMap.get(pbNode.parent),
-                    classifier: findMetaPointer(pbNode.classifier),
-                    annotations: [],
-                    properties: pbNode.properties.map(p => {
-                        return {
-                            property: findMetaPointer(p.metaPointerIndex),
-                            value: stringsMap.get(p.value)
-                        }
-                    }),
-                    containments: pbNode.containments.map(c => {
-                        return {
-                            containment: findMetaPointer(c.metaPointerIndex),
-                            children: c.children.map(child => stringsMap.get(child))
-                        }
-                    }),
-                    references:  pbNode.references.map(r => {
-                        return {
-                            reference: findMetaPointer(r.metaPointerIndex),
-                            targets: r.values.map(rv => {
-                                return {
-                                    reference: stringsMap.get(rv.referred),
-                                    resolveInfo: stringsMap.get(rv.resolveInfo)
-                                }
-                            })
-                        }
-                    }),
+            bulkImport.nodes.push({
+                id: stringsMap.get(pbNode.id),
+                parent: stringsMap.get(pbNode.parent),
+                classifier: findMetaPointer(pbNode.classifier),
+                annotations: [],
+                properties: pbNode.properties.map(p => {
+                    return {
+                        property: findMetaPointer(p.metaPointerIndex),
+                        value: stringsMap.get(p.value)
+                    }
+                }),
+                containments: pbNode.containments.map(c => {
+                    return {
+                        containment: findMetaPointer(c.metaPointerIndex),
+                        children: c.children.map(child => stringsMap.get(child))
+                    }
+                }),
+                references: pbNode.references.map(r => {
+                    return {
+                        reference: findMetaPointer(r.metaPointerIndex),
+                        targets: r.values.map(rv => {
+                            return {
+                                reference: stringsMap.get(rv.referred),
+                                resolveInfo: stringsMap.get(rv.resolveInfo)
+                            }
+                        })
+                    }
                 })
-            });
-        return bulkImport;
+            })
+        })
+        return bulkImport
     }
 }

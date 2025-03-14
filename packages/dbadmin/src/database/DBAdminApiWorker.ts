@@ -1,11 +1,5 @@
-import {
-    HttpSuccessCodes,
-    LionWebTask,
-    QueryReturnType,
-    removeNewlinesBetween$$,
-    RepositoryData,
-    ServerConfig
-} from "@lionweb/repository-common"
+import { LionWebTask, QueryReturnType, removeNewlinesBetween$$, RepositoryData, ServerConfig } from "@lionweb/repository-common"
+import { HttpSuccessCodes } from "@lionweb/repository-shared"
 import { DbAdminApiContext } from "../main.js"
 import { CREATE_DATABASE_SQL, CREATE_GLOBALS_SQL, dropSchema, initSchemaWithHistory, initSchemaWithoutHistory } from "../tools/index.js"
 import { cleanGlobalPointersMap } from "./MetaPointers.js"
@@ -22,12 +16,12 @@ export class DBAdminApiWorker {
 
     constructor(private ctx: DbAdminApiContext) {}
 
-    async tx(task: (task: LionWebTask)=>Promise<void>) {
-         return this.ctx.dbConnection.tx(task);
+    async tx(task: (task: LionWebTask) => Promise<void>) {
+        return this.ctx.dbConnection.tx(task)
     }
 
     async queryWithoutRepository(query: string) {
-        return this.ctx.dbConnection.queryWithoutRepository(query);
+        return this.ctx.dbConnection.queryWithoutRepository(query)
     }
 
     async deleteRepository(task: LionWebTask, repositoryData: RepositoryData): Promise<QueryReturnType<string>> {
@@ -54,7 +48,7 @@ export class DBAdminApiWorker {
         }
     }
 
-    async addRepositoryToTable(task: LionWebTask, repositoryData: RepositoryData) : Promise<unknown> {
+    async addRepositoryToTable(task: LionWebTask, repositoryData: RepositoryData): Promise<unknown> {
         return await task.queryWithoutRepository(
             `SELECT public.createRepositoryInfo('${repositoryData.repository.repository_name}'::text, '${repositoryData.repository.schema_name}'::text, '${repositoryData.repository.lionweb_version}'::text, '${repositoryData.repository.history}'::boolean);\n`
         )

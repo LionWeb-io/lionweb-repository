@@ -2,13 +2,15 @@ import {
     ListPartitionsResponse,
     CreatePartitionsResponse,
     StoreResponse,
+    HttpSuccessCodes,
+    HttpClientErrors,
+    LionwebResponse
+} from "@lionweb/repository-shared"
+import {
     asError,
     QueryReturnType,
     nodesToChunk,
-    HttpSuccessCodes,
-    HttpClientErrors,
     ReservedIdRecord,
-    LionwebResponse,
     UNLIMITED_DEPTH,
     NODES_TABLE,
     LionWebTask,

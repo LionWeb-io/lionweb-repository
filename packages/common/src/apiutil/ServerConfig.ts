@@ -1,3 +1,4 @@
+import { LionWebVersionType } from "@lionweb/repository-shared"
 import fs from "node:fs"
 import { LevelWithSilent } from "pino"
 import { expressLogger, verbosity } from "./logging.js"
@@ -11,13 +12,13 @@ export function isCreationType(v: string): v is CreationType {
     return s.includes(v)
 }
 
-export const LionWebVersionValues = ["2023.1", "2024.1"] as const
-export type LionWebVersionType = (typeof LionWebVersionValues)[number]
-
-export function isLionWebVersion(v: string): v is LionWebVersionType {
-    const s: readonly string[] = LionWebVersionValues
-    return s.includes(v)
-}
+// export const LionWebVersionValues = ["2023.1", "2024.1"] as const
+// export type LionWebVersionType = (typeof LionWebVersionValues)[number]
+//
+// export function isLionWebVersion(v: string): v is LionWebVersionType {
+//     const s: readonly string[] = LionWebVersionValues
+//     return s.includes(v)
+// }
 
 export type RepositoryConfig = {
     create: CreationType

@@ -1,21 +1,23 @@
 import {
-    createId,
     CreatePartitionsResponse,
     DeletePartitionsResponse,
-    EMPTY_CHUNKS,
-    EMPTY_SUCCES_RESPONSE,
     HttpClientErrors,
     HttpSuccessCodes,
     IdsResponse,
-    LionWebTask,
     ListPartitionsResponse,
+    ResponseMessage,
+    RetrieveResponse,
+    StoreResponse
+} from "@lionweb/repository-shared"
+import {
+    createId,
+    EMPTY_CHUNKS,
+    EMPTY_SUCCES_RESPONSE,
+    LionWebTask,
     nodesToChunk,
     QueryReturnType,
     RepositoryData,
     requestLogger,
-    ResponseMessage,
-    RetrieveResponse,
-    StoreResponse,
     traceLogger
 } from "@lionweb/repository-common"
 import { LionWebJsonChunk } from "@lionweb/validation"

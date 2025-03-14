@@ -1,13 +1,10 @@
-import { HttpClientErrors } from "./httpcodes.js"
-import { AdditionalApi } from "./AdditionalApi.js";
-import { BulkApi } from "./BulkApi.js";
-import { DbAdminApi } from "./DbAdminApi.js";
-import { HistoryApi } from "./HistoryApi.js";
-import { InspectionApi } from "./InspectionApi.js";
-import { LanguagesApi } from "./LanguagesApi.js";
-import {
-    LionwebResponse,
-} from "./responses.js"
+import { HttpClientErrors, LionwebResponse } from "@lionweb/repository-shared"
+import { AdditionalApi } from "./AdditionalApi.js"
+import { BulkApi } from "./BulkApi.js"
+import { DbAdminApi } from "./DbAdminApi.js"
+import { HistoryApi } from "./HistoryApi.js"
+import { InspectionApi } from "./InspectionApi.js"
+import { LanguagesApi } from "./LanguagesApi.js"
 
 export type Status = number
 /**
@@ -18,7 +15,11 @@ export type ClientResponse<T extends LionwebResponse> = {
     status: Status
 }
 
-export type LionWebVersionType = "2023.1" | "2024.1"
+export function getVersionFromResponse(response: ClientResponse<LionwebResponse>): number {
+    return Number.parseInt(response.body.messages.find(m => m.data["version"] !== undefined).data["version"])
+}
+
+// export type LionWebVersionType = "2023.1" | "2024.1"
 
 /**
  *  Access to the LionWeb repository API's.
@@ -26,7 +27,7 @@ export type LionWebVersionType = "2023.1" | "2024.1"
  *      REPO_IP  : the ip address of the repository server
  *      NODE_PORT: the port of the repository server
  *      TIMEOUT: the timeout in ms for a server call
- */      
+ */
 export class RepositoryClient {
     // Server parameters
     private _nodePort = (typeof process !== "undefined" && process.env.NODE_PORT) || 3005
@@ -36,10 +37,10 @@ export class RepositoryClient {
 
     loggingOn = false
     logMessage(logMessage: string): string {
-        return (this.loggingOn && (logMessage !== undefined) ? `&clientLog=${logMessage}` : "")
+        return this.loggingOn && logMessage !== undefined ? `&clientLog=${logMessage}` : ""
     }
     logMessageSolo(logMessage: string): string {
-        return (this.loggingOn && (logMessage !== undefined) ? `clientLog=${logMessage}` : "")
+        return this.loggingOn && logMessage !== undefined ? `clientLog=${logMessage}` : ""
     }
     /**
      * The Client id that is used for all Api requests
@@ -214,8 +215,6 @@ export class RepositoryClient {
     logError(message: string): void {
         console.log("RepositoryClient error: " + message)
     }
-
-
 }
 
 // NB Copy from repository-common
@@ -224,6 +223,6 @@ export class RepositoryClient {
  * @param error
  */
 export function asError(error: unknown): Error {
-    if (error instanceof Error) return error;
-    return new Error(JSON.stringify(error));
+    if (error instanceof Error) return error
+    return new Error(JSON.stringify(error))
 }
