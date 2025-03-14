@@ -10,6 +10,9 @@ import {
     StoreResponse
 } from "@lionweb/repository-shared"
 
+// Re-export for usage convenience
+export type { LionWebJsonChunk } from "@lionweb/validation";
+
 /**
  * Client side Api for the lionweb-repository server.
  * Purpose is to ease the use of the lionweb-repository server.

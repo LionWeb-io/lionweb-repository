@@ -30,10 +30,10 @@ export function getVersionFromResponse(response: ClientResponse<LionwebResponse>
  */
 export class RepositoryClient {
     // Server parameters
-    private _nodePort = process.env.NODE_PORT || 3005
-    private _SERVER_IP = process.env.REPO_IP || "http://127.0.0.1"
+    private _nodePort = (typeof process !== "undefined" && process.env.NODE_PORT) || 3005
+    private _SERVER_IP = (typeof process !== "undefined" && process.env.REPO_IP) || "http://127.0.0.1"
     private _SERVER_URL = `${this._SERVER_IP}:${this._nodePort}/`
-    private TIMEOUT = Number.parseInt(process.env.TIMEOUT) || 20000
+    private TIMEOUT = typeof process !== "undefined" ? Number.parseInt(process.env.TIMEOUT) || 20000 : 20000;
 
     loggingOn = false
     logMessage(logMessage: string): string {
@@ -49,9 +49,9 @@ export class RepositoryClient {
 
     /**
      * The name of the repository used for all Api calls
-     */
-    repository: string = "default"
-
+     */        
+    repository: string | null = "default"
+    
     // The different API's that the repository provides
     dbAdmin: DbAdminApi
     bulk: BulkApi
@@ -60,8 +60,13 @@ export class RepositoryClient {
     inspection: InspectionApi
     languages: LanguagesApi
 
-    constructor(clientid: string, repository: string) {
-        this.clientId = clientid
+    /**
+     * @param clientId
+     * @param repository we may want to pass a null repository if we are interested only in using the APIs that list,
+     * create, or delete repositories and do not operate on a specific repository.
+     */
+    constructor(clientId: string, repository: string | null = "default") {
+        this.clientId = clientId
         this.repository = repository
         this.dbAdmin = new DbAdminApi(this)
         this.bulk = new BulkApi(this)
@@ -81,7 +86,7 @@ export class RepositoryClient {
         return this
     }
 
-    withClientIdAndrepository(id: string, repository: string): RepositoryClient {
+    withClientIdAndRepository(id: string, repository: string | null): RepositoryClient {
         this.clientId = id
         this.repository = repository
         return this
