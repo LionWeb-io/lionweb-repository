@@ -5,6 +5,9 @@ import { LionWebJsonChunk } from "@lionweb/validation";
 import { ClientResponse } from "./RepositoryClient.js";
 import { RepositoryConfiguration } from "@lionweb/repository-common";
 
+// Re-export for usage convenience
+export type { RepositoryConfiguration } from "@lionweb/repository-common";
+
 export type MessageKind =
     "PartitionHasParent"
     | "Info"
