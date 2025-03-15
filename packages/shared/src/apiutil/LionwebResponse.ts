@@ -1,6 +1,4 @@
-import { Response } from "express"
 import { LionWebJsonChunk } from "@lionweb/validation"
-import { JsonStreamStringify } from "json-stream-stringify"
 
 export const LionWebVersionValues = ["2023.1", "2024.1"] as const
 export type LionWebVersionType = (typeof LionWebVersionValues)[number]
@@ -82,11 +80,6 @@ export interface RepositoryConfiguration {
 
 export interface ListRepositoriesResponse extends LionwebResponse {
     repositories: RepositoryConfiguration[]
-}
-
-export function lionwebResponse<T extends LionwebResponse>(response: Response, status: number, body: T): void {
-    response.status(status)
-    new JsonStreamStringify(body).pipe(response)
 }
 
 export const EMPTY_SUCCES_RESPONSE: LionwebResponse = {

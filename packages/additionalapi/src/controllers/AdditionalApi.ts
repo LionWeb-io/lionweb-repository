@@ -1,7 +1,10 @@
 import { getRepositoryData } from "@lionweb/repository-dbadmin"
 import { Request, Response } from "express"
 import { AdditionalApiContext } from "../main.js"
-import { HttpClientErrors, HttpSuccessCodes, lionwebResponse } from "@lionweb/repository-shared"
+import { HttpClientErrors, HttpSuccessCodes } from "@lionweb/repository-shared"
+import {
+    lionwebResponse
+} from "@lionweb/repository-common"
 import { dbLogger, getIntegerParam, isParameterError } from "@lionweb/repository-common"
 import { PBBulkImport, PBMetaPointer } from "../proto/index.js"
 import { BulkImport } from "../database/index.js"

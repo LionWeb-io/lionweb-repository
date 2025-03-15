@@ -1,0 +1,41 @@
+{
+  "server": {
+    "serverPort": 3005,
+    "expectedToken": null
+  },
+  "startup": {
+    "createDatabase": "always",
+    "createRepositories": [
+      {
+        "name": "default",
+        "create": "if-not-exists",
+        "history": false,
+        "lionWebVersion": "2024.1"
+      },
+      {
+        "name": "alt",
+        "create": "if-not-exists",
+        "history": true,
+        "lionWebVersion": "2023.1"
+      }
+    ]
+  },
+  "logging": {
+    "request": "info",
+    "database": "silent",
+    "express": "silent"
+  },
+  "postgres": {
+    "database": {
+      "host": "localhost",
+      "user": "postgres",
+      "db": "lionweb",
+      "password": "lionweb",
+      "port": "5432"
+    },
+    "certificates": {
+      "rootcert": null,
+      "rootcertcontent": null
+    }
+  }
+}

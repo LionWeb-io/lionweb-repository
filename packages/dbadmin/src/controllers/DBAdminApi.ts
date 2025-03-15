@@ -14,10 +14,12 @@ import {
 import {
     HttpClientErrors,
     HttpSuccessCodes,
-    lionwebResponse,
     ListPartitionsResponse,
     ListRepositoriesResponse
 } from "@lionweb/repository-shared"
+import {
+    lionwebResponse
+} from "@lionweb/repository-common"
 import e, { Request, Response } from "express"
 import { getRepositoryData, repositoryStore } from "../database/index.js"
 import { DbAdminApiContext } from "../main.js"
