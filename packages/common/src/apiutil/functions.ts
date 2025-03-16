@@ -11,7 +11,7 @@ import { collectUsedLanguages } from "./UsedLanguages.js"
 import { LionWebJsonChunk, LionWebJsonNode } from "@lionweb/validation"
 import { Request, Response } from "express"
 import { v4 as uuidv4 } from "uuid"
-import {lionwebResponse} from "./LionwebResponse.js";
+import { lionwebResponse } from "./LionwebResponse.js";
 
 export type UnknownObjectType = { [key: string]: unknown }
 

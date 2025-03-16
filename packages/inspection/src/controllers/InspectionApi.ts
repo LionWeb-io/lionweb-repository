@@ -1,7 +1,5 @@
 import { HttpClientErrors, StoreResponse } from "@lionweb/repository-shared"
-import {
-    lionwebResponse
-} from "@lionweb/repository-common"
+import { lionwebResponse } from "@lionweb/repository-common"
 import { isParameterError } from "@lionweb/repository-common"
 import { getRepositoryData } from "@lionweb/repository-dbadmin"
 import e, { Request, Response } from "express"
