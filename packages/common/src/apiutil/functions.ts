@@ -3,7 +3,6 @@ import {
     isLionWebVersion,
     LionWebVersionType,
     LionWebVersionValues,
-    lionwebResponse,
     ResponseMessage
 } from "@lionweb/repository-shared"
 import { requestLogger } from "./logging.js"
@@ -11,8 +10,8 @@ import { Job, requestQueue } from "./RequestQueue.js"
 import { collectUsedLanguages } from "./UsedLanguages.js"
 import { LionWebJsonChunk, LionWebJsonNode } from "@lionweb/validation"
 import { Request, Response } from "express"
-import {} from "@lionweb/repository-shared"
 import { v4 as uuidv4 } from "uuid"
+import { lionwebResponse } from "./LionwebResponse.js";
 
 export type UnknownObjectType = { [key: string]: unknown }
 
