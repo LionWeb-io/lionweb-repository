@@ -144,6 +144,7 @@ async function setupDatabase() {
     }
 
     // Initialize repositories
+    await repositoryStore.initialize()
     const existingRepositoryNames = repositoryStore.allRepositories().map(r => r.repository_name)
     requestLogger.info("Existing repositories " + existingRepositoryNames)
     for (const repository of ServerConfig.getInstance().createRepositories()) {
