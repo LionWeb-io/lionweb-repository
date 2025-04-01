@@ -7,7 +7,9 @@ module.exports = {
     rules: {
         "@typescript-eslint/no-unused-vars": ["error", {"argsIgnorePattern": "^_"}],
         "@typescript-eslint/ban-ts-ignore": "off",
-        "@typescript-eslint/prefer-spread": ["off"]
+        "@typescript-eslint/prefer-spread": ["off"],
+        "@typescript-eslint/no-wrapper-object-types": "off",
+        "@typescript-eslint/ban-types": "off"
     },
     env: {
         browser: true,

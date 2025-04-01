@@ -50,6 +50,7 @@
     "./packages/history",
     "./packages/additionalapi",
     "./packages/server",
+    "./packages/delta",
     "./packages/client",
     "./packages/test",
     "."

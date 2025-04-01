@@ -1,0 +1,80 @@
+{
+  "tests": [
+    {
+      "expectedError": "KeyFormat",
+      "command": {
+        "kind": "addProperty",
+        "node": "123",
+        "property": {
+          "key": "",
+          "language": "l1",
+          "version": "1.0"
+        },
+        "newValue": "string"
+      }
+    },
+    {
+      "expectedError": "PropertyNull",
+      "command": {
+        "kind": "addProperty",
+        "node": "123",
+        "property": {
+          "key": "key",
+          "language": "l1",
+          "version": "1.0"
+        },
+        "newValue": null
+      }
+    },
+    {
+      "expectedError": "IdFormat",
+      "command": {
+        "kind": "addProperty",
+        "node": "%#&@%@",
+        "property": {
+          "key": "key",
+          "language": "l1",
+          "version": "1.0"
+        },
+        "newValue": "string"
+      }
+    },
+    {
+      "expectedError": "VersionFormat",
+      "command": {
+        "kind": "addProperty",
+        "node": "123",
+        "property": {
+          "key": "key",
+          "language": "l1",
+          "version": ""
+        },
+        "newValue": "string"
+      }
+    },
+    {
+      "expectedError": "PropertyMissing",
+      "command": {
+        "kind": "addProperty",
+        "node": "123",
+        "property": {
+          "key": "key",
+          "language": "l1",
+          "version": "22"
+        }
+      }
+    },
+    {
+      "expectedError": "PropertyMissing",
+      "command": {
+        "kind": "addProperty",
+        "property": {
+          "key": "key",
+          "language": "l1",
+          "version": "22"
+        },
+        "newValue": "hello"
+      }
+    }
+  ]
+}
