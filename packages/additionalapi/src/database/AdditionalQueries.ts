@@ -105,13 +105,13 @@ export class AdditionalQueries {
         })
 
         // Check - verify all the given new nodes are effectively new
-        const allNewNodesResult = await this.context.dbConnection.query(repositoryData, makeQueryToCheckHowManyExist(newNodesSet))
+        const allNewNodesResult = newNodesSet.size == 0 ? 0 : await this.context.dbConnection.query(repositoryData, makeQueryToCheckHowManyExist(newNodesSet))
         if (allNewNodesResult > 0) {
             return { status: HttpClientErrors.BadRequest, success: false, description: `Some of the given nodes already exist` }
         }
 
         // Check - verify the containers from the attach points are existing nodes
-        const allExistingNodesResult = await this.context.dbConnection.query(
+        const allExistingNodesResult = attachPointContainers.size == 0 ? 0 : await this.context.dbConnection.query(
             repositoryData,
             makeQueryToCheckHowManyDoNotExist(attachPointContainers)
         )

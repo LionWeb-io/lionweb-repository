@@ -354,7 +354,8 @@ export async function performImportFromFlatBuffers(
         })
 
         // Check - verify all the given new nodes are effectively new
-        const allNewNodesResult = await dbConnection.query(repositoryData, makeQueryToCheckHowManyExist(newNodesSet))
+        const allNewNodesResult = newNodesSet.size == 0 ? 0 :
+            await dbConnection.query(repositoryData, makeQueryToCheckHowManyExist(newNodesSet))
         if (allNewNodesResult > 0) {
             return {
                 status: HttpClientErrors.BadRequest,
@@ -364,7 +365,8 @@ export async function performImportFromFlatBuffers(
         }
 
         // Check - verify the containers from the attach points are existing nodes
-        const allExistingNodesResult = await dbConnection.query(repositoryData, makeQueryToCheckHowManyDoNotExist(attachPointContainers))
+        const allExistingNodesResult = attachPointContainers.size == 0 ? 0 :
+            await dbConnection.query(repositoryData, makeQueryToCheckHowManyDoNotExist(attachPointContainers))
         if (allExistingNodesResult > 0) {
             return {
                 status: HttpClientErrors.BadRequest,
