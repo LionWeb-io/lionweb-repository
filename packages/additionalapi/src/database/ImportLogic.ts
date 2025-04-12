@@ -28,7 +28,11 @@ function prepareInputStreamNodes(nodes: LionWebJsonNode[], metaPointersTracker:M
         read_stream_string.push(SEPARATOR);
         read_stream_string.push("{" + node.annotations.join(",") + "}");
         read_stream_string.push(SEPARATOR);
-        read_stream_string.push(node.parent);
+        if (node.parent == null) {
+            read_stream_string.push("\\N");
+        } else {
+            read_stream_string.push(node.parent);
+        }
         read_stream_string.push("\n");
     })
     read_stream_string.push(null);
