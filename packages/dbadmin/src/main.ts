@@ -4,6 +4,7 @@ import pg from "pg-promise/typescript/pg-subset.js"
 import { runWithTry, DbConnection, requestLogger } from "@lionweb/repository-common"
 import { DBAdminApi, DBAdminApiImpl } from "./controllers/DBAdminApi.js"
 import { DBAdminApiWorker } from "./database/DBAdminApiWorker.js"
+import { repositoryStore } from "./database/index.js"
 
 /**
  * Object containing 'global' contextual objects for this API.
@@ -37,7 +38,7 @@ export class DbAdminApiContext {
  * @param app           The app to which the api is registered
  * @param dbConnection  The database connection to be used by this API
  * @param pgp           The pg-promise object to gain access to the pg helpers
- * 
+ *
  * @return              The Api worker, can be used for internal server admin usage
  */
 export function registerDBAdmin(
@@ -49,17 +50,13 @@ export function registerDBAdmin(
     requestLogger.info("Registering DB Admin Module")
     // Create all objects
     const dbAdminApiContext = new DbAdminApiContext(dbConnection, pgConnection, pgp)
+    repositoryStore.setContext(dbAdminApiContext)
 
     // Add routes to app
-    app.post("/init", runWithTry(dbAdminApiContext.dbAdminApi.init))
     app.post("/createRepository", runWithTry(dbAdminApiContext.dbAdminApi.createRepository))
     app.post("/deleteRepository", runWithTry(dbAdminApiContext.dbAdminApi.deleteRepository))
     app.post("/createDatabase", runWithTry(dbAdminApiContext.dbAdminApi.createDatabase))
     app.post("/listRepositories", runWithTry(dbAdminApiContext.dbAdminApi.listRepositories))
-    
+
     return dbAdminApiContext.dbAdminApiWorker
 }
-
-export function initDatabase(): void {}
-
-export function createRepository(): void {}

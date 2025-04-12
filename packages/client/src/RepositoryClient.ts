@@ -1,13 +1,10 @@
-import { HttpClientErrors } from "./httpcodes.js"
-import { AdditionalApi } from "./AdditionalApi.js";
-import { BulkApi } from "./BulkApi.js";
-import { DbAdminApi } from "./DbAdminApi.js";
-import { HistoryApi } from "./HistoryApi.js";
-import { InspectionApi } from "./InspectionApi.js";
-import { LanguagesApi } from "./LanguagesApi.js";
-import {
-    LionwebResponse,
-} from "./responses.js"
+import { HttpClientErrors, LionwebResponse } from "@lionweb/repository-shared"
+import { AdditionalApi } from "./AdditionalApi.js"
+import { BulkApi } from "./BulkApi.js"
+import { DbAdminApi } from "./DbAdminApi.js"
+import { HistoryApi } from "./HistoryApi.js"
+import { InspectionApi } from "./InspectionApi.js"
+import { LanguagesApi } from "./LanguagesApi.js"
 
 export type Status = number
 /**
@@ -18,21 +15,33 @@ export type ClientResponse<T extends LionwebResponse> = {
     status: Status
 }
 
+export function getVersionFromResponse(response: ClientResponse<LionwebResponse>): number {
+    return Number.parseInt(response.body.messages.find(m => m.data["version"] !== undefined).data["version"])
+}
+
+// export type LionWebVersionType = "2023.1" | "2024.1"
+
 /**
  *  Access to the LionWeb repository API's.
  *  Can be configured by environment variables:
  *      REPO_IP  : the ip address of the repository server
  *      NODE_PORT: the port of the repository server
  *      TIMEOUT: the timeout in ms for a server call
- */      
+ */
 export class RepositoryClient {
     // Server parameters
-    private _nodePort = process.env.NODE_PORT || 3005
-    private _SERVER_IP = process.env.REPO_IP || "http://127.0.0.1"
+    private _nodePort = (typeof process !== "undefined" && process.env.NODE_PORT) || 3005
+    private _SERVER_IP = (typeof process !== "undefined" && process.env.REPO_IP) || "http://127.0.0.1"
     private _SERVER_URL = `${this._SERVER_IP}:${this._nodePort}/`
-    private TIMEOUT = Number.parseInt(process.env.TIMEOUT) || 20000
+    private TIMEOUT = typeof process !== "undefined" ? Number.parseInt(process.env.TIMEOUT) || 20000 : 20000;
 
     loggingOn = false
+    logMessage(logMessage: string): string {
+        return this.loggingOn && logMessage !== undefined ? `&clientLog=${logMessage}` : ""
+    }
+    logMessageSolo(logMessage: string): string {
+        return this.loggingOn && logMessage !== undefined ? `clientLog=${logMessage}` : ""
+    }
     /**
      * The Client id that is used for all Api requests
      */
@@ -41,7 +50,7 @@ export class RepositoryClient {
     /**
      * The name of the repository used for all Api calls
      */        
-    repository: string = "default"
+    repository: string | null = "default"
     
     // The different API's that the repository provides
     dbAdmin: DbAdminApi
@@ -50,9 +59,14 @@ export class RepositoryClient {
     history: HistoryApi
     inspection: InspectionApi
     languages: LanguagesApi
-    
-    constructor(clientid: string, repository: string) {
-        this.clientId = clientid
+
+    /**
+     * @param clientId
+     * @param repository we may want to pass a null repository if we are interested only in using the APIs that list,
+     * create, or delete repositories and do not operate on a specific repository.
+     */
+    constructor(clientId: string, repository: string | null = "default") {
+        this.clientId = clientId
         this.repository = repository
         this.dbAdmin = new DbAdminApi(this)
         this.bulk = new BulkApi(this)
@@ -72,7 +86,7 @@ export class RepositoryClient {
         return this
     }
 
-    withClientIdAndrepository(id: string, repository: string): RepositoryClient {
+    withClientIdAndRepository(id: string, repository: string | null): RepositoryClient {
         this.clientId = id
         this.repository = repository
         return this
@@ -201,8 +215,6 @@ export class RepositoryClient {
     logError(message: string): void {
         console.log("RepositoryClient error: " + message)
     }
-
-
 }
 
 // NB Copy from repository-common
@@ -211,6 +223,6 @@ export class RepositoryClient {
  * @param error
  */
 export function asError(error: unknown): Error {
-    if (error instanceof Error) return error;
-    return new Error(JSON.stringify(error));
+    if (error instanceof Error) return error
+    return new Error(JSON.stringify(error))
 }

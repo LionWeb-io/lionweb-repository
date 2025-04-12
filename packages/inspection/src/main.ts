@@ -2,10 +2,10 @@ import { Express } from "express"
 import pgPromise from "pg-promise"
 import pg from "pg-promise/typescript/pg-subset.js"
 
-import { DbConnection, requestLogger, runWithTry, } from "@lionweb/repository-common";
+import { DbConnection, requestLogger, runWithTry } from "@lionweb/repository-common"
 import { createInspectionApiWorker, InspectionApiWorker } from "./database/InspectionApiWorker.js"
 import { createInspectionApi, InspectionApi } from "./controllers/InspectionApi.js"
-import { InspectionQueries } from "./database/InspectionQueries.js";
+import { InspectionQueries } from "./database/InspectionQueries.js"
 
 /**
  * Object containing 'global' contextual objects for this API.
@@ -35,8 +35,8 @@ export class InspectionContext {
  */
 
 export function registerInspection(app: Express, dbConnection: DbConnection, pgp: pgPromise.IMain<object, pg.IClient>) {
-    requestLogger.info("Registering Inspection Module");
-    // Create all objects 
+    requestLogger.info("Registering Inspection Module")
+    // Create all objects
     const context = new InspectionContext(dbConnection, pgp)
 
     // Add routes to application

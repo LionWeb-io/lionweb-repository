@@ -1,4 +1,4 @@
-import {METAPOINTERS_TABLE} from "@lionweb/repository-common";
+import { METAPOINTERS_TABLE } from "@lionweb/repository-common"
 
 export function sqlArrayFromNodeIdArray(strings: string[]): string {
     return `(${strings.map(id => `'${id}'`).join(", ")})`

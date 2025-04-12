@@ -1,6 +1,16 @@
 # lionweb-repository
 Reference implementation of LionWeb repository
 
+## Changes in Version 0.3.0
+
+- Support for LionWeb 2024.1
+- Removed `init` request from dbAdmin
+- Request `createRepository` in dbAdmin has additional **mandatory** parameter `lionWebVersion`
+  - All tests and applications need to add this parameter    
+  - The server config section for creating repositories also has this additional field 
+- All requests fail if the LionWeb version of the chunk is not the same LionWeb version as the repository. 
+- 
+
 ## Postgres
 The database used for storage of models is Postgres, 
 the easiest way to set up Postgres is through Docker.
@@ -34,7 +44,7 @@ npm run lint
 ```
 
 ### How to start the repository server
-Ensure that Postgress is running.
+Ensure that Postgres is running.
 The repository server is started with `npm run dev-run` in  the `packages/server` folder:
 
 ```

@@ -1,4 +1,4 @@
-import { nodesForQueryQuery } from "./QueryNode.js";
+import { nodesForQueryQuery } from "./QueryNode.js"
 
 export function sqlArrayFromNodeIdArray(strings: string[]): string {
     return `(${strings.map(id => `'${id}'`).join(", ")})`

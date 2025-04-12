@@ -16,7 +16,7 @@ export class RequestQueue {
      */
     async add(job: Job): Promise<void> {
         if (job === null || job === undefined) {
-            return;
+            return
         }
         if (this.baseQueue.isEmpty()) {
             this.baseQueue.enqueue(job)
@@ -24,7 +24,7 @@ export class RequestQueue {
                 while (!this.baseQueue.isEmpty()) {
                     const job = this.baseQueue.peek()
                     await job.requestFunction()
-                    // Dequeue only after the job has been done, so new calls to add(...) 
+                    // Dequeue only after the job has been done, so new calls to add(...)
                     // Will see that the queue is still being worked upon.
                     if (this.baseQueue.size() === 1) {
                         this.baseQueue.dequeue()
@@ -35,12 +35,12 @@ export class RequestQueue {
                     }
                 }
             } finally {
+                // Nothing to do here
             }
         } else {
             this.baseQueue.enqueue(job)
         }
     }
-
 }
 
 /**
@@ -50,7 +50,7 @@ export class Job {
     name: string
     requestFunction: () => Promise<void>
 
-    constructor(name: string,   request: () => Promise<void>) {
+    constructor(name: string, request: () => Promise<void>) {
         this.requestFunction = request
         this.name = name
     }
@@ -60,26 +60,26 @@ export class Job {
  * Standard queue class.
  */
 class BaseQueue<T> {
-    private items: T[] = [];
+    private items: T[] = []
 
     enqueue(item: T): void {
-        this.items.push(item);
+        this.items.push(item)
     }
 
     dequeue(): T | undefined {
-        return this.items.shift();
+        return this.items.shift()
     }
 
     peek(): T | undefined {
-        return this.items[0];
+        return this.items[0]
     }
 
     isEmpty(): boolean {
-        return this.items.length === 0;
+        return this.items.length === 0
     }
 
     size(): number {
-        return this.items.length;
+        return this.items.length
     }
 }
 

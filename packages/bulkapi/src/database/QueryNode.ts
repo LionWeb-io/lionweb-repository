@@ -1,11 +1,5 @@
-import {
-    CONTAINMENTS_TABLE,
-    METAPOINTERS_TABLE,
-    NODES_TABLE,
-    PROPERTIES_TABLE,
-    REFERENCES_TABLE,
-    ResponseMessage
-} from "@lionweb/repository-common";
+import { ResponseMessage } from "@lionweb/repository-shared"
+import { CONTAINMENTS_TABLE, METAPOINTERS_TABLE, NODES_TABLE, PROPERTIES_TABLE, REFERENCES_TABLE } from "@lionweb/repository-common"
 
 export function sqlArrayFromNodeIdArray(strings: string[]): string {
     return `(${strings.map(id => `'${id}'`).join(", ")})`
@@ -33,7 +27,7 @@ export function versionResultToResponse(versionResult: object): ResponseMessage 
     return {
         kind: "RepoVersion",
         message: "RepositoryVersion at end of Transaction",
-        data: { "version": `${version}`}
+        data: { version: `${version}` }
     }
 }
 
@@ -98,7 +92,7 @@ export const nodesForQueryQuery = (nodesQuery: string): string => {
             )
         containments
         FROM node_properties n1
-        LEFT JOIN ${CONTAINMENTS_TABLE} con  ON con.node_id  = n1.id 
+        LEFT JOIN ${CONTAINMENTS_TABLE} con  ON con.node_id  = n1.id
         left join ${METAPOINTERS_TABLE} mp on mp.id = con.containment
         group by n1.id, con.node_id
     ),

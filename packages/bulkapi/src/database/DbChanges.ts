@@ -1,17 +1,21 @@
 import {
-    CONTAINMENTS_TABLE, dbLogger,
+    CONTAINMENTS_TABLE,
+    dbLogger,
     NODES_TABLE,
     PROPERTIES_TABLE,
     REFERENCES_TABLE,
-    TableHelpers, UnknownObjectType
+    TableHelpers,
+    UnknownObjectType
 } from "@lionweb/repository-common"
+import { MetaPointersTracker } from "@lionweb/repository-dbadmin"
 import {
     AnnotationAdded,
     AnnotationChange,
     Change,
     ContainmentChange,
     LionWebJsonMetaPointer,
-    Missing, NodeRemoved,
+    Missing,
+    NodeRemoved,
     ParentChanged,
     PropertyValueChanged,
     ReferenceChange
@@ -19,8 +23,7 @@ import {
 import { ColumnSet } from "pg-promise"
 import { BulkApiContext } from "../main.js"
 import { InitializedMapToArray } from "./InitializedMapToArray.js"
-import { sqlArrayFromNodeIdArray } from "./QueryNode.js";
-import {MetaPointersTracker} from "@lionweb/repository-dbadmin";
+import { sqlArrayFromNodeIdArray } from "./QueryNode.js"
 
 export type DbNodeUpdate = {
     id: string
@@ -97,7 +100,7 @@ export class DbChanges {
         changes.forEach(change => {
             switch (change.changeType) {
                 case "NodeRemoved":
-                    this.deletedNodesTable.add((change as NodeRemoved).node.id, { id: (change as NodeRemoved).node.id} )
+                    this.deletedNodesTable.add((change as NodeRemoved).node.id, { id: (change as NodeRemoved).node.id })
                     break
                 case "AnnotationAdded":
                 case "AnnotationOrderChanged":
@@ -138,7 +141,7 @@ export class DbChanges {
                         containment: (change as ContainmentChange).containment,
                         column: "children",
                         children: (change as ContainmentChange).afterContainment?.children ?? [],
-                        missing: (change as ContainmentChange).missing 
+                        missing: (change as ContainmentChange).missing
                     }
                     this.updatesContainmentTable.add({ nodeId: update.node_id, containment: update.containment }, update)
                     break
@@ -218,13 +221,7 @@ export class DbChanges {
                 property: metaPointerIndex,
                 value: values[0].newValue
             }
-            result += this.createQueryForFeatures(
-                data,
-                "property",
-                PROPERTIES_TABLE,
-                TableHelpers.PROPERTIES_COLUMN_SET,
-                values[0].missing
-            )
+            result += this.createQueryForFeatures(data, "property", PROPERTIES_TABLE, TableHelpers.PROPERTIES_COLUMN_SET, values[0].missing)
         })
         // Deletes at the end, so any (useles) upodates on deleted nodes don't give errors.
         const idsToDelete = this.deletedNodesTable.values().map(v => v[0].id)
@@ -244,7 +241,7 @@ export class DbChanges {
                 WHERE r.node_id IN ${sqlIds};
                 `
         }
-        
+
         dbLogger.debug("DATABASE INSERT " + result)
         return result
     }
