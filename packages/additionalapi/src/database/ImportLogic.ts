@@ -449,7 +449,6 @@ export function forFBMetapointer(metaPointersTracker: MetaPointersTracker, metaP
 export async function populateFromBulkImport(
     metaPointersTracker: MetaPointersTracker,
     bulkImport: BulkImport,
-    repositoryData: RepositoryData,
     dbConnection: DbConnection
 ) {
     await metaPointersTracker.populate((collector: MetaPointersCollector) => {

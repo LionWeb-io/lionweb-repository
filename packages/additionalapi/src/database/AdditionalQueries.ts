@@ -122,7 +122,18 @@ export class AdditionalQueries {
         // Add all the new nodes
         const pool = this.context.pgPool
         const metaPointersTracker = new MetaPointersTracker(repositoryData)
-        await populateFromBulkImport(metaPointersTracker, bulkImport, repositoryData, this.context.dbConnection)
+
+        // Update parents for nodes to be attached:
+        // When we receive subtrees to be attached to existing nodes, those subtrees may have the parent
+        // already set to the container we are attaching them to, or it could be null.
+        // We update them to set the parent to the new container, so we store them correctly
+        const attachedMap = new Map<string, AttachPoint>();
+        bulkImport.attachPoints.forEach(attachPoint => attachedMap.set(attachPoint.root, attachPoint));
+        bulkImport.nodes.filter(n => { if (attachedMap.has(n.id)) {
+            n.parent = attachedMap.get(n.id).container;
+        }});
+
+        await populateFromBulkImport(metaPointersTracker, bulkImport, this.context.dbConnection)
         await storeNodes(await pool.connect(), repositoryData, bulkImport, metaPointersTracker)
 
         // Attach the root of the new nodes to existing containers
