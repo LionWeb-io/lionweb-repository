@@ -75,6 +75,42 @@
         },
         "newValue": "hello"
       }
+    },
+    {
+      "expectedError": "PropertyMissing",
+      "command": {
+        "kind": "addProperty",
+        "node": "id",
+        "property": {
+          "key": "key",
+          "language": "l1",
+          "version": "22"
+        },
+        "newValue": "hello",
+        "protocolMessage": {
+          "kind": "Info"
+        }
+      }
+    },
+    {
+      "expectedError": null,
+      "command": {
+        "kind": "addProperty",
+        "node": "id",
+        "property": {
+          "key": "key",
+          "language": "l1",
+          "version": "22"
+        },
+        "newValue": "hello",
+        "protocolMessage": {
+          "kind": "Info",
+          "message": "23",
+          "data": {
+            "a": 12
+          }
+        }
+      }
     }
   ]
 }

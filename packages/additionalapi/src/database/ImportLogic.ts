@@ -1,4 +1,4 @@
-import { LionWebJsonNode } from "@lionweb/validation"
+import { LionWebJsonNode } from "@lionweb/json"
 import { Duplex } from "stream"
 import { PoolClient } from "pg"
 import { from as copyFrom } from "pg-copy-streams"

@@ -1,11 +1,17 @@
-import { TypeDefinition, PrimitiveDef, expectedTypes, PropertyDef, PropertyDefinition, ValidationResult, JsonContext } from "@lionweb/validation"
+import { JsonContext } from "@lionweb/json-utils"
+import { TypeDefinition, PrimitiveDef, expectedTypes, PropertyDef, PropertyDefinition, ValidationResult } from "@lionweb/validation"
 
 // Make boolean argument more readable.
 export const MAY_BE_NULL = true
 export const NOT_NULL = false
 
 const CommandKindProperty: PropertyDefinition = PropertyDef({ property: "kind", expectedType: "CommandKind", mayBeNull: NOT_NULL, validate: emptyValidation })
-const ProtocolMessageProperty: PropertyDefinition = PropertyDef({ property: "protocolMessage", expectedType: "ResponseMessage", mayBeNull: MAY_BE_NULL })
+const ProtocolMessageProperty: PropertyDefinition = PropertyDef({
+    property: "protocolMessage",
+    expectedType: "ResponseMessage",
+    mayBeNull: MAY_BE_NULL,
+    isOptional: true,
+})
 // const ResponseMessage: PropertyDefinition = { property: "protocolMessage", expectedType: "ResponseMessage", mayBeNull: MAY_BE_NULL }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -30,7 +36,7 @@ export const commandMap: Map<string, TypeDefinition> = new Map<string, TypeDefin
             PropertyDef({ property: "property", expectedType: "LionWebMetaPointer", validate: emptyValidation }),
             PropertyDef({ property: "newValue", expectedType: "string", validate: emptyValidation }),
             CommandKindProperty,
-            // ProtocolMessageProperty,
+            ProtocolMessageProperty,
         ],
     ],
     [
@@ -402,13 +408,12 @@ export const commandMap: Map<string, TypeDefinition> = new Map<string, TypeDefin
             ProtocolMessageProperty,
         ],
     ],
-    ["ResponseMessage", [PropertyDef({ property: "kind", expectedType: "LionWebId", validate: emptyValidation })]],
     ["CommandKind", PrimitiveDef({ primitiveType: "string", validate: emptyValidation })],
     ["string", PrimitiveDef({ primitiveType: "string", validate: emptyValidation })],
 ])
 
 // Add any Map or Set to another
-function addAll(target: Map<string, TypeDefinition>, source: Map<string, TypeDefinition>) {
-    Array.from(source.entries()).forEach((it) => target.set(it[0], it[1]))
-}
-addAll(commandMap, expectedTypes)
+// function addAll(target: Map<string, TypeDefinition>, source: Map<string, TypeDefinition>) {
+//     Array.from(source.entries()).forEach((it) => target.set(it[0], it[1]))
+// }
+// addAll(commandMap, expectedTypes)

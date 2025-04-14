@@ -1,5 +1,6 @@
-import { LionWebJsonChunk, LionWebJsonChunkWrapper } from "@lionweb/validation";
-import fs from "fs";
+import { LionWebJsonChunk } from "@lionweb/json"
+import { LionWebJsonChunkWrapper } from "@lionweb/json-utils"
+import fs from "fs"
 
 export function readModel(filename: string): LionWebJsonChunk | null {
     if (fs.existsSync(filename)) {

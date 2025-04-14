@@ -21,10 +21,6 @@ import {
     CURRENT_DATA_REPO_VERSION_KEY
 } from "@lionweb/repository-common"
 import {
-    LionWebJsonChunk,
-    LionWebJsonNode,
-    LionWebJsonChunkWrapper,
-    NodeUtils,
     PropertyValueChanged,
     ReferenceChange,
     AnnotationAdded,
@@ -36,10 +32,10 @@ import {
     LionWebJsonDiff,
     ParentChanged,
     AnnotationOrderChanged,
-    JsonContext,
-    NodeRemoved,
-    createLwNode
-} from "@lionweb/validation"
+    NodeRemoved
+} from "@lionweb/json-diff"
+import { LionWebJsonChunk, LionWebJsonNode } from "@lionweb/json"
+import { LionWebJsonChunkWrapper, NodeUtils, JsonContext } from "@lionweb/json-utils"
 import { BulkApiContext } from "../main.js"
 import { DbChanges } from "./DbChanges.js"
 import {
@@ -52,6 +48,17 @@ import {
 } from "./QueryNode.js"
 import { MetaPointersTracker } from "@lionweb/repository-dbadmin"
 
+function createDummyNode(): LionWebJsonNode {
+    return {
+        id: "",
+        classifier: { language: "", version: "", key: "" },
+        properties: [],
+        containments: [],
+        references: [],
+        annotations: [],
+        parent: null
+    }
+}
 export type NodeTreeResultType = {
     id: string
     parent: string
@@ -292,7 +299,7 @@ export class LionWebQueries {
         dbCommands.addChanges(
             orphansContainedChildrenOrphans.map(oc => {
                 // Create dummy node to avoid lookup, we only need the _id_ of the node
-                const dummyNode = createLwNode()
+                const dummyNode = createDummyNode()
                 dummyNode.id = oc.id
                 return new NodeRemoved(new JsonContext(null, ["implicit_orphan"]), dummyNode)
             })
@@ -300,7 +307,7 @@ export class LionWebQueries {
         dbCommands.addChanges(
             removedAndNotAddedAnnotations.map(oc => {
                 // Create dummy node to avoid lookup, we only need the _id_ of the node
-                const dummyNode2 = createLwNode()
+                const dummyNode2: LionWebJsonNode = createDummyNode()
                 dummyNode2.id = oc.annotationId
                 return new NodeRemoved(new JsonContext(null, ["implicit_orphan"]), dummyNode2)
             })

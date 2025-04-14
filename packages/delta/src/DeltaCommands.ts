@@ -1,5 +1,5 @@
 import { ResponseMessage } from "@lionweb/repository-shared"
-import { LionWebJsonChunk, LionWebJsonMetaPointer, LionWebId } from "@lionweb/validation"
+import { LionWebJsonChunk, LionWebJsonMetaPointer, LionWebId } from "@lionweb/json"
 
 export type CommandKind = "addProperty" | "deleteProperty" | "changeProperty" | "addChild" | "deleteChild"
 

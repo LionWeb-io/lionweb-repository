@@ -25,7 +25,7 @@
     "@types/uuid": "^10.0.0"
   },
   "dependencies": {
-    "@lionweb/validation": "0.6.13-beta.0",
+    "@lionweb/json": "0.6.13-beta.5",
     "@types/express": "4.17.21",
     "json-stream-stringify": "^3.1.4",
     "pg": "8.11.3",

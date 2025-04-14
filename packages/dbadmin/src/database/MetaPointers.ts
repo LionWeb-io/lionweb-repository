@@ -1,4 +1,4 @@
-import { LionWebJsonMetaPointer, LionWebJsonNode } from "@lionweb/validation"
+import { LionWebJsonMetaPointer, LionWebJsonNode } from "@lionweb/json"
 import { DbConnection, LionWebTask, RepositoryData } from "@lionweb/repository-common"
 
 export type MetaPointersMap = Map<string, number>

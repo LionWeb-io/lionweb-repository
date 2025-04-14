@@ -8,7 +8,7 @@ import {
     makeQueryToCheckHowManyExist
 } from "./QueryNode.js"
 import { performImportFromFlatBuffers, populateFromBulkImport, storeNodes } from "./ImportLogic.js"
-import { LionWebJsonMetaPointer, LionWebJsonNode } from "@lionweb/validation"
+import { LionWebJsonMetaPointer, LionWebJsonNode } from "@lionweb/json"
 import { FBBulkImport } from "../io/lionweb/serialization/flatbuffers/index.js"
 import { MetaPointersTracker } from "@lionweb/repository-dbadmin"
 

@@ -10,7 +10,8 @@ import {
     RepositoryData,
     dbLogger
 } from "@lionweb/repository-common"
-import { LionWebJsonNode, LionWebJsonReferenceTarget, ReferenceChange } from "@lionweb/validation"
+import { LionWebJsonNode, LionWebJsonReferenceTarget } from "@lionweb/json"
+import { ReferenceChange } from "@lionweb/json-diff"
 import { BulkApiContext } from "../main.js"
 import { DbChanges } from "./DbChanges.js"
 import { sqlArrayFromNodeIdArray } from "./QueryNode.js"
