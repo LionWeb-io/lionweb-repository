@@ -1,11 +1,12 @@
-import { HttpSuccessCodes } from "@lionweb/repository-shared"
-import { RepositoryClient } from "@lionweb/repository-client"
+import {CreatePartitionsResponse, HttpSuccessCodes, ListPartitionsResponse} from "@lionweb/repository-shared"
+import {ClientResponse, RepositoryClient} from "@lionweb/repository-client"
 import { LanguageChange, LionWebJsonChunk, LionWebJsonDiff } from "@lionweb/validation"
 import { readModel } from "./utils.js"
 
-import { assert } from "chai"
-const { deepEqual, fail } = assert
+import {assert, expect} from "chai"
+const { deepEqual, fail, equal } = assert
 import sm from "source-map-support"
+import {LionWebJsonNode} from "@lionweb/validation/src/json/LionWebJson.js";
 
 sm.install()
 const DATA: string = "./data/"
@@ -57,6 +58,60 @@ describe("Repository tests", () => {
             await testHistory(v4)
             await testHistory(v5)
             await testHistory(v6)
+        })
+    })
+
+    describe("Partitions CRUD", () => {
+        it("test multiple ast changes", async () => {
+
+            function simpleNode(id: string): LionWebJsonNode {
+                return {
+                    id,
+                    classifier: {
+                        language: "my-language",
+                        key: "my-concept",
+                        version: "1"
+                    },
+                    properties: [],
+                    containments: [],
+                    references: [],
+                    annotations: [],
+                    parent: null
+                }
+            }
+
+            function getRepoVersion(response: ClientResponse<ListPartitionsResponse|CreatePartitionsResponse>) : number {
+                assert(response.body.success);
+                return Number.parseInt(response.body.messages.find(m => m.kind === "RepoVersion")?.data?.version)
+            }
+
+            function idsInChunk(response: ClientResponse<ListPartitionsResponse>) : Set<string> {
+                assert(response.body.success);
+                return new Set<string>(response.body.chunk.nodes.map(n => n.id));
+            }
+
+            const client = new RepositoryClient("TestHistoryClient", "history-partition-crud");
+            client.dbAdmin.createRepository("history-partition-crud", true, "2023.1");
+            const v1 = getRepoVersion(await client.bulk.createPartitions({
+                languages: [
+                    {
+                        key: "my-language",
+                        version: "1"
+                    }
+                ], nodes: [
+                    simpleNode("id-abc"),
+                    simpleNode("id-bcd"),
+                    simpleNode("id-cde")
+                ], serializationFormatVersion: "2023.1"
+            }));
+            const v2 = getRepoVersion(await client.bulk.deletePartitions(["id-abc"]));
+            const v3 = getRepoVersion(await client.bulk.deletePartitions(["id-bcd"]));
+            const v4 = getRepoVersion(await client.bulk.deletePartitions(["id-cde"]));
+            expect(idsInChunk(await client.history.listPartitions(0))).to.deep.equal(new Set<string>([]));
+            expect(idsInChunk(await client.history.listPartitions(v1))).to.deep.equal(new Set<string>(["id-abc", "id-bcd", "id-cde"]));
+            expect(idsInChunk(await client.history.listPartitions(v2))).to.deep.equal(new Set<string>(["id-bcd", "id-cde"]));
+            expect(idsInChunk(await client.history.listPartitions(v3))).to.deep.equal(new Set<string>(["id-cde"]));
+            expect(idsInChunk(await client.history.listPartitions(v4))).to.deep.equal(new Set<string>([]));
         })
     })
 

@@ -499,7 +499,7 @@ export class LionWebQueries {
         const [versionResult] = await task.multi(repositoryData, query)
         return {
             status: HttpSuccessCodes.Ok,
-            query: "query",
+            query: query,
             queryResult: {
                 success: true,
                 messages: [versionResultToResponse(versionResult)]
