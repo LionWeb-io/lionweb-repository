@@ -4,7 +4,8 @@ import {
     StoreResponse,
     HttpSuccessCodes,
     HttpClientErrors,
-    LionwebResponse
+    LionwebResponse,
+    DeletePartitionsResponse
 } from "@lionweb/repository-shared"
 import {
     asError,
@@ -476,7 +477,7 @@ export class LionWebQueries {
         dbCommands.addChanges(changes)
     }
 
-    async deletePartitions(task: LionWebTask, repositoryData: RepositoryData, idList: string[]): Promise<void> {
+    async deletePartitions(task: LionWebTask, repositoryData: RepositoryData, idList: string[]): Promise<QueryReturnType<DeletePartitionsResponse>> {
         dbLogger.info("LionWebQueries.deletePartitions: " + idList)
         // TODO combine in one query
         const partitions = await this.getNodesFromIdListIncludingChildren(task, repositoryData, idList)
@@ -495,7 +496,15 @@ export class LionWebQueries {
         let query = nextRepoVersionQuery(repositoryData.clientId)
         query += this.context.queryMaker.makeQueriesForOrphans(removedNodes)
         dbLogger.debug("DELETE PARTITIONS QUERY: " + query)
-        return await task.query(repositoryData, query)
+        const [versionResult] = await task.multi(repositoryData, query)
+        return {
+            status: HttpSuccessCodes.Ok,
+            query: "query",
+            queryResult: {
+                success: true,
+                messages: [versionResultToResponse(versionResult)]
+            }
+        }
     }
 
     /**
