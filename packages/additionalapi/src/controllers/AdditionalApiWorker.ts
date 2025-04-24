@@ -10,7 +10,7 @@ export class AdditionalApiWorker {
     constructor(private context: AdditionalApiContext) {
     }
     getNodeTree = async (repositoryData: RepositoryData, nodeIds: string[], depthLimit: number)=> {
-        
+
         requestLogger.info("AdditionalApiWorker.getNodeTree for " + nodeIds + " with depth " + depthLimit)
         return await this.context.queries.getNodeTree(repositoryData, nodeIds, depthLimit)
     }
@@ -18,6 +18,10 @@ export class AdditionalApiWorker {
     /**
      * When processing a bulk import operation specified through JSON or ProtoBuf, we convert the payload to a BulkImport
      * so that we can process both of them with the same logic.
+     *
+     * The bulk import can contain entire partitions or subtrees. In case of subtrees a corresponding attach points
+     * must be defined.
+     *
      * @param repositoryData
      * @param bulkImport
      */
