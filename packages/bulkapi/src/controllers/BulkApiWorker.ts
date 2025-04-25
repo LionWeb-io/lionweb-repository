@@ -12,7 +12,6 @@ import {
 import {
     createId,
     EMPTY_CHUNKS,
-    EMPTY_SUCCES_RESPONSE,
     LionWebTask,
     nodesToChunk,
     QueryReturnType,
@@ -107,8 +106,7 @@ export class BulkApiWorker {
                 }
             }
         }
-        await this.context.queries.deletePartitions(task, repositoryData, idList)
-        return { status: HttpSuccessCodes.Ok, query: "", queryResult: EMPTY_SUCCES_RESPONSE }
+        return await this.context.queries.deletePartitions(task, repositoryData, idList)
     }
 
     bulkStore = async (
