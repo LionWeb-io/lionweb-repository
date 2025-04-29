@@ -31,11 +31,11 @@ export type ResponseMessage = {
  * @param object
  */
 export function isResponseMessage(object: { [key: string]: unknown }): object is ResponseMessage {
+    const kind = object["kind"]
+    const message = object["message"]
     return (
-        object["kind"] !== undefined &&
-        typeof object["kind"] === "string" &&
-        object["message"] !== undefined &&
-        typeof object["message"] === "string"
+        kind !== undefined && typeof kind === "string" &&
+        message !== undefined && typeof message === "string"
     )
 }
 
