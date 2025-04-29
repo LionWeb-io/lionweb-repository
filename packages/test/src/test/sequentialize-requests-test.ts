@@ -1,6 +1,6 @@
 import { ClientResponse, RepositoryClient } from "@lionweb/repository-client"
 import { StoreResponse } from "@lionweb/repository-shared"
-import { LionWebJsonChunk } from "@lionweb/validation"
+import { LionWebJsonChunk } from "@lionweb/json"
 import { assert } from "chai"
 
 import sm from "source-map-support"

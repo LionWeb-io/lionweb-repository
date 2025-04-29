@@ -1,6 +1,6 @@
-import { LionWebJsonMetaPointer, LionWebJsonNode, LwJsonUsedLanguage } from "@lionweb/validation"
+import { LionWebJsonMetaPointer, LionWebJsonNode, LionWebJsonUsedLanguage } from "@lionweb/json"
 
-export function collectUsedLanguages(nodes: LionWebJsonNode[]): LwJsonUsedLanguage[] {
+export function collectUsedLanguages(nodes: LionWebJsonNode[]): LionWebJsonUsedLanguage[] {
     if (nodes.length == 0) {
         return []
     }
@@ -26,7 +26,7 @@ function addLanguage(languages: Map<string, Set<string>>, metaPointer: LionWebJs
 }
 
 class Mapped {
-    languages: LwJsonUsedLanguage[] = []
+    languages: LionWebJsonUsedLanguage[] = []
     map = (value: Set<string>, key: string): void => {
         value.forEach(v => this.languages.push({ key: key, version: v }))
     }

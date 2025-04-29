@@ -1,10 +1,10 @@
 /**
  * Copy from database side code, to define the structure of the responses.
  */
-import { LionWebJsonChunk } from "@lionweb/validation";
+import { LionWebJsonChunk } from "@lionweb/json"
 
 export type MessageKind =
-    "PartitionHasParent"
+    | "PartitionHasParent"
     | "Info"
     | "PartitionHasChildren"
     | "PartitionHasAnnotations"
@@ -21,9 +21,9 @@ export type MessageKind =
     | string
 
 export type ResponseMessage = {
-    kind   : MessageKind
+    kind: MessageKind
     message: string
-    data?  : Record<string, string>
+    data?: Record<string, string>
 }
 
 /**
@@ -31,8 +31,12 @@ export type ResponseMessage = {
  * @param object
  */
 export function isResponseMessage(object: { [key: string]: unknown }): object is ResponseMessage {
-    return object["kind"] !== undefined && typeof object["kind"] === "string" &&
-    object["message"] !== undefined && typeof object["message"] === "string"
+    const kind = object["kind"]
+    const message = object["message"]
+    return (
+        kind !== undefined && typeof kind === "string" &&
+        message !== undefined && typeof message === "string"
+    )
 }
 
 export interface LionwebResponse {
@@ -48,14 +52,11 @@ export interface PartitionsResponse extends LionwebResponse {
     chunk: LionWebJsonChunk
 }
 
-export interface StoreResponse extends LionwebResponse {
-}
+export interface StoreResponse extends LionwebResponse {}
 
-export interface CreatePartitionsResponse extends LionwebResponse {
-}
+export interface CreatePartitionsResponse extends LionwebResponse {}
 
-export interface DeletePartitionsResponse extends LionwebResponse {
-}
+export interface DeletePartitionsResponse extends LionwebResponse {}
 
 export interface IdsResponse extends LionwebResponse {
     ids: string[]

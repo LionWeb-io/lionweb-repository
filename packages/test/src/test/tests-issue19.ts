@@ -1,6 +1,6 @@
 import { HttpSuccessCodes } from "@lionweb/repository-shared"
 import { RepositoryClient } from "@lionweb/repository-client"
-import { LionWebJsonChunk } from "@lionweb/validation"
+import { LionWebJsonChunk } from "@lionweb/json"
 import { readModel } from "./utils.js"
 
 import { assert } from "chai"

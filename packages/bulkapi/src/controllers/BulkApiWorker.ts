@@ -19,7 +19,7 @@ import {
     requestLogger,
     traceLogger
 } from "@lionweb/repository-common"
-import { LionWebJsonChunk } from "@lionweb/validation"
+import { LionWebJsonChunk } from "@lionweb/json"
 import { currentRepoVersionQuery, versionResultToResponse } from "../database/index.js"
 import { retrieveWith } from "../database/RetrieveInOneQuery.js"
 import { BulkApiContext } from "../main.js"

@@ -1,6 +1,7 @@
 import { HttpClientErrors, HttpSuccessCodes, RetrieveResponse } from "@lionweb/repository-shared"
 import { getVersionFromResponse, RepositoryClient } from "@lionweb/repository-client"
-import { LanguageChange, LionWebJsonChunk, LionWebJsonDiff } from "@lionweb/validation"
+import { LionWebJsonChunk } from "@lionweb/json"
+import { LanguageChange, LionWebJsonDiff } from "@lionweb/json-diff"
 import { readModel } from "./utils.js"
 
 import { assert } from "chai"
@@ -116,6 +117,25 @@ collection.forEach(withoutHistory => {
                 await client.bulk.deletePartitions(["ID-2"])
                 const partitions = await client.bulk.listPartitions()
                 deepEqual(partitions.body.chunk, { serializationFormatVersion: "2023.1", languages: [], nodes: [] })
+            })
+
+            it("recreate partitions", async () => {
+                assert(initError === "", initError)
+
+                const partResult = await client.bulk.createPartitions(initialPartition)
+                if (partResult.status !== HttpSuccessCodes.Ok) {
+                    console.error("Cannot recreate partition: " + JSON.stringify(partResult.body))
+                    initError = JSON.stringify(partResult.body)
+                    return
+                }
+                // Now retrieve the partition again.
+                const model = structuredClone(baseFullChunk)
+                model.nodes = model.nodes.filter(node => node.parent === null)
+                const partitions = await client.bulk.listPartitions()
+                console.log("Retrieve partitions Result: " + JSON.stringify(partitions))
+                const diff = new LionWebJsonDiff()
+                diff.diffLwChunk(model, partitions.body.chunk)
+                deepEqual(diff.diffResult.changes, [])
             })
         })
 

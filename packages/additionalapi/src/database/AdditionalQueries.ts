@@ -8,7 +8,7 @@ import {
     makeQueryToCheckHowManyExist
 } from "./QueryNode.js"
 import { performImportFromFlatBuffers, populateFromBulkImport, storeNodes } from "./ImportLogic.js"
-import { LionWebJsonMetaPointer, LionWebJsonNode } from "@lionweb/validation"
+import { LionWebJsonMetaPointer, LionWebJsonNode } from "@lionweb/json"
 import { FBBulkImport } from "../io/lionweb/serialization/flatbuffers/index.js"
 import { MetaPointersTracker } from "@lionweb/repository-dbadmin"
 
@@ -105,16 +105,17 @@ export class AdditionalQueries {
         })
 
         // Check - verify all the given new nodes are effectively new
-        const allNewNodesResult = newNodesSet.size == 0 ? 0 : await this.context.dbConnection.query(repositoryData, makeQueryToCheckHowManyExist(newNodesSet))
+        const allNewNodesResult =
+            newNodesSet.size == 0 ? 0 : await this.context.dbConnection.query(repositoryData, makeQueryToCheckHowManyExist(newNodesSet))
         if (allNewNodesResult > 0) {
             return { status: HttpClientErrors.BadRequest, success: false, description: `Some of the given nodes already exist` }
         }
 
         // Check - verify the containers from the attach points are existing nodes
-        const allExistingNodesResult = attachPointContainers.size == 0 ? 0 : await this.context.dbConnection.query(
-            repositoryData,
-            makeQueryToCheckHowManyDoNotExist(attachPointContainers)
-        )
+        const allExistingNodesResult =
+            attachPointContainers.size == 0
+                ? 0
+                : await this.context.dbConnection.query(repositoryData, makeQueryToCheckHowManyDoNotExist(attachPointContainers))
         if (allExistingNodesResult > 0) {
             return { status: HttpClientErrors.BadRequest, success: false, description: `Some of the attach point containers do not exist` }
         }
@@ -127,11 +128,13 @@ export class AdditionalQueries {
         // When we receive subtrees to be attached to existing nodes, those subtrees may have the parent
         // already set to the container we are attaching them to, or it could be null.
         // We update them to set the parent to the new container, so we store them correctly
-        const attachedMap = new Map<string, AttachPoint>();
-        bulkImport.attachPoints.forEach(attachPoint => attachedMap.set(attachPoint.root, attachPoint));
-        bulkImport.nodes.filter(n => { if (attachedMap.has(n.id)) {
-            n.parent = attachedMap.get(n.id).container;
-        }});
+        const attachedMap = new Map<string, AttachPoint>()
+        bulkImport.attachPoints.forEach(attachPoint => attachedMap.set(attachPoint.root, attachPoint))
+        bulkImport.nodes.filter(n => {
+            if (attachedMap.has(n.id)) {
+                n.parent = attachedMap.get(n.id).container
+            }
+        })
 
         await populateFromBulkImport(metaPointersTracker, bulkImport, this.context.dbConnection)
         await storeNodes(await pool.connect(), repositoryData, bulkImport, metaPointersTracker)

@@ -1,17 +1,11 @@
-import {
-    HttpServerErrors,
-    isLionWebVersion,
-    LionWebVersionType,
-    LionWebVersionValues,
-    ResponseMessage
-} from "@lionweb/repository-shared"
+import { HttpServerErrors, isLionWebVersion, LionWebVersionType, LionWebVersionValues, ResponseMessage } from "@lionweb/repository-shared"
 import { requestLogger } from "./logging.js"
 import { Job, requestQueue } from "./RequestQueue.js"
 import { collectUsedLanguages } from "./UsedLanguages.js"
-import { LionWebJsonChunk, LionWebJsonNode } from "@lionweb/validation"
+import { LionWebJsonChunk, LionWebJsonNode } from "@lionweb/json"
 import { Request, Response } from "express"
 import { v4 as uuidv4 } from "uuid"
-import { lionwebResponse } from "./LionwebResponse.js";
+import { lionwebResponse } from "./LionwebResponse.js"
 
 export type UnknownObjectType = { [key: string]: unknown }
 
