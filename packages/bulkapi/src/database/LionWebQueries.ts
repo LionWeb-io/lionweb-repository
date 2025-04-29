@@ -50,9 +50,9 @@ import {
 } from "./QueryNode.js"
 import { MetaPointersTracker } from "@lionweb/repository-dbadmin"
 
-function createDummyNode(): LionWebJsonNode {
+function createDummyNode(nodeId: string): LionWebJsonNode {
     return {
-        id: "",
+        id: nodeId,
         classifier: { language: "", version: "", key: "" },
         properties: [],
         containments: [],
@@ -302,16 +302,14 @@ export class LionWebQueries {
         dbCommands.addChanges(
             orphansContainedChildrenOrphans.map(oc => {
                 // Create dummy node to avoid lookup, we only need the _id_ of the node
-                const dummyNode = createDummyNode()
-                dummyNode.id = oc.id
+                const dummyNode = createDummyNode(oc.id)
                 return new NodeRemoved(new JsonContext(null, ["implicit_orphan"]), dummyNode)
             })
         )
         dbCommands.addChanges(
             removedAndNotAddedAnnotations.map(oc => {
                 // Create dummy node to avoid lookup, we only need the _id_ of the node
-                const dummyNode2 = createDummyNode()
-                dummyNode2.id = oc.annotationId
+                const dummyNode2 = createDummyNode(oc.annotationId)
                 return new NodeRemoved(new JsonContext(null, ["implicit_orphan"]), dummyNode2)
             })
         )
