@@ -37,7 +37,7 @@
   "dependencies": {
     "@lionweb/repository-common": "0.3.0",
     "@lionweb/repository-dbadmin": "0.3.0",
-    "@lionweb/validation": "0.6.13-beta.7",
+    "@lionweb/validation": "0.6.13-beta.6",
     "@lionweb/json": "0.6.13-beta.5",
     "@lionweb/json-diff": "0.6.13-beta.5",
     "@lionweb/json-utils": "0.6.13-beta.5",
