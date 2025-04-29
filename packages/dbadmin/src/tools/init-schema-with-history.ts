@@ -1,24 +1,33 @@
 import {
-        CONTAINMENTS_TABLE, CONTAINMENTS_TABLE_HISTORY,
-        NODES_TABLE, NODES_TABLE_HISTORY, FOREVER,
-        PROPERTIES_TABLE, PROPERTIES_TABLE_HISTORY,
-        REFERENCES_TABLE, REFERENCES_TABLE_HISTORY,
-        RESERVED_IDS_TABLE, METAPOINTERS_TABLE, REPO_VERSIONS,
-        CURRENT_DATA, CURRENT_DATA_REPO_VERSION_KEY, CURRENT_DATA_REPO_CLIENT_ID_KEY
-} from "@lionweb/repository-common";
+    CONTAINMENTS_TABLE,
+    CONTAINMENTS_TABLE_HISTORY,
+    NODES_TABLE,
+    NODES_TABLE_HISTORY,
+    FOREVER,
+    PROPERTIES_TABLE,
+    PROPERTIES_TABLE_HISTORY,
+    REFERENCES_TABLE,
+    REFERENCES_TABLE_HISTORY,
+    RESERVED_IDS_TABLE,
+    METAPOINTERS_TABLE,
+    REPO_VERSIONS,
+    CURRENT_DATA,
+    CURRENT_DATA_REPO_VERSION_KEY,
+    CURRENT_DATA_REPO_CLIENT_ID_KEY
+} from "@lionweb/repository-common"
 
 export function dropSchema(schemaName: string): string {
-        return `DROP SCHEMA IF EXISTS "${schemaName}" CASCADE;`
+    return `DROP SCHEMA IF EXISTS "${schemaName}" CASCADE;`
 }
 
 export function listSchemas(): string {
-        return `-- select all schemas
+    return `-- select all schemas
         SELECT schema_name
         FROM information_schema.schemata;`
 }
 
 export function initSchemaWithHistory(schemaName: string): string {
-        return  `-- Create schema
+    return `-- Create schema
         -- drop if empty, otherwise fail
         DROP SCHEMA IF EXISTS "${schemaName}" RESTRICT;
         CREATE SCHEMA "${schemaName}";
@@ -362,17 +371,9 @@ export function initSchemaWithHistory(schemaName: string): string {
             AS
         $$ 
         DECLARE repo_version integer; BEGIN
-                SELECT value INTO repo_version FROM ${CURRENT_DATA} WHERE key = '${CURRENT_DATA_REPO_VERSION_KEY}';
-            IF NOT EXISTS (SELECT FROM ${PROPERTIES_TABLE_HISTORY} 
-                            WHERE property = NEW.property AND node_id = NEW.node_id 
-                          )
-            THEN 
-                INSERT INTO ${PROPERTIES_TABLE_HISTORY} 
+            SELECT value INTO repo_version FROM ${CURRENT_DATA} WHERE key = '${CURRENT_DATA_REPO_VERSION_KEY}';
+            INSERT INTO ${PROPERTIES_TABLE_HISTORY} 
                 VALUES ( repo_version, ${FOREVER}, NEW.property, NEW.value, NEW.node_id ); 
-            ELSE 
-                UPDATE ${PROPERTIES_TABLE} 
-                    SET value = NEW.value WHERE to_version = ${FOREVER} AND property = NEW.property AND node_id = NEW.node_id; 
-            END IF; 
             RETURN NEW; 
         END;
         $$;
@@ -433,8 +434,12 @@ export function initSchemaWithHistory(schemaName: string): string {
             LANGUAGE plpgsql
             AS 
         $$ DECLARE repo_version integer; BEGIN 
-                SELECT value INTO repo_version FROM ${CURRENT_DATA} WHERE key = '${CURRENT_DATA_REPO_VERSION_KEY}';
-            IF NOT EXISTS (SELECT FROM ${CONTAINMENTS_TABLE_HISTORY} WHERE containment = NEW.containment AND node_id = NEW.node_id ) THEN INSERT INTO ${CONTAINMENTS_TABLE_HISTORY} VALUES ( repo_version, ${FOREVER}, NEW.containment, NEW.children, NEW.node_id ); ELSE UPDATE ${CONTAINMENTS_TABLE} SET children = NEW.children WHERE to_version = ${FOREVER} AND containment = NEW.containment AND node_id = NEW.node_id; END IF; RETURN NEW; END; $$;
+            SELECT value INTO repo_version FROM ${CURRENT_DATA} WHERE key = '${CURRENT_DATA_REPO_VERSION_KEY}';
+            INSERT INTO ${CONTAINMENTS_TABLE_HISTORY} 
+                VALUES ( repo_version, ${FOREVER}, NEW.containment, NEW.children, NEW.node_id ); 
+            RETURN NEW;
+        END;
+        $$ LANGUAGE plpgsql;
 
         CREATE TRIGGER nodes_insertContainment
         INSTEAD OF INSERT ON ${CONTAINMENTS_TABLE} 
@@ -500,13 +505,9 @@ export function initSchemaWithHistory(schemaName: string): string {
         DECLARE
             repo_version integer;
         BEGIN 
-                SELECT value INTO repo_version FROM ${CURRENT_DATA} WHERE key = '${CURRENT_DATA_REPO_VERSION_KEY}';
-            IF NOT EXISTS (SELECT FROM ${REFERENCES_TABLE_HISTORY} 
-                                WHERE reference = NEW.reference AND node_id = NEW.node_id ) 
-            THEN
-                INSERT INTO ${REFERENCES_TABLE_HISTORY}
-                    VALUES ( repo_version, ${FOREVER}, NEW.reference, NEW.targets, NEW.node_id ); ELSE UPDATE ${REFERENCES_TABLE} SET targets = NEW.targets WHERE to_version = ${FOREVER} AND reference = NEW.reference AND node_id = NEW.node_id;
-            END IF;
+            SELECT value INTO repo_version FROM ${CURRENT_DATA} WHERE key = '${CURRENT_DATA_REPO_VERSION_KEY}';
+            INSERT INTO ${REFERENCES_TABLE_HISTORY}
+                VALUES ( repo_version, ${FOREVER}, NEW.reference, NEW.targets, NEW.node_id );
             RETURN NEW;
         END;
         $$;
@@ -527,7 +528,7 @@ export function initSchemaWithHistory(schemaName: string): string {
         DECLARE 
             repo_version integer;
         BEGIN
-                SELECT value INTO repo_version FROM ${CURRENT_DATA} WHERE key = '${CURRENT_DATA_REPO_VERSION_KEY}';
+            SELECT value INTO repo_version FROM ${CURRENT_DATA} WHERE key = '${CURRENT_DATA_REPO_VERSION_KEY}';
             UPDATE ${REFERENCES_TABLE_HISTORY} nh SET to_version = repo_version - 1 
                 WHERE to_version = ${FOREVER} AND reference = NEW.reference AND node_id = NEW.node_id; 
             INSERT INTO ${REFERENCES_TABLE_HISTORY} 
@@ -552,7 +553,7 @@ export function initSchemaWithHistory(schemaName: string): string {
         DECLARE 
             repo_version integer; 
         BEGIN 
-                SELECT value INTO repo_version FROM ${CURRENT_DATA} WHERE key = '${CURRENT_DATA_REPO_VERSION_KEY}';
+            SELECT value INTO repo_version FROM ${CURRENT_DATA} WHERE key = '${CURRENT_DATA_REPO_VERSION_KEY}';
             UPDATE ${REFERENCES_TABLE_HISTORY} 
                 SET to_version = repo_version - 1 
                 WHERE to_version = ${FOREVER} AND node_id = OLD.node_id; 
@@ -600,6 +601,3 @@ export function initSchemaWithHistory(schemaName: string): string {
         $$ LANGUAGE plpgsql;
         `
 }
-
-
-
