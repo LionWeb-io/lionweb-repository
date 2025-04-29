@@ -1,6 +1,7 @@
 import { CreatePartitionsResponse, HttpSuccessCodes, ListPartitionsResponse } from "@lionweb/repository-shared"
 import { ClientResponse, RepositoryClient } from "@lionweb/repository-client"
-import { LanguageChange, LionWebJsonChunk, LionWebJsonDiff, LionWebJsonNode } from "@lionweb/validation"
+import { LionWebJsonChunk, LionWebJsonNode } from "@lionweb/json"
+import { LanguageChange, LionWebJsonDiff } from "@lionweb/json-diff"
 import { readModel } from "./utils.js"
 
 import { assert, expect } from "chai"

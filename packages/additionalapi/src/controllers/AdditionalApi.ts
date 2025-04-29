@@ -6,7 +6,7 @@ import { lionwebResponse } from "@lionweb/repository-common"
 import { dbLogger, getIntegerParam, isParameterError } from "@lionweb/repository-common"
 import { PBBulkImport, PBMetaPointer } from "../proto/index.js"
 import { BulkImport } from "../database/index.js"
-import { LionWebJsonMetaPointer } from "@lionweb/validation"
+import { LionWebJsonMetaPointer } from "@lionweb/json"
 import { ByteBuffer } from "flatbuffers"
 import { FBBulkImport } from "../io/lionweb/serialization/flatbuffers/index.js"
 

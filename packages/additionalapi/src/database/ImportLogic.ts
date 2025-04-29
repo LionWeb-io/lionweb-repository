@@ -1,4 +1,4 @@
-import { LionWebJsonNode } from "@lionweb/validation"
+import { LionWebJsonNode } from "@lionweb/json"
 import { Duplex } from "stream"
 import { PoolClient } from "pg"
 import { from as copyFrom } from "pg-copy-streams"
@@ -15,18 +15,18 @@ const SEPARATOR = "\t"
 function prepareInputStreamNodes(nodes: LionWebJsonNode[], metaPointersTracker: MetaPointersTracker): Duplex {
     const read_stream_string = new Duplex()
     nodes.forEach(node => {
-        read_stream_string.push(node.id);
-        read_stream_string.push(SEPARATOR);
-        read_stream_string.push(metaPointersTracker.forMetaPointer(node.classifier).toString());
-        read_stream_string.push(SEPARATOR);
-        read_stream_string.push("{" + node.annotations.join(",") + "}");
-        read_stream_string.push(SEPARATOR);
+        read_stream_string.push(node.id)
+        read_stream_string.push(SEPARATOR)
+        read_stream_string.push(metaPointersTracker.forMetaPointer(node.classifier).toString())
+        read_stream_string.push(SEPARATOR)
+        read_stream_string.push("{" + node.annotations.join(",") + "}")
+        read_stream_string.push(SEPARATOR)
         if (node.parent == null) {
-            read_stream_string.push("\\N");
+            read_stream_string.push("\\N")
         } else {
-            read_stream_string.push(node.parent);
+            read_stream_string.push(node.parent)
         }
-        read_stream_string.push("\n");
+        read_stream_string.push("\n")
     })
     read_stream_string.push(null)
     return read_stream_string
@@ -234,8 +234,8 @@ export async function storeNodes(
     metaPointersTracker: MetaPointersTracker
 ): Promise<void> {
     try {
-        const repositoryName = repositoryData.repository.repository_name;
-        const schemaName = repositoryData.repository.schema_name;
+        const repositoryName = repositoryData.repository.repository_name
+        const schemaName = repositoryData.repository.schema_name
 
         const nodes = bulkImport.nodes
 
@@ -362,8 +362,8 @@ export async function performImportFromFlatBuffers(
         })
 
         // Check - verify all the given new nodes are effectively new
-        const allNewNodesResult = newNodesSet.size == 0 ? 0 :
-            await dbConnection.query(repositoryData, makeQueryToCheckHowManyExist(newNodesSet))
+        const allNewNodesResult =
+            newNodesSet.size == 0 ? 0 : await dbConnection.query(repositoryData, makeQueryToCheckHowManyExist(newNodesSet))
         if (allNewNodesResult > 0) {
             return {
                 status: HttpClientErrors.BadRequest,
@@ -373,8 +373,10 @@ export async function performImportFromFlatBuffers(
         }
 
         // Check - verify the containers from the attach points are existing nodes
-        const allExistingNodesResult = attachPointContainers.size == 0 ? 0 :
-            await dbConnection.query(repositoryData, makeQueryToCheckHowManyDoNotExist(attachPointContainers))
+        const allExistingNodesResult =
+            attachPointContainers.size == 0
+                ? 0
+                : await dbConnection.query(repositoryData, makeQueryToCheckHowManyDoNotExist(attachPointContainers))
         if (allExistingNodesResult > 0) {
             return {
                 status: HttpClientErrors.BadRequest,
@@ -446,11 +448,7 @@ export function forFBMetapointer(metaPointersTracker: MetaPointersTracker, metaP
     })
 }
 
-export async function populateFromBulkImport(
-    metaPointersTracker: MetaPointersTracker,
-    bulkImport: BulkImport,
-    dbConnection: DbConnection
-) {
+export async function populateFromBulkImport(metaPointersTracker: MetaPointersTracker, bulkImport: BulkImport, dbConnection: DbConnection) {
     await metaPointersTracker.populate((collector: MetaPointersCollector) => {
         const nodes = bulkImport.nodes
         nodes.forEach((node: LionWebJsonNode) => collector.considerNode(node))

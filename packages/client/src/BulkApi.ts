@@ -1,5 +1,5 @@
 import { HttpClientErrors } from "@lionweb/repository-shared"
-import { LionWebJsonChunk } from "@lionweb/validation"
+import { LionWebJsonChunk } from "@lionweb/json"
 import { ClientResponse, RepositoryClient } from "./RepositoryClient.js"
 import {
     CreatePartitionsResponse,
@@ -11,7 +11,7 @@ import {
 } from "@lionweb/repository-shared"
 
 // Re-export for usage convenience
-export type { LionWebJsonChunk } from "@lionweb/validation";
+export type { LionWebJsonChunk } from "@lionweb/json"
 
 /**
  * Client side Api for the lionweb-repository server.

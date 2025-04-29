@@ -1,6 +1,7 @@
 import { HttpClientErrors, HttpSuccessCodes, RetrieveResponse } from "@lionweb/repository-shared"
 import { getVersionFromResponse, RepositoryClient } from "@lionweb/repository-client"
-import { LanguageChange, LionWebJsonChunk, LionWebJsonDiff } from "@lionweb/validation"
+import { LionWebJsonChunk } from "@lionweb/json"
+import { LanguageChange, LionWebJsonDiff } from "@lionweb/json-diff"
 import { readModel } from "./utils.js"
 
 import { assert } from "chai"

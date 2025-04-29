@@ -8,18 +8,18 @@ import {
     UnknownObjectType
 } from "@lionweb/repository-common"
 import { MetaPointersTracker } from "@lionweb/repository-dbadmin"
+import { LionWebJsonMetaPointer } from "@lionweb/json"
 import {
     AnnotationAdded,
     AnnotationChange,
     Change,
     ContainmentChange,
-    LionWebJsonMetaPointer,
     Missing,
     NodeRemoved,
     ParentChanged,
     PropertyValueChanged,
     ReferenceChange
-} from "@lionweb/validation"
+} from "@lionweb/json-diff"
 import { ColumnSet } from "pg-promise"
 import { BulkApiContext } from "../main.js"
 import { InitializedMapToArray } from "./InitializedMapToArray.js"
