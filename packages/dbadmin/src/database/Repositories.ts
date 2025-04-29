@@ -8,9 +8,9 @@ import {
     RepositoryInfo,
     requestLogger
 } from "@lionweb/repository-common"
+import { GenericIssue, ValidationResult } from "@lionweb/validation"
 import { LionWebJsonChunk } from "@lionweb/json"
 import { JsonContext } from "@lionweb/json-utils"
-import { GenericIssue, ValidationResult } from "@lionweb/validation"
 import { Request } from "express"
 import { DbAdminApiContext } from "../main.js"
 

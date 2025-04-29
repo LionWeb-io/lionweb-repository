@@ -21,6 +21,8 @@ import {
     CURRENT_DATA,
     CURRENT_DATA_REPO_VERSION_KEY
 } from "@lionweb/repository-common"
+import { LionWebJsonChunkWrapper, NodeUtils, JsonContext } from "@lionweb/json-utils"
+import { LionWebJsonChunk, LionWebJsonNode } from "@lionweb/json"
 import {
     PropertyValueChanged,
     ReferenceChange,
@@ -35,8 +37,7 @@ import {
     AnnotationOrderChanged,
     NodeRemoved
 } from "@lionweb/json-diff"
-import { LionWebJsonChunk, LionWebJsonNode } from "@lionweb/json"
-import { LionWebJsonChunkWrapper, NodeUtils, JsonContext } from "@lionweb/json-utils"
+
 import { BulkApiContext } from "../main.js"
 import { DbChanges } from "./DbChanges.js"
 import {
@@ -49,9 +50,9 @@ import {
 } from "./QueryNode.js"
 import { MetaPointersTracker } from "@lionweb/repository-dbadmin"
 
-function createDummyNode(): LionWebJsonNode {
+function createDummyNode(nodeId: string): LionWebJsonNode {
     return {
-        id: "",
+        id: nodeId,
         classifier: { language: "", version: "", key: "" },
         properties: [],
         containments: [],
@@ -60,6 +61,7 @@ function createDummyNode(): LionWebJsonNode {
         parent: null
     }
 }
+
 export type NodeTreeResultType = {
     id: string
     parent: string
@@ -300,16 +302,14 @@ export class LionWebQueries {
         dbCommands.addChanges(
             orphansContainedChildrenOrphans.map(oc => {
                 // Create dummy node to avoid lookup, we only need the _id_ of the node
-                const dummyNode = createDummyNode()
-                dummyNode.id = oc.id
+                const dummyNode = createDummyNode(oc.id)
                 return new NodeRemoved(new JsonContext(null, ["implicit_orphan"]), dummyNode)
             })
         )
         dbCommands.addChanges(
             removedAndNotAddedAnnotations.map(oc => {
                 // Create dummy node to avoid lookup, we only need the _id_ of the node
-                const dummyNode2: LionWebJsonNode = createDummyNode()
-                dummyNode2.id = oc.annotationId
+                const dummyNode2 = createDummyNode(oc.annotationId)
                 return new NodeRemoved(new JsonContext(null, ["implicit_orphan"]), dummyNode2)
             })
         )
@@ -484,7 +484,11 @@ export class LionWebQueries {
         dbCommands.addChanges(changes)
     }
 
-    async deletePartitions(task: LionWebTask, repositoryData: RepositoryData, idList: string[]): Promise<QueryReturnType<DeletePartitionsResponse>> {
+    async deletePartitions(
+        task: LionWebTask,
+        repositoryData: RepositoryData,
+        idList: string[]
+    ): Promise<QueryReturnType<DeletePartitionsResponse>> {
         dbLogger.info("LionWebQueries.deletePartitions: " + idList)
         // TODO combine in one query
         const partitions = await this.getNodesFromIdListIncludingChildren(task, repositoryData, idList)
