@@ -106,8 +106,8 @@ export function initSchemaWithHistory(schemaName: string): string {
         );
 
         CREATE OR REPLACE VIEW ${CONTAINMENTS_TABLE} AS
-          SELECT * FROM ${CONTAINMENTS_TABLE_HISTORY}
-            WHERE to_version = ${FOREVER};
+            SELECT * FROM ${CONTAINMENTS_TABLE_HISTORY}
+                WHERE to_version = ${FOREVER};
 
         --------------------------------------------------------------------        
         -- Dynamic subset of ${CONTAINMENTS_TABLE_HISTORY} for repoVersion
@@ -124,7 +124,7 @@ export function initSchemaWithHistory(schemaName: string): string {
                 ${CONTAINMENTS_TABLE_HISTORY}.children, 
                 ${CONTAINMENTS_TABLE_HISTORY}.node_id
             FROM ${CONTAINMENTS_TABLE_HISTORY}
-            WHERE from_version <= repoVersion AND to_version >= repoVersion;
+                WHERE from_version <= repoVersion AND to_version >= repoVersion;
         END;
         $$ LANGUAGE plpgsql;
 
@@ -158,7 +158,7 @@ export function initSchemaWithHistory(schemaName: string): string {
                 ${PROPERTIES_TABLE_HISTORY}.value, 
                 ${PROPERTIES_TABLE_HISTORY}.node_id
             FROM ${PROPERTIES_TABLE_HISTORY}
-            WHERE from_version <= repoVersion AND to_version >= repoVersion;
+                WHERE from_version <= repoVersion AND to_version >= repoVersion;
         END;
         $$ LANGUAGE plpgsql;
 
@@ -192,7 +192,7 @@ export function initSchemaWithHistory(schemaName: string): string {
                 ${REFERENCES_TABLE_HISTORY}.targets, 
                 ${REFERENCES_TABLE_HISTORY}.node_id
             FROM ${REFERENCES_TABLE_HISTORY}
-            WHERE from_version <= repoVersion AND to_version >= repoVersion;
+                WHERE from_version <= repoVersion AND to_version >= repoVersion;
         END;
         $$ LANGUAGE plpgsql;
 
@@ -279,6 +279,7 @@ export function initSchemaWithHistory(schemaName: string): string {
 
         --------------------------------------------------------------------        
         -- On insert node, just make sure the FROM_VERSION column is filled
+        -- The caller has already identified that this is a new node, no check for existence needed.
         --------------------------------------------------------------------        
         CREATE OR REPLACE FUNCTION insertNode()
             RETURNS TRIGGER
@@ -301,6 +302,7 @@ export function initSchemaWithHistory(schemaName: string): string {
 
         --------------------------------------------------------------------        
         -- On update node, just make new row and fill TO_VERSION of old row
+        -- The caller has already identified that this is an existing node, no check for existence needed.
         --------------------------------------------------------------------        
         CREATE OR REPLACE FUNCTION updateNode()
             RETURNS TRIGGER
@@ -310,7 +312,7 @@ export function initSchemaWithHistory(schemaName: string): string {
         DECLARE
             repo_version integer;
         BEGIN
-                SELECT value INTO repo_version FROM ${CURRENT_DATA} WHERE key = '${CURRENT_DATA_REPO_VERSION_KEY}';
+            SELECT value INTO repo_version FROM ${CURRENT_DATA} WHERE key = '${CURRENT_DATA_REPO_VERSION_KEY}';
             UPDATE ${NODES_TABLE_HISTORY} nh 
                 SET to_version = repo_version - 1 
             WHERE 
@@ -326,10 +328,9 @@ export function initSchemaWithHistory(schemaName: string): string {
             FOR EACH ROW 
                 EXECUTE FUNCTION updateNode();
 
-        -------------------------------------------------------------------        
+        --------------------------------------------------------------------        
         -- On delete node, just fill TO_VERSION of old row
         --------------------------------------------------------------------        
-        --        repo.version = (SELECT value FROM ${CURRENT_DATA} WHERE key = '${CURRENT_DATA_REPO_VERSION_KEY}');
         CREATE OR REPLACE FUNCTION deleteNode()
             RETURNS TRIGGER
             LANGUAGE plpgsql
@@ -355,6 +356,7 @@ export function initSchemaWithHistory(schemaName: string): string {
 
         --------------------------------------------------------------------        
         -- On insert property, just make sure the FROM_VERSION column is filled
+        -- The caller has already identified that this is a new property, no check for existence needed.
         --------------------------------------------------------------------        
         CREATE OR REPLACE FUNCTION insertProperty()
             RETURNS TRIGGER
@@ -376,6 +378,7 @@ export function initSchemaWithHistory(schemaName: string): string {
 
         --------------------------------------------------------------------        
         -- On update property, just make new row and fill TO_VERSION of old row
+        -- The caller has already identified that this is an existing property, no check for existence needed.
         --------------------------------------------------------------------        
         CREATE OR REPLACE FUNCTION updateProperty()
             RETURNS TRIGGER
@@ -407,8 +410,12 @@ export function initSchemaWithHistory(schemaName: string): string {
             AS 
         $$ DECLARE repo_version integer; 
         BEGIN 
-                SELECT value INTO repo_version FROM ${CURRENT_DATA} WHERE key = '${CURRENT_DATA_REPO_VERSION_KEY}';
-            UPDATE ${PROPERTIES_TABLE_HISTORY} SET to_version = repo_version - 1 WHERE to_version = ${FOREVER} AND node_id = OLD.node_id; RETURN NEW; END; $$;
+            SELECT value INTO repo_version FROM ${CURRENT_DATA} WHERE key = '${CURRENT_DATA_REPO_VERSION_KEY}';
+            UPDATE ${PROPERTIES_TABLE_HISTORY} SET to_version = repo_version - 1
+                WHERE to_version = ${FOREVER} AND node_id = OLD.node_id; 
+            RETURN NEW;
+        END;
+        $$;
 
         DROP TRIGGER IF EXISTS property_delete ON ${PROPERTIES_TABLE};
 
@@ -419,6 +426,7 @@ export function initSchemaWithHistory(schemaName: string): string {
 
         --------------------------------------------------------------------        
         -- On insert containment, just make sure the FROM_VERSION column is filled
+        -- The caller has already identified that this is a new containment, no check for existence needed.
         --------------------------------------------------------------------        
         CREATE OR REPLACE FUNCTION insertContainment()
             RETURNS TRIGGER
@@ -426,7 +434,8 @@ export function initSchemaWithHistory(schemaName: string): string {
             AS 
         $$ DECLARE repo_version integer; BEGIN 
             SELECT value INTO repo_version FROM ${CURRENT_DATA} WHERE key = '${CURRENT_DATA_REPO_VERSION_KEY}';
-            INSERT INTO ${CONTAINMENTS_TABLE_HISTORY} VALUES ( repo_version, ${FOREVER}, NEW.containment, NEW.children, NEW.node_id ); 
+            INSERT INTO ${CONTAINMENTS_TABLE_HISTORY} 
+                VALUES ( repo_version, ${FOREVER}, NEW.containment, NEW.children, NEW.node_id ); 
             RETURN NEW;
          END;
          $$;
@@ -438,6 +447,7 @@ export function initSchemaWithHistory(schemaName: string): string {
 
         --------------------------------------------------------------------        
         -- On update containment, just make new row and fill TO_VERSION of old row
+        -- The caller has already identified that this is an existing containment, no check for existence needed.
         --------------------------------------------------------------------        
         CREATE OR REPLACE FUNCTION updateContainment()
             RETURNS TRIGGER
@@ -448,11 +458,11 @@ export function initSchemaWithHistory(schemaName: string): string {
             repo_version integer;
         BEGIN 
                 SELECT value INTO repo_version FROM ${CURRENT_DATA} WHERE key = '${CURRENT_DATA_REPO_VERSION_KEY}';
-            UPDATE ${CONTAINMENTS_TABLE_HISTORY} nh 
-                SET to_version = repo_version - 1 
-                WHERE to_version = ${FOREVER} AND containment = NEW.containment AND node_id = NEW.node_id; 
+                UPDATE ${CONTAINMENTS_TABLE_HISTORY} nh 
+                    SET to_version = repo_version - 1 
+                    WHERE to_version = ${FOREVER} AND containment = NEW.containment AND node_id = NEW.node_id; 
                 INSERT INTO ${CONTAINMENTS_TABLE_HISTORY} 
-                VALUES ( repo_version, ${FOREVER}, NEW.containment, NEW.children, NEW.node_id ); 
+                    VALUES ( repo_version, ${FOREVER}, NEW.containment, NEW.children, NEW.node_id ); 
             RETURN NEW; 
         END; 
         $$;
@@ -475,7 +485,10 @@ export function initSchemaWithHistory(schemaName: string): string {
             SELECT value INTO repo_version FROM ${CURRENT_DATA} WHERE key = '${CURRENT_DATA_REPO_VERSION_KEY}';
             UPDATE ${CONTAINMENTS_TABLE_HISTORY} 
                 SET to_version = repo_version - 1 
-            WHERE to_version = ${FOREVER} AND node_id = OLD.node_id; RETURN NEW; END; $$;
+                WHERE to_version = ${FOREVER} AND node_id = OLD.node_id; 
+            RETURN NEW;
+        END; 
+        $$;
 
         DROP TRIGGER IF EXISTS containment_delete ON ${CONTAINMENTS_TABLE};
 
@@ -486,6 +499,7 @@ export function initSchemaWithHistory(schemaName: string): string {
 
         --------------------------------------------------------------------        
         -- On insert reference, just make sure the FROM_VERSION column is filled
+        -- The caller has already identified that this is a new reference, no check for existence needed.
         --------------------------------------------------------------------        
         CREATE OR REPLACE FUNCTION insertReference()
             RETURNS TRIGGER
@@ -509,6 +523,7 @@ export function initSchemaWithHistory(schemaName: string): string {
 
         --------------------------------------------------------------------        
         -- On update reference, just make new row and fill TO_VERSION of old row
+        -- The caller has already identified that this is an existing reference, no check for existence needed.
         --------------------------------------------------------------------        
         CREATE OR REPLACE FUNCTION updateReference()
             RETURNS TRIGGER
