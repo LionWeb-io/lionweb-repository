@@ -2,7 +2,7 @@ import { LionwebResponse } from "@lionweb/repository-shared"
 import { ClientResponse, RepositoryClient } from "./RepositoryClient.js"
 import {BulkImport} from "@lionweb/repository-additionalapi";
 
-enum TransferFormat {
+export enum TransferFormat {
     JSON= 'json',
     PROTOBUF = 'protobuf',
     FLATBUFFERS = 'flatbuffers'
