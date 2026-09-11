@@ -30,10 +30,10 @@
         "lint": "eslint src"
     },
     "dependencies": {
-        "@lionweb/json": "0.10.0-alpha.11",
-        "@lionweb/json-diff": "0.10.0-alpha.11",
-        "@lionweb/json-utils": "0.10.0-alpha.11",
-        "@lionweb/validation": "0.10.0-alpha.11",
+        "@lionweb/json": "0.10.0-beta.8",
+        "@lionweb/json-diff": "0.10.0-beta.8",
+        "@lionweb/json-utils": "0.10.0-beta.8",
+        "@lionweb/validation": "0.10.0-beta.8",
         "@lionweb/server-shared": "0.4.2-beta.3",
         "@lionweb/server-logging": "0.4.2-beta.3",
         "@lionweb/server-database": "0.4.2-beta.3",

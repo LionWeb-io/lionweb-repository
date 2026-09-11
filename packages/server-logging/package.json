@@ -28,7 +28,7 @@
     "dependencies": {
         "@types/node": "24.13.3",
         "@lionweb/server-shared": "0.4.2-beta.3",
-        "@lionweb/json": "0.10.0-alpha.11",
+        "@lionweb/json": "0.10.0-beta.8",
         "@logtape/file": "2.0.5",
         "@logtape/logtape": "2.0.5",
         "@logtape/pretty": "2.0.5",

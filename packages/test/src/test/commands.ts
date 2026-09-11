@@ -39,10 +39,8 @@ import {
     InformAboutChangingPartitionsRequest,
     SubscribeToChangingPartitionsRequest,
     CompositeCommand,
-    MoveChildFromOtherContainmentCommand,
     MoveChildFromOtherContainmentInSameParentCommand,
     ReplaceChildCommand,
-    MoveAndReplaceChildFromOtherContainmentCommand,
     MoveAndReplaceChildFromOtherContainmentInSameParentCommand,
     AddAnnotationCommand,
     DeleteAnnotationCommand,
@@ -53,9 +51,11 @@ import {
     MoveAnnotationInSameParentCommand,
     MoveAndReplaceAnnotationFromOtherParentCommand,
     MoveAndReplaceAnnotationInSameParentCommand,
-    MoveAndReplaceChildInSameContainmentCommand,
-    MoveChildInSameContainmentCommand,
-    ContinuedCommand
+    ContinuedCommand,
+    MoveChildFromContainmentInOtherParentCommand,
+    MoveChildInSameContainmentInSameParentCommand,
+    MoveAndReplaceChildInSameContainmentInSameParentCommand,
+    MoveAndReplaceChildFromContainmentInOtherParentCommand
 } from "@lionweb/server-delta-shared"
 import { waitFor } from "./delta/helpers.js"
 import {} from "./utils.js"
@@ -346,9 +346,9 @@ export class Commands {
         return client.sendCommand(command) as DeletePartitionCommand
     }
 
-    moveChildFromOtherContainment = (client: DeltaClient, params: Partial<MoveChildFromOtherContainmentCommand>): DeltaCommand => {
-        const command: MoveChildFromOtherContainmentCommand = {
-            messageKind: "MoveChildFromOtherContainment",
+    MoveChildFromContainmentInOtherParent = (client: DeltaClient, params: Partial<MoveChildFromContainmentInOtherParentCommand>): DeltaCommand => {
+        const command: MoveChildFromContainmentInOtherParentCommand = {
+            messageKind: "MoveChildFromContainmentInOtherParent",
             commandId: `command-id-${queryId++}`,
             movedChild: params.movedChild,
             oldContainment: params.oldContainment,
@@ -359,7 +359,7 @@ export class Commands {
             newParent: params.newParent,
             additionalInfos: [{ kind: "info", message: "a message", data: {} }]
         }
-        return client.sendCommand(command) as MoveChildFromOtherContainmentCommand
+        return client.sendCommand(command) as MoveChildFromContainmentInOtherParentCommand
     }
 
     moveChildFromOtherContainmentInSameParent = (
@@ -380,15 +380,15 @@ export class Commands {
         return client.sendCommand(command) as MoveChildFromOtherContainmentInSameParentCommand
     }
 
-    moveChildInSameContainment = (
+    MoveChildInSameContainmentInSameParent = (
         client: DeltaClient,
         containment: LionWebJsonMetaPointer,
         movedChild: LionWebJsonNode,
         oldIndex: number,
         indexOffset: number
-    ): MoveChildInSameContainmentCommand => {
-        const command: MoveChildInSameContainmentCommand = {
-            messageKind: "MoveChildInSameContainment",
+    ): MoveChildInSameContainmentInSameParentCommand => {
+        const command: MoveChildInSameContainmentInSameParentCommand = {
+            messageKind: "MoveChildInSameContainmentInSameParent",
             commandId: `command-id-${queryId++}`,
             parent: movedChild.parent,
             movedChild: movedChild.id,
@@ -397,19 +397,19 @@ export class Commands {
             indexOffset: indexOffset,
             additionalInfos: []
         }
-        return client.sendCommand(command) as MoveChildInSameContainmentCommand
+        return client.sendCommand(command) as MoveChildInSameContainmentInSameParentCommand
     }
     
-    moveAndReplaceChildInSameContainment = (
+    moveAndReplaceChildInSameContainmentInSameParent = (
         client: DeltaClient,
         containment: LionWebJsonMetaPointer,
         movedChild: LionWebJsonNode,
         oldIndex: number,
         offset: number,
         replaceChild: LionWebId
-    ): MoveAndReplaceChildInSameContainmentCommand => {
-    const command: MoveAndReplaceChildInSameContainmentCommand = {
-        messageKind: "MoveAndReplaceChildInSameContainment",
+    ): MoveAndReplaceChildInSameContainmentInSameParentCommand => {
+    const command: MoveAndReplaceChildInSameContainmentInSameParentCommand = {
+        messageKind: "MoveAndReplaceChildInSameContainmentInSameParent",
         commandId: `command-id-${queryId++}`,
         parent: movedChild.parent,
         movedChild: movedChild.id,
@@ -419,7 +419,7 @@ export class Commands {
         replacedChild: replaceChild,
         additionalInfos: []
     }
-    return client.sendCommand(command) as MoveAndReplaceChildInSameContainmentCommand
+    return client.sendCommand(command) as MoveAndReplaceChildInSameContainmentInSameParentCommand
 }
 
     MoveAndReplaceChildInSameContainment  = (
@@ -429,9 +429,9 @@ export class Commands {
         oldIndex: number,
         offset: number,
         replacedChild: LionWebId
-    ): MoveAndReplaceChildInSameContainmentCommand => {
-        const command: MoveAndReplaceChildInSameContainmentCommand = {
-            messageKind: "MoveAndReplaceChildInSameContainment",
+    ): MoveAndReplaceChildInSameContainmentInSameParentCommand => {
+        const command: MoveAndReplaceChildInSameContainmentInSameParentCommand = {
+            messageKind: "MoveAndReplaceChildInSameContainmentInSameParent",
             commandId: `command-id-${queryId++}`,
             parent: movedChild.parent,
             movedChild: movedChild.id,
@@ -441,15 +441,15 @@ export class Commands {
             replacedChild: replacedChild,
             additionalInfos: []
         }
-        return client.sendCommand(command) as MoveAndReplaceChildInSameContainmentCommand
+        return client.sendCommand(command) as MoveAndReplaceChildInSameContainmentInSameParentCommand
     }
 
-    moveAndReplaceChildFromOtherContainment = (
+    MoveAndReplaceChildFromContainmentInOtherParent = (
         client: DeltaClient,
-        params: Partial<MoveAndReplaceChildFromOtherContainmentCommand>
+        params: Partial<MoveAndReplaceChildFromContainmentInOtherParentCommand>
     ): DeltaCommand => {
-        const command: MoveAndReplaceChildFromOtherContainmentCommand = {
-            messageKind: "MoveAndReplaceChildFromOtherContainment",
+        const command: MoveAndReplaceChildFromContainmentInOtherParentCommand = {
+            messageKind: "MoveAndReplaceChildFromContainmentInOtherParent",
             commandId: `command-id-${queryId++}`,
             movedChild: params.movedChild,
             oldParent: params.oldParent,
@@ -461,7 +461,7 @@ export class Commands {
             replacedChild: params.replacedChild,
             additionalInfos: []
         }
-        return client.sendCommand(command) as MoveAndReplaceChildFromOtherContainmentCommand
+        return client.sendCommand(command) as MoveAndReplaceChildFromContainmentInOtherParentCommand
     }
 
     moveAndReplaceChildFromOtherContainmentInSameParent = (

@@ -4,7 +4,7 @@ import { CONTAINMENT, LibraryProcedures, ProcedureBody, ProgramCommands } from "
 import { cmd, expectError, expectEvent, logProtocol } from "./test-helpers.js"
 import { client, beforeAllTests, bulkApiClient, log, afterAllTests, withoutHistoryList } from "./SharedTest.js"
 
-describe.each(withoutHistoryList)("MoveInSameContainment-$withoutHistory ", async ({ withoutHistory }) => {
+describe.each(withoutHistoryList)("MoveChildInSameContainmentInSameParent-$withoutHistory ", async ({ withoutHistory }) => {
     beforeAll(async function () {
         await beforeAllTests(withoutHistory)
     })
@@ -18,7 +18,7 @@ describe.each(withoutHistoryList)("MoveInSameContainment-$withoutHistory ", asyn
         client.receivedMessageHistory = []
     })
 
-    test("MoveChildInSameContainment", async () => {
+    test("MoveChildInSameContainmentInSameParent", async () => {
         resetModels()
 
         const partitionP = cmd.addFullPartition(client, programNodes)
@@ -30,20 +30,20 @@ describe.each(withoutHistoryList)("MoveInSameContainment-$withoutHistory ", asyn
         const lib = LibraryModel.getNode("id-library")
         ProgramModel.addPartition(libraryNodes)
 
-        const moveErr2 = cmd.moveChildInSameContainment(client,
+        const moveErr2 = cmd.MoveChildInSameContainmentInSameParent(client,
             CONTAINMENT.ProcedureParameter,  ProgramModel.getNode("id-p1-param1"), 1, -1)
         await expectError(client, moveErr2, "indexEntryMismatch")
-        // const moveErr3 = cmd.moveChildInSameContainment(client,
+        // const moveErr3 = cmd.MoveChildInSameContainmentInSameParent(client,
         // Validate old and new index are different.
         //     CONTAINMENT.ProcedureParameter,  ProgramModel.getNode("id-p1-param1"), 0, 0)
         // await expectError(client, moveErr3, "indexEntryMismatch")
-        const moveErr4 = cmd.moveChildInSameContainment(client,
+        const moveErr4 = cmd.MoveChildInSameContainmentInSameParent(client,
             CONTAINMENT.ProcedureParameter,  ProgramModel.getNode("id-p1-param1"), 10, 10)
         await expectError(client, moveErr4, "indexEntryMismatch")
 
-        const move = cmd.moveChildInSameContainment(client,
+        const move = cmd.MoveChildInSameContainmentInSameParent(client,
             CONTAINMENT.ProcedureParameter,  ProgramModel.getNode("id-p1-param2"), 1, -1)
-        await expectEvent(client, move, "ChildMovedInSameContainment")
+        await expectEvent(client, move, "ChildMovedInSameContainmentInSameParent")
         ProgramModel.applyDelta(move)
         await logProtocol(client, bulkApiClient, ["id-program", "id-library"], log, ProgramModel)
     })

@@ -39,10 +39,10 @@ export function isMonitorMessage(object: object): object is MonitorMessage {
 export type ErrorDelta = ErrorEvent | ErrorResponse
 
 export function isErrorEvent(object: unknown): object is ErrorEvent {
-    return (object as ErrorEvent).messageKind === "ErrorEvent"
+    return (object as ErrorEvent)?.messageKind === "ErrorEvent"
 }
 export function isErrorResponse(object: unknown): object is ErrorResponse {
-    return (object as ErrorResponse).messageKind === "ErrorResponse"
+    return (object as ErrorResponse)?.messageKind === "ErrorResponse"
 }
 
 export function isAddPartitionCommand(object: DeltaCommand): object is AddPartitionCommand {

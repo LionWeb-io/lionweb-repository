@@ -29,13 +29,12 @@ import {
     DeltaCommand,
     MoveAndReplaceAnnotationFromOtherParentCommand,
     MoveAndReplaceAnnotationInSameParentCommand,
-    MoveAndReplaceChildFromOtherContainmentCommand,
-    MoveAndReplaceChildInSameContainmentCommand,
+    MoveAndReplaceChildFromContainmentInOtherParentCommand,
+    MoveAndReplaceChildInSameContainmentInSameParentCommand,
     MoveAnnotationFromOtherParentCommand,
     MoveAnnotationInSameParentCommand,
-    MoveChildFromOtherContainmentCommand,
+    MoveChildFromContainmentInOtherParentCommand,
     MoveChildFromOtherContainmentInSameParentCommand,
-    MoveChildInSameContainmentCommand,
     ReplaceAnnotationCommand,
     ReplaceChildCommand
 } from "@lionweb/server-delta-shared"
@@ -435,8 +434,8 @@ export class LionWebModel {
                 this.replaceAnnotation(cmd.parent, cmd.newAnnotation.nodes, cmd.index)
                 break
             }
-            case "MoveAndReplaceChildFromOtherContainment": {
-                const cmd = delta as MoveAndReplaceChildFromOtherContainmentCommand
+            case "MoveAndReplaceChildFromContainmentInOtherParent": {
+                const cmd = delta as MoveAndReplaceChildFromContainmentInOtherParentCommand
                 const movedChildNode = this.getNode(cmd.movedChild)
                 // remove from old containment
                 this.getContainment(movedChildNode.parent, cmd.oldContainment).children.splice(cmd.oldIndex, 1)
@@ -454,8 +453,8 @@ export class LionWebModel {
                 this.replaceChild(cmd.parent, cmd.newContainment, [movedChildNode], cmd.newIndex)
                 break
             }
-            case "MoveAndReplaceChildInSameContainment": {
-                const cmd = delta as MoveAndReplaceChildInSameContainmentCommand
+            case "MoveAndReplaceChildInSameContainmentInSameParent": {
+                const cmd = delta as MoveAndReplaceChildInSameContainmentInSameParentCommand
                 const movedChildNode = this.getNode(cmd.movedChild)
                 // Add to new containment, do this first, otherwise the replacedNode's index may be changed.
                 this.replaceChild(cmd.parent, cmd.containment, [movedChildNode], cmd.oldIndex + cmd.indexOffset)
@@ -463,8 +462,8 @@ export class LionWebModel {
                 this.getContainment(cmd.parent, cmd.containment).children.splice(cmd.oldIndex, 1)
                 break
             }
-            case "MoveChildFromOtherContainment": {
-                const cmd = delta as MoveChildFromOtherContainmentCommand
+            case "MoveChildFromContainmentInOtherParent": {
+                const cmd = delta as MoveChildFromContainmentInOtherParentCommand
                 const movedChildNode = this.getNode(cmd.movedChild)
                 // remove from old containment, don't delete the child nodes
                 this.getContainment(movedChildNode.parent, cmd.oldContainment).children.splice(cmd.oldIndex, 1)
@@ -483,8 +482,8 @@ export class LionWebModel {
                 this.addChild(cmd.parent, cmd.newContainment, [movedChildNode], index)
                 break
             }
-            case "MoveChildInSameContainment": {
-                const cmd = delta as MoveChildInSameContainmentCommand
+            case "MoveChildInSameContainmentInSameParent": {
+                const cmd = delta as MoveAndReplaceChildInSameContainmentInSameParentCommand
                 this.getContainment(cmd.parent, cmd.containment).children.splice(cmd.oldIndex, 1)
                 this.getContainment(cmd.parent, cmd.containment).children.splice(cmd.oldIndex + cmd.indexOffset, 0, cmd.movedChild)
                 break

@@ -17,24 +17,24 @@ import {
     AddChildCommand,
     ChildAddedEvent,
     ChildDeletedEvent,
-    ChildMovedAndReplacedFromOtherContainmentEvent,
     ChildMovedAndReplacedFromOtherContainmentInSameParentEvent,
-    ChildMovedFromOtherContainmentEvent,
     ChildMovedFromOtherContainmentInSameParentEvent,
     ChildReplacedEvent,
     DeleteChildCommand,
     DeltaEvent,
     ErrorEvent,
-    MoveAndReplaceChildFromOtherContainmentCommand,
     MoveAndReplaceChildFromOtherContainmentInSameParentCommand,
-    MoveAndReplaceChildInSameContainmentCommand,
-    MoveChildFromOtherContainmentCommand,
+    MoveChildFromContainmentInOtherParentCommand,
     MoveChildFromOtherContainmentInSameParentCommand,
-    MoveChildInSameContainmentCommand,
+    MoveChildInSameContainmentInSameParentCommand,
     ReplaceChildCommand,
     type ErrorDelta,
-    ChildMovedAndReplacedInSameContainmentEvent,
-    ChildMovedInSameContainmentEvent
+    MoveAndReplaceChildFromContainmentInOtherParentCommand,
+    MoveAndReplaceChildInSameContainmentInSameParentCommand,
+    ChildMovedInSameContainmentInSameParentEvent,
+    ChildMovedAndReplacedFromContainmentInOtherParentEvent,
+    ChildMovedFromContainmentInOtherParentEvent,
+    ChildMovedAndReplacedInSameContainmentInSameParentEvent
 } from "@lionweb/server-delta-shared"
 import { deltaLogger } from "@lionweb/server-logging"
 import { DeltaContext } from "../DeltaContext.js"
@@ -214,12 +214,12 @@ const ReplaceChild = async (
 }
 
 
-const MoveChildFromOtherContainmentFunction = async (
+const MoveChildFromContainmentInOtherParentFunction = async (
     participation: Participation,
-    msg: MoveChildFromOtherContainmentCommand,
+    msg: MoveChildFromContainmentInOtherParentCommand,
     ctx: DeltaContext
 ): Promise<DeltaEvent | ErrorEvent> => {
-    deltaLogger.debug("Called MoveChildFromOtherContainment " + msg.messageKind)
+    deltaLogger.debug("Called MoveChildFromContainmentInOtherParent " + msg.messageKind)
     const result = await ctx.dbConnection.tx(async (task: LionWebTask) => {
         const nodesFromDB = await DB_retrieveFullNodesFromIdList(task, participation.repositoryData!, [
             msg.newParent, msg.movedChild, msg.oldParent
@@ -263,7 +263,7 @@ const MoveChildFromOtherContainmentFunction = async (
         const oldPartition = await DB_affectedPartition(task, oldParentNode!.id, participation)
         const newPartition = await DB_affectedPartition(task, newParentNode!.id, participation)
         return {
-            messageKind: "ChildMovedFromOtherContainment",
+            messageKind: "ChildMovedFromContainmentInOtherParent",
             newParent: newParentNode.id,
             newContainment: msg.newContainment,
             newIndex: msg.newIndex,
@@ -279,7 +279,7 @@ const MoveChildFromOtherContainmentFunction = async (
                 // TODO Make sure two infos with the same key are handled correctly
                 affectedPartitionMessage(newPartition)
             ]
-        } as ChildMovedFromOtherContainmentEvent
+        } as ChildMovedFromContainmentInOtherParentEvent
     })
     return result
 }
@@ -335,12 +335,12 @@ const MoveChildFromOtherContainmentInSameParent = async (
     return result
 }
 
-const MoveChildInSameContainment = async (
+const MoveChildInSameContainmentInSameParent = async (
     participation: Participation,
-    msg: MoveChildInSameContainmentCommand,
+    msg: MoveChildInSameContainmentInSameParentCommand,
     ctx: DeltaContext
 ): Promise<DeltaEvent | ErrorEvent> => {
-    deltaLogger.debug("Called MoveChildInSameContainment " + msg.messageKind)
+    deltaLogger.debug("Called MoveChildInSameContainmentInSameParent " + msg.messageKind)
     // TODO check that offset is not 0 and resulkt within bounds
     const result = await ctx.dbConnection.tx(async (task: LionWebTask) => {
         const nodesFromDB = await DB_retrieveFullNodesFromIdList(task, participation.repositoryData!, [
@@ -372,7 +372,7 @@ const MoveChildInSameContainment = async (
         const partition = await DB_affectedPartition(task, parentNode.id, participation)
 
         return {
-            messageKind: "ChildMovedInSameContainment",
+            messageKind: "ChildMovedInSameContainmentInSameParent",
             parent: msg.parent,
             movedChild: msg.movedChild,
             containment: msg.containment,
@@ -381,17 +381,17 @@ const MoveChildInSameContainment = async (
             originCommands: [{ commandId: msg.commandId, participationId: participation.participationId }],
             sequenceNumber: 0, // dummy, will be changed for each participation before sending
             additionalInfos: [affectedNodeMessage(msg.parent), affectedPartitionMessage(partition)]
-        } as ChildMovedInSameContainmentEvent
+        } as ChildMovedInSameContainmentInSameParentEvent
     })
     return result
 }
 
-const MoveAndReplaceChildFromOtherContainment = async (
+const MoveAndReplaceChildFromContainmentInOtherParent = async (
     participation: Participation,
-    msg: MoveAndReplaceChildFromOtherContainmentCommand,
+    msg: MoveAndReplaceChildFromContainmentInOtherParentCommand,
     ctx: DeltaContext
 ): Promise<DeltaEvent | ErrorEvent> => {
-    deltaLogger.debug("Called MoveAndReplaceChildFromOtherContainment " + msg.messageKind)
+    deltaLogger.debug("Called MoveAndReplaceChildFromContainmentInOtherParent " + msg.messageKind)
     const result = await ctx.dbConnection.tx(async (task: LionWebTask) => {
         const nodesFromDB = await DB_retrieveFullNodesFromIdList(task, participation.repositoryData!, [
             msg.replacedChild,
@@ -442,7 +442,7 @@ const MoveAndReplaceChildFromOtherContainment = async (
         const partition = await DB_affectedPartition(task, oldParentNode.id, participation)
 
         return {
-            messageKind: "ChildMovedAndReplacedFromOtherContainment",
+            messageKind: "ChildMovedAndReplacedFromContainmentInOtherParent",
             movedChild: msg.movedChild,
             newParent: msg.newParent,
             newContainment: msg.newContainment,
@@ -455,7 +455,7 @@ const MoveAndReplaceChildFromOtherContainment = async (
             originCommands: [{ commandId: msg.commandId, participationId: participation.participationId }],
             sequenceNumber: 0, // dummy, will be changed for each participation before sending
             additionalInfos: [affectedNodeMessage(msg.oldParent), affectedPartitionMessage(partition)]
-        } as ChildMovedAndReplacedFromOtherContainmentEvent
+        } as ChildMovedAndReplacedFromContainmentInOtherParentEvent
     })
     return result
 }
@@ -530,12 +530,12 @@ const MoveAndReplaceChildFromOtherContainmentInSameParent = async (
     return result
 }
 
-const MoveAndReplaceChildInSameContainment = async (
+const MoveAndReplaceChildInSameContainmentInSameParent = async (
     participation: Participation,
-    msg: MoveAndReplaceChildInSameContainmentCommand,
+    msg: MoveAndReplaceChildInSameContainmentInSameParentCommand,
     ctx: DeltaContext
 ): Promise<DeltaEvent | ErrorEvent> => {
-    deltaLogger.debug("Called MoveAndReplaceChildInSameContainment " + msg.messageKind)
+    deltaLogger.debug("Called MoveAndReplaceChildInSameContainmentInSameParent " + msg.messageKind)
     const result = await ctx.dbConnection.tx(async (task: LionWebTask) => {
         const nodesFromDB = await DB_retrieveFullNodesFromIdList(task, participation.repositoryData!, [
             msg.replacedChild,
@@ -572,7 +572,7 @@ const MoveAndReplaceChildInSameContainment = async (
         const partition = await DB_affectedPartition(task, parentNode.id, participation)
 
         return {
-            messageKind: "ChildMovedAndReplacedInSameContainment",
+            messageKind: "ChildMovedAndReplacedInSameContainmentInSameParent",
             parent: msg.parent,
             movedChild: msg.movedChild,
             containment: msg.containment,
@@ -583,7 +583,7 @@ const MoveAndReplaceChildInSameContainment = async (
             originCommands: [{ commandId: msg.commandId, participationId: participation.participationId }],
             sequenceNumber: 0, // dummy, will be changed for each participation before sending
             additionalInfos: [affectedNodeMessage(msg.parent), affectedPartitionMessage(partition)]
-        } as ChildMovedAndReplacedInSameContainmentEvent
+        } as ChildMovedAndReplacedInSameContainmentInSameParentEvent
     })
     return result
 }
@@ -605,14 +605,14 @@ export const childFunctions: DeltaFunction[] = [
         processor: ReplaceChild
     },
     {
-        messageKind: "MoveChildFromOtherContainment",
+        messageKind: "MoveChildFromContainmentInOtherParent",
         // @ts-expect-error TS2332
-        processor: MoveChildFromOtherContainmentFunction
+        processor: MoveChildFromContainmentInOtherParentFunction
     },
     {
-        messageKind: "MoveChildInSameContainment",
+        messageKind: "MoveChildInSameContainmentInSameParent",
         // @ts-expect-error TS2332
-        processor: MoveChildInSameContainment
+        processor: MoveChildInSameContainmentInSameParent
     },
     {
         messageKind: "MoveChildFromOtherContainmentInSameParent",
@@ -620,9 +620,9 @@ export const childFunctions: DeltaFunction[] = [
         processor: MoveChildFromOtherContainmentInSameParent
     },
     {
-        messageKind: "MoveAndReplaceChildFromOtherContainment",
+        messageKind: "MoveAndReplaceChildFromContainmentInOtherParent",
         // @ts-expect-error TS2332
-        processor: MoveAndReplaceChildFromOtherContainment
+        processor: MoveAndReplaceChildFromContainmentInOtherParent
     },
     {
         messageKind: "MoveAndReplaceChildFromOtherContainmentInSameParent",
@@ -630,8 +630,8 @@ export const childFunctions: DeltaFunction[] = [
         processor: MoveAndReplaceChildFromOtherContainmentInSameParent
     },
     {
-        messageKind: "MoveAndReplaceChildInSameContainment",
+        messageKind: "MoveAndReplaceChildInSameContainmentInSameParent",
         // @ts-expect-error TS2332
-        processor: MoveAndReplaceChildInSameContainment
+        processor: MoveAndReplaceChildInSameContainmentInSameParent
     }
 ]

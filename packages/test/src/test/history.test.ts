@@ -98,7 +98,7 @@ describe("Repository tests", () => {
             }
 
             const client = new RepositoryClient({ clientId: "TestHistoryClient", repository: "history-partition-crud" })
-            client.dbAdmin.createRepository("history-partition-crud", true, "2023.1")
+            await client.dbAdmin.createRepository("history-partition-crud", true, "2023.1")
             const v1 = getRepoVersion(
                 await client.bulk.createPartitions({
                     languages: [
@@ -111,6 +111,7 @@ describe("Repository tests", () => {
                     serializationFormatVersion: "2023.1"
                 })
             )
+            
             const v2 = getRepoVersion(await client.bulk.deletePartitions(["id-abc"]))
             const v3 = getRepoVersion(await client.bulk.deletePartitions(["id-bcd"]))
             const v4 = getRepoVersion(await client.bulk.deletePartitions(["id-cde"]))

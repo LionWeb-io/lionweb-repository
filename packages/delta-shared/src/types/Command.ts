@@ -18,12 +18,12 @@ export const DeltaCommandMessageKinds = [
     "AddChild",
     "DeleteChild",
     "ReplaceChild",
-    "MoveChildFromOtherContainment",
+    "MoveChildFromContainmentInOtherParent",
     "MoveChildFromOtherContainmentInSameParent",
-    "MoveChildInSameContainment",
-    "MoveAndReplaceChildFromOtherContainment",
+    "MoveChildInSameContainmentInSameParent",
+    "MoveAndReplaceChildFromContainmentInOtherParent",
     "MoveAndReplaceChildFromOtherContainmentInSameParent",
-    "MoveAndReplaceChildInSameContainment",
+    "MoveAndReplaceChildInSameContainmentInSameParent",
     "AddAnnotation",
     "DeleteAnnotation",
     "ReplaceAnnotation",
@@ -140,9 +140,9 @@ export type ReplaceChildCommand = DeltaCommand & {
 };
 
 /**
- *  @see https://lionWeb.io/specification/delta/delta-api.html#cmd-MoveChildFromOtherContainment
+ *  @see https://lionWeb.io/specification/delta/delta-api.html#cmd-MoveChildFromContainmentInOtherParent
  */
-export type MoveChildFromOtherContainmentCommand = DeltaCommand & {
+export type MoveChildFromContainmentInOtherParentCommand = DeltaCommand & {
     newParent: LionWebId;
     newContainment: LionWebJsonMetaPointer;
     newIndex: Number;
@@ -150,7 +150,7 @@ export type MoveChildFromOtherContainmentCommand = DeltaCommand & {
     oldContainment: LionWebJsonMetaPointer;
     oldIndex: Number;
     movedChild: LionWebId;
-    messageKind: "MoveChildFromOtherContainment";
+    messageKind: "MoveChildFromContainmentInOtherParent";
 };
 
 /**
@@ -167,21 +167,21 @@ export type MoveChildFromOtherContainmentInSameParentCommand = DeltaCommand & {
 };
 
 /**
- *  @see https://lionWeb.io/specification/delta/delta-api.html#cmd-MoveChildInSameContainment
+ *  @see https://lionWeb.io/specification/delta/delta-api.html#cmd-MoveChildInSameContainmentInSameParent
  */
-export type MoveChildInSameContainmentCommand = DeltaCommand & {
+export type MoveChildInSameContainmentInSameParentCommand = DeltaCommand & {
     parent: LionWebId;
     containment: LionWebJsonMetaPointer;
     oldIndex: Number;
     indexOffset: Number;
     movedChild: LionWebId;
-    messageKind: "MoveChildInSameContainment";
+    messageKind: "MoveChildInSameContainmentInSameParent";
 };
 
 /**
- *  @see https://lionWeb.io/specification/delta/delta-api.html#cmd-MoveAndReplaceChildFromOtherContainment
+ *  @see https://lionWeb.io/specification/delta/delta-api.html#cmd-MoveAndReplaceChildFromContainmentInOtherParent
  */
-export type MoveAndReplaceChildFromOtherContainmentCommand = DeltaCommand & {
+export type MoveAndReplaceChildFromContainmentInOtherParentCommand = DeltaCommand & {
     newParent: LionWebId;
     newContainment: LionWebJsonMetaPointer;
     newIndex: Number;
@@ -190,7 +190,7 @@ export type MoveAndReplaceChildFromOtherContainmentCommand = DeltaCommand & {
     oldIndex: Number;
     replacedChild: LionWebId;
     movedChild: LionWebId;
-    messageKind: "MoveAndReplaceChildFromOtherContainment";
+    messageKind: "MoveAndReplaceChildFromContainmentInOtherParent";
 };
 
 /**
@@ -208,16 +208,16 @@ export type MoveAndReplaceChildFromOtherContainmentInSameParentCommand = DeltaCo
 };
 
 /**
- *  @see https://lionWeb.io/specification/delta/delta-api.html#cmd-MoveAndReplaceChildInSameContainment
+ *  @see https://lionWeb.io/specification/delta/delta-api.html#cmd-MoveAndReplaceChildInSameContainmentInSameParent
  */
-export type MoveAndReplaceChildInSameContainmentCommand = DeltaCommand & {
+export type MoveAndReplaceChildInSameContainmentInSameParentCommand = DeltaCommand & {
     parent: LionWebId;
     containment: LionWebJsonMetaPointer;
     oldIndex: Number;
     indexOffset: Number;
     replacedChild: LionWebId;
     movedChild: LionWebId;
-    messageKind: "MoveAndReplaceChildInSameContainment";
+    messageKind: "MoveAndReplaceChildInSameContainmentInSameParent";
 };
 
 /**

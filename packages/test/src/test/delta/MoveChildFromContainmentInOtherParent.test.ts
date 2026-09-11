@@ -9,7 +9,7 @@ import { ProcedureBody, ProgramCommands } from "../models/keys.js"
 import { CoverageMap, cmd, expectError, expectEvent, expectResponse, logProtocol } from "./test-helpers.js"
 import { client, checkClient, logoModel, beforeAllTests, bulkApiClient, log, afterAllTests, withoutHistoryList } from "./SharedTest.js"
 
-describe.each(withoutHistoryList)("MoveChildFromOtherContainment-$withoutHistory", async ({ withoutHistory }) => {
+describe.each(withoutHistoryList)("MoveChildFromContainmentInOtherParent-$withoutHistory", async ({ withoutHistory }) => {
     beforeAll(async function () {
         await beforeAllTests(withoutHistory)
     })
@@ -23,7 +23,7 @@ describe.each(withoutHistoryList)("MoveChildFromOtherContainment-$withoutHistory
         client.receivedMessageHistory = []
     })
 
-    test("MoveChildFromOtherContainment", async () => {
+    test("MoveChildFromContainmentInOtherParent", async () => {
         resetModels()
         const partitionP = cmd.addFullPartition(client, ProgramModel.nodes())
         const partitionL = cmd.addFullPartition(client, LibraryModel.nodes())
@@ -34,7 +34,7 @@ describe.each(withoutHistoryList)("MoveChildFromOtherContainment-$withoutHistory
 
         console.log(`MY ProgramModel ${ProgramModel.asString()}`)
 
-        const moveErr1 = cmd.moveChildFromOtherContainment(client, {
+        const moveErr1 = cmd.MoveChildFromContainmentInOtherParent(client, {
             movedChild: "id-never", // incorrect
             oldParent: ifC.parent,
             oldContainment: ProgramCommands,
@@ -44,7 +44,7 @@ describe.each(withoutHistoryList)("MoveChildFromOtherContainment-$withoutHistory
             newContainment: ProcedureBody,
         })
         await expectError(client, moveErr1, "unknownNode")
-        const moveErr2 = cmd.moveChildFromOtherContainment(client, {
+        const moveErr2 = cmd.MoveChildFromContainmentInOtherParent(client, {
             movedChild: "id-if",
             oldParent: "id-library", // incorrect
             oldContainment: ProgramCommands,
@@ -54,7 +54,7 @@ describe.each(withoutHistoryList)("MoveChildFromOtherContainment-$withoutHistory
             newContainment: ProcedureBody,
         })
         await expectError(client, moveErr2, "indexEntryMismatch")
-        const moveErr3 = cmd.moveChildFromOtherContainment(client, {
+        const moveErr3 = cmd.MoveChildFromContainmentInOtherParent(client, {
             movedChild: "id-if",
             oldParent: ifC.parent,
             oldContainment: ProgramCommands,
@@ -64,7 +64,7 @@ describe.each(withoutHistoryList)("MoveChildFromOtherContainment-$withoutHistory
             newContainment: ProcedureBody,
         })
         await expectError(client, moveErr3, "indexEntryMismatch")
-        const moveErr4 = cmd.moveChildFromOtherContainment(client, {
+        const moveErr4 = cmd.MoveChildFromContainmentInOtherParent(client, {
             movedChild: "id-if",
             oldParent: ifC.parent,
             oldContainment: ProgramCommands,
@@ -74,7 +74,7 @@ describe.each(withoutHistoryList)("MoveChildFromOtherContainment-$withoutHistory
             newContainment: ProcedureBody,
         })
         await expectError(client, moveErr4, "unknownIndex")
-        const moveErr5 = cmd.moveChildFromOtherContainment(client, {
+        const moveErr5 = cmd.MoveChildFromContainmentInOtherParent(client, {
             movedChild: "id-if",
             oldParent: ifC.parent,
             oldContainment: ProgramCommands,
@@ -84,7 +84,7 @@ describe.each(withoutHistoryList)("MoveChildFromOtherContainment-$withoutHistory
             newContainment: ProcedureBody,
         })
         await expectError(client, moveErr5, "unknownNode")
-        const moveErr6 = cmd.moveChildFromOtherContainment(client, {
+        const moveErr6 = cmd.MoveChildFromContainmentInOtherParent(client, {
             movedChild: "id-if",
             oldParent: ifC.parent,
             oldContainment: ProgramCommands,
@@ -94,7 +94,7 @@ describe.each(withoutHistoryList)("MoveChildFromOtherContainment-$withoutHistory
             newContainment: ProgramCommands, // incorrect
         })
         await expectError(client, moveErr6, "identicalContainment")
-        const move = cmd.moveChildFromOtherContainment(client, {
+        const move = cmd.MoveChildFromContainmentInOtherParent(client, {
             movedChild: "id-if",
             oldParent: ifC.parent,
             oldContainment: ProgramCommands,
@@ -104,7 +104,7 @@ describe.each(withoutHistoryList)("MoveChildFromOtherContainment-$withoutHistory
             newContainment: ProcedureBody,
         })
         // await expectError(client, move, "queryError")
-        await expectEvent(client, move, "ChildMovedFromOtherContainment")
+        await expectEvent(client, move, "ChildMovedFromContainmentInOtherParent")
         ProgramModel.applyDelta(move)
         await logProtocol(client, bulkApiClient, ["id-program", "id-library"], log, ProgramModel)
     })

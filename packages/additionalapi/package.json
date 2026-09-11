@@ -31,7 +31,7 @@
         "chai": "4.3.10"
     },
     "dependencies": {
-        "@lionweb/json": "0.10.0-alpha.11",
+        "@lionweb/json": "0.10.0-beta.8",
         "@lionweb/server-common": "0.4.2-beta.3",
         "@lionweb/server-database": "0.4.2-beta.3",
         "@lionweb/server-dbadmin": "0.4.2-beta.3",

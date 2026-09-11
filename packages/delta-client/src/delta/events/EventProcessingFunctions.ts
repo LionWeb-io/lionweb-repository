@@ -8,12 +8,12 @@ import {
     AnnotationReplacedEvent,
     ChildAddedEvent,
     ChildDeletedEvent,
-    ChildMovedAndReplacedFromOtherContainmentEvent,
+    ChildMovedAndReplacedFromContainmentInOtherParentEvent,
     ChildMovedAndReplacedFromOtherContainmentInSameParentEvent,
-    ChildMovedAndReplacedInSameContainmentEvent,
-    ChildMovedFromOtherContainmentEvent,
+    ChildMovedAndReplacedInSameContainmentInSameParentEvent,
+    ChildMovedFromContainmentInOtherParentEvent,
     ChildMovedFromOtherContainmentInSameParentEvent,
-    ChildMovedInSameContainmentEvent,
+    ChildMovedInSameContainmentInSameParentEvent,
     ChildReplacedEvent,
     ClassifierChangedEvent,
     ErrorEvent,
@@ -65,28 +65,28 @@ const ChildReplacedFunction = (msg: ChildReplacedEvent): void => {
         console.log("Called ChildReplacedFunction " + msg.messageKind)
     }
 
-const ChildMovedFromOtherContainmentFunction = (msg: ChildMovedFromOtherContainmentEvent): void => {
-        console.log("Called ChildMovedFromOtherContainmentFunction " + msg.messageKind)
+const ChildMovedFromContainmentInOtherParentFunction = (msg: ChildMovedFromContainmentInOtherParentEvent): void => {
+        console.log("Called ChildMovedFromContainmentInOtherParentFunction " + msg.messageKind)
     }
 
 const ChildMovedFromOtherContainmentInSameParentFunction = (msg: ChildMovedFromOtherContainmentInSameParentEvent): void => {
         console.log("Called ChildMovedFromOtherContainmentInSameParentFunction " + msg.messageKind)
     }
 
-const ChildMovedInSameContainmentFunction = (msg: ChildMovedInSameContainmentEvent): void => {
-        console.log("Called ChildMovedInSameContainmentFunction " + msg.messageKind)
+const ChildMovedInSameContainmentInSameParentFunction = (msg: ChildMovedInSameContainmentInSameParentEvent): void => {
+        console.log("Called ChildMovedInSameContainmentInSameParentFunction " + msg.messageKind)
     }
 
-const ChildMovedAndReplacedFromOtherContainmentFunction = (msg: ChildMovedAndReplacedFromOtherContainmentEvent): void => {
-        console.log("Called ChildMovedAndReplacedFromOtherContainmentFunction " + msg.messageKind)
+const ChildMovedAndReplacedFromContainmentInOtherParentFunction = (msg: ChildMovedAndReplacedFromContainmentInOtherParentEvent): void => {
+        console.log("Called ChildMovedAndReplacedFromContainmentInOtherParentFunction " + msg.messageKind)
     }
 
 const ChildMovedAndReplacedFromOtherContainmentInSameParentFunction = (msg: ChildMovedAndReplacedFromOtherContainmentInSameParentEvent): void => {
         console.log("Called ChildMovedAndReplacedFromOtherContainmentInSameParentFunction " + msg.messageKind)
     }
 
-const ChildMovedAndReplacedInSameContainmentFunction = (msg: ChildMovedAndReplacedInSameContainmentEvent): void => {
-        console.log("Called ChildMovedAndReplacedInSameContainmentFunction " + msg.messageKind)
+const ChildMovedAndReplacedInSameContainmentInSameParentFunction = (msg: ChildMovedAndReplacedInSameContainmentInSameParentEvent): void => {
+        console.log("Called ChildMovedAndReplacedInSameContainmentInSameParentFunction " + msg.messageKind)
     }
 
 const AnnotationAddedFunction = (msg: AnnotationAddedEvent): void => {
@@ -179,9 +179,9 @@ export const eventFunctions: ReceivingDelta[] = [
         processor: ChildDeletedFunction
     },
     {
-        messageKind: "ChildMovedAndReplacedFromOtherContainment",
+        messageKind: "ChildMovedAndReplacedFromContainmentInOtherParent",
         // @ts-expect-error TS2322
-        processor: ChildMovedAndReplacedFromOtherContainmentFunction
+        processor: ChildMovedAndReplacedFromContainmentInOtherParentFunction
     },
     {
         messageKind: "ChildMovedAndReplacedFromOtherContainmentInSameParent",
@@ -189,14 +189,14 @@ export const eventFunctions: ReceivingDelta[] = [
         processor: ChildMovedAndReplacedFromOtherContainmentInSameParentFunction
     },
     {
-        messageKind: "ChildMovedAndReplacedInSameContainment",
+        messageKind: "ChildMovedAndReplacedInSameContainmentInSameParent",
         // @ts-expect-error TS2322
-        processor: ChildMovedAndReplacedInSameContainmentFunction
+        processor: ChildMovedAndReplacedInSameContainmentInSameParentFunction
     },
     {
-        messageKind: "ChildMovedFromOtherContainment",
+        messageKind: "ChildMovedFromContainmentInOtherParent",
         // @ts-expect-error TS2322
-        processor: ChildMovedFromOtherContainmentFunction
+        processor: ChildMovedFromContainmentInOtherParentFunction
     },
     {
         messageKind: "ChildMovedFromOtherContainmentInSameParent",
@@ -204,9 +204,9 @@ export const eventFunctions: ReceivingDelta[] = [
         processor: ChildMovedFromOtherContainmentInSameParentFunction
     },
     {
-        messageKind: "ChildMovedInSameContainment",
+        messageKind: "ChildMovedInSameContainmentInSameParent",
         // @ts-expect-error TS2322
-        processor: ChildMovedInSameContainmentFunction
+        processor: ChildMovedInSameContainmentInSameParentFunction
     },
     {
         messageKind: "ChildReplaced",

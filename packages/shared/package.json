@@ -27,7 +27,7 @@
         "republish-local": "npm run unpublish-local && npm run publish-local"
     },
     "dependencies": {
-        "@lionweb/json": "0.10.0-alpha.11",
+        "@lionweb/json": "0.10.0-beta.8",
         "protobufjs": "8.6.3",
         "source-map-support": "0.5.21"
     }

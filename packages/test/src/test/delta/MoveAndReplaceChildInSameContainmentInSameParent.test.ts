@@ -4,7 +4,7 @@ import { CONTAINMENT, LibraryProcedures, ProcedureBody, ProgramCommands } from "
 import { cmd, expectError, expectEvent, logProtocol } from "./test-helpers.js"
 import { client, beforeAllTests, bulkApiClient, log, afterAllTests, withoutHistoryList } from "./SharedTest.js"
 
-describe.each(withoutHistoryList)("MoveAndReplaceChildInSameContainment-$withoutHistory ", async ({ withoutHistory }) => {
+describe.each(withoutHistoryList)("MoveAndReplaceChildInSameContainmentInSameParent-$withoutHistory ", async ({ withoutHistory }) => {
     beforeAll(async function () {
         await beforeAllTests(withoutHistory)
     })
@@ -18,7 +18,7 @@ describe.each(withoutHistoryList)("MoveAndReplaceChildInSameContainment-$without
         client.receivedMessageHistory = []
     })
 
-    test("MoveAndReplaceChildInSameContainment-negativeOffset", async () => {
+    test("MoveAndReplaceChildInSameContainmentInSameParent-negativeOffset", async () => {
         resetModels()
 
         const partitionP = cmd.addFullPartition(client, programNodes)
@@ -30,27 +30,27 @@ describe.each(withoutHistoryList)("MoveAndReplaceChildInSameContainment-$without
         const lib = LibraryModel.getNode("id-library")
         ProgramModel.addPartition(libraryNodes)
 
-        const moveErr1 = cmd.moveAndReplaceChildInSameContainment(client,
+        const moveErr1 = cmd.moveAndReplaceChildInSameContainmentInSameParent(client,
             CONTAINMENT.ProcedureParameter,  ProgramModel.getNode("id-p1-param1"), 0, 1, "id-p1-param2-none")
         await expectError(client, moveErr1, "unknownNode")
-        const moveErr2 = cmd.moveAndReplaceChildInSameContainment(client,
+        const moveErr2 = cmd.moveAndReplaceChildInSameContainmentInSameParent(client,
             CONTAINMENT.ProcedureParameter,  ProgramModel.getNode("id-p1-param1"), 1, 1, "id-p1-param2")
         await expectError(client, moveErr2, "indexEntryMismatch")
-        const moveErr3 = cmd.moveAndReplaceChildInSameContainment(client,
+        const moveErr3 = cmd.moveAndReplaceChildInSameContainmentInSameParent(client,
             CONTAINMENT.ProcedureParameter,  ProgramModel.getNode("id-p1-param1"), 0, 0, "id-p1-param2")
         await expectError(client, moveErr3, "indexEntryMismatch")
-        const moveErr4 = cmd.moveAndReplaceChildInSameContainment(client,
+        const moveErr4 = cmd.moveAndReplaceChildInSameContainmentInSameParent(client,
             CONTAINMENT.ProcedureParameter,  ProgramModel.getNode("id-p1-param1"), 10, 20, "id-p1-param2")
         await expectError(client, moveErr4, "indexEntryMismatch")
 
-        const move = cmd.moveAndReplaceChildInSameContainment(client,
+        const move = cmd.moveAndReplaceChildInSameContainmentInSameParent(client,
             CONTAINMENT.ProcedureParameter,  ProgramModel.getNode("id-p1-param2"), 1, -1, "id-p1-param1")
-        await expectEvent(client, move, "ChildMovedAndReplacedInSameContainment")
+        await expectEvent(client, move, "ChildMovedAndReplacedInSameContainmentInSameParent")
         ProgramModel.applyDelta(move)
         await logProtocol(client, bulkApiClient, ["id-program", "id-library"], log, ProgramModel)
     })
 
-    test("MoveAndReplaceChildInSameContainment-positiveOffset", async () => {
+    test("MoveAndReplaceChildInSameContainmentInSameParent-positiveOffset", async () => {
         resetModels()
         cmd.deletePartition(client, "id-program")
         cmd.deletePartition(client, "id-library")
@@ -64,13 +64,13 @@ describe.each(withoutHistoryList)("MoveAndReplaceChildInSameContainment-$without
         const lib = LibraryModel.getNode("id-library")
         ProgramModel.addPartition(libraryNodes)
 
-        const moveErr1 = cmd.moveAndReplaceChildInSameContainment(client,
+        const moveErr1 = cmd.moveAndReplaceChildInSameContainmentInSameParent(client,
             CONTAINMENT.ProcedureParameter,  ProgramModel.getNode("id-p1-param1"), 0, 1, "id-p1-param2-none")
         await expectError(client, moveErr1, "unknownNode")
 
-        const move = cmd.moveAndReplaceChildInSameContainment(client,
+        const move = cmd.moveAndReplaceChildInSameContainmentInSameParent(client,
             CONTAINMENT.ProcedureParameter,  ProgramModel.getNode("id-p1-param1"), 0, 1, "id-p1-param2")
-        await expectEvent(client, move, "ChildMovedAndReplacedInSameContainment")
+        await expectEvent(client, move, "ChildMovedAndReplacedInSameContainmentInSameParent")
         ProgramModel.applyDelta(move)
         await logProtocol(client, bulkApiClient, ["id-program", "id-library"], log, ProgramModel)
     })

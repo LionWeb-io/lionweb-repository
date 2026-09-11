@@ -28,14 +28,14 @@
     "devDependencies": {
     },
     "dependencies": {
-        "@lionweb/json": "0.10.0-alpha.11",
-        "@lionweb/json-diff": "0.10.0-alpha.11",
-        "@lionweb/json-utils": "0.10.0-alpha.11",
+        "@lionweb/json": "0.10.0-beta.8",
+        "@lionweb/json-diff": "0.10.0-beta.8",
+        "@lionweb/json-utils": "0.10.0-beta.8",
         "@lionweb/server-database": "0.4.2-beta.3",
         "@lionweb/server-delta-shared": "0.4.2-beta.3",
         "@lionweb/server-shared": "0.4.2-beta.3",
         "@lionweb/server-logging": "0.4.2-beta.3",
-        "@lionweb/validation": "0.10.0-alpha.11",
+        "@lionweb/validation": "0.10.0-beta.8",
         "@types/express": "4.17.21",
         "express": "4.22.2",
         "json-stream-stringify": "3.1.6",

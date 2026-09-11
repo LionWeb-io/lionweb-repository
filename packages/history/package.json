@@ -27,7 +27,7 @@
         "manualtest": "node dist/test/ManualTests.js"
     },
     "dependencies": {
-        "@lionweb/json": "0.10.0-alpha.11",
+        "@lionweb/json": "0.10.0-beta.8",
         "@lionweb/server-bulkapi": "0.4.2-beta.3",
         "@lionweb/server-common": "0.4.2-beta.3",
         "@lionweb/server-database": "0.4.2-beta.3",

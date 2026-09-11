@@ -110,7 +110,7 @@ export class Participation {
     /**
      * The first available number for the next event.
      */
-    private eventSequenceNumber: number = 0
+    private eventSequenceNumber: number = 1
     /**
      * The state of this participation.
      */

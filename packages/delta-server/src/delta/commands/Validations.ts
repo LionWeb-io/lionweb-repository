@@ -410,7 +410,7 @@ export function validateHaveTheSameParents(newParentNode: LionWebJsonNode, oldPa
     if (newParentNode.id === oldParentNode.id) {
         throw newErrorDelta(
             "haveTheSameParents",
-            `Old parent ${oldParentNode.id} and new parent ${newParentNode.id} are the same, not allowed for MoveChildFromOtherContainment command`,
+            `Old parent ${oldParentNode.id} and new parent ${newParentNode.id} are the same, not allowed for MoveChildFromContainmentInOtherParent command`,
             msg,
             participation
         )
@@ -421,7 +421,7 @@ export function validateDifferentContainments(c1: LionWebJsonMetaPointer, c2: Li
     if (isEqualMetaPointer(c1, c2)) {
         throw newErrorDelta(
             "identicalContainment",
-            `Old comntainment ${JSON.stringify(c1)} and new containment ${JSON.stringify(c1)} are the same, not allowed for MoveChildFromOtherContainment command`,
+            `Old containment ${JSON.stringify(c1)} and new containment ${JSON.stringify(c1)} are the same, not allowed for MoveChildFromContainmentInOtherParent command`,
             msg,
             participation
         )
